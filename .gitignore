@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+miniprogram_npm/
+package-lock.json
+
+# Build
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# WeChat Dev Tools
+project.config.json
+project.private.config.json 
