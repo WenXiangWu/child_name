@@ -1,18 +1,63 @@
 <!--index.wxml-->
 <view class="container">
-  <!-- 顶部品牌区域 -->
+  <!-- 顶部品牌区域 - 重新设计 -->
   <view class="header-section">
-    <view class="brand-logo">
-      <image class="brand-bg" src="/images/brand-bg.png" mode="aspectFit"></image>
-      <view class="brand-text">
-        <text class="brand-name">起名宝</text>
-        <text class="brand-subtitle">官网</text>
+    <view class="brand-container">
+      <!-- 装饰性背景元素 -->
+      <view class="brand-decoration">
+        <view class="deco-circle deco-circle-1"></view>
+        <view class="deco-circle deco-circle-2"></view>
+        <view class="deco-circle deco-circle-3"></view>
       </view>
-    </view>
-    <view class="brand-slogan">
-      <view class="slogan-line"></view>
-      <text class="slogan-text">名以载道，字蕴乾坤</text>
-      <view class="slogan-line"></view>
+
+      <!-- 主品牌标识 -->
+      <view class="brand-main">
+        <view class="brand-icon-container">
+          <view class="brand-icon-bg"></view>
+          <view class="brand-icon">
+            <image class="logo-image" src="/images/logo-simple.svg" mode="aspectFit" binderror="onLogoError"></image>
+            <text class="logo-text" style="{{logoError ? 'display: block;' : 'display: none;'}}">起</text>
+          </view>
+          <view class="brand-icon-shadow"></view>
+        </view>
+
+        <view class="brand-text-container">
+          <text class="brand-name">起名宝</text>
+          <view class="brand-subtitle-container">
+            <view class="subtitle-line"></view>
+            <text class="brand-subtitle">官网</text>
+            <view class="subtitle-line"></view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 品牌理念 -->
+      <view class="brand-philosophy">
+        <view class="philosophy-ornament philosophy-ornament-left">
+          <view class="ornament-dot"></view>
+          <view class="ornament-line"></view>
+          <view class="ornament-dot"></view>
+        </view>
+        <text class="philosophy-text">名以载道，字蕴乾坤</text>
+        <view class="philosophy-ornament philosophy-ornament-right">
+          <view class="ornament-dot"></view>
+          <view class="ornament-line"></view>
+          <view class="ornament-dot"></view>
+        </view>
+      </view>
+
+      <!-- 品质标识 -->
+      <view class="quality-badges">
+        <view class="badge">
+          <text class="badge-text">专业</text>
+        </view>
+        <view class="badge">
+          <text class="badge-text">权威</text>
+        </view>
+        <view class="badge">
+          <text class="badge-text">传承</text>
+        </view>
+      </view>
     </view>
   </view>
 
@@ -20,25 +65,25 @@
   <view class="main-functions">
     <view class="function-item" bindtap="goToSnakeYear">
       <view class="function-icon snake-icon">
-        <image src="/images/snake-icon.png" mode="aspectFit"></image>
+        <text class="iconfont icon-snake"></text>
       </view>
       <text class="function-text">蛇年好名</text>
     </view>
     <view class="function-item" bindtap="goToFiveElements">
       <view class="function-icon bagua-icon">
-        <image src="/images/bagua-icon.png" mode="aspectFit"></image>
+        <text class="iconfont icon-bagua"></text>
       </view>
       <text class="function-text">五行吉名</text>
     </view>
     <view class="function-item" bindtap="goToPoetryNames">
       <view class="function-icon book-icon">
-        <image src="/images/book-icon.png" mode="aspectFit"></image>
+        <text class="iconfont icon-book"></text>
       </view>
       <text class="function-text">诗词佳名</text>
     </view>
     <view class="function-item" bindtap="goToNiceNames">
       <view class="function-icon scroll-icon">
-        <image src="/images/scroll-icon.png" mode="aspectFit"></image>
+        <text class="iconfont icon-scroll"></text>
       </view>
       <text class="function-text">好听名字</text>
     </view>
@@ -69,25 +114,25 @@
   <view class="auxiliary-functions">
     <view class="aux-function-item" bindtap="goToRadicalSearch">
       <view class="aux-function-icon">
-        <image src="/images/radical-icon.png" mode="aspectFit"></image>
+        <text class="iconfont icon-radical"></text>
       </view>
       <text class="aux-function-text">属性查字</text>
     </view>
     <view class="aux-function-item" bindtap="goToZodiacSearch">
       <view class="aux-function-icon">
-        <image src="/images/stroke-icon.png" mode="aspectFit"></image>
+        <text class="iconfont icon-stroke"></text>
       </view>
       <text class="aux-function-text">生肖查字</text>
     </view>
     <view class="aux-function-item" bindtap="goToNameMeaning">
       <view class="aux-function-icon">
-        <image src="/images/house-icon.png" mode="aspectFit"></image>
+        <text class="iconfont icon-house"></text>
       </view>
       <text class="aux-function-text">名字寓意</text>
     </view>
     <view class="aux-function-item" bindtap="goToNamePoetry">
       <view class="aux-function-icon">
-        <image src="/images/poem-icon.png" mode="aspectFit"></image>
+        <text class="iconfont icon-poem"></text>
       </view>
       <text class="aux-function-text">名字查诗</text>
     </view>
@@ -98,7 +143,10 @@
     <view class="section-content">
       <view class="dictionary-input-row">
         <input class="dictionary-input" placeholder="输入你想查询的汉字" value="{{searchChar}}" bindinput="inputSearchChar" />
-        <button class="dictionary-button" bindtap="searchCharacter">查字</button>
+        <button class="dictionary-button" bindtap="searchCharacter">
+          <text class="iconfont icon-search"></text>
+          <text>查字</text>
+        </button>
       </view>
     </view>
   </view>

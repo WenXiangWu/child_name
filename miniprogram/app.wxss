@@ -1,13 +1,51 @@
-/**app.wxss**/
-page {
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica,
-    Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei',
-    sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #333;
-  background-color: #f8f8f8;
+/* app.wxss */
+
+/* 字体图标样式 - 使用Unicode字符 */
+.iconfont {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* 图标类名 - 使用Unicode Emoji */
+.icon-home:before { content: "🏠"; }
+.icon-snake:before { content: "🐍"; }
+.icon-bagua:before { content: "☯️"; }
+.icon-book:before { content: "📚"; }
+.icon-scroll:before { content: "📜"; }
+.icon-search:before { content: "🔍"; }
+.icon-radical:before { content: "🔤"; }
+.icon-stroke:before { content: "✍️"; }
+.icon-house:before { content: "🏡"; }
+.icon-poem:before { content: "📖"; }
+.icon-user:before { content: "👤"; }
+.icon-find:before { content: "🔎"; }
+.icon-char:before { content: "🔠"; }
+.icon-poetry:before { content: "📝"; }
+.icon-my:before { content: "👨"; }
+
+/* 全局样式 */
+page {
+  background-color: #f8f9fa;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* 通用图标样式 */
+.icon {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 自定义图标大小 */
+.icon-sm { font-size: 24rpx; }
+.icon-md { font-size: 32rpx; }
+.icon-lg { font-size: 48rpx; }
+.icon-xl { font-size: 64rpx; }
 
 .container {
   display: flex;

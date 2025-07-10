@@ -4,12 +4,19 @@ const app = getApp()
 Page({
   data: {
     surname: '',
-    gender: 'male',
-    searchChar: ''
+    gender: '',
+    searchChar: '',
+    logoError: false
   },
 
   onLoad() {
     // 页面加载时的逻辑
+  },
+
+  onLogoError() {
+    this.setData({
+      logoError: true
+    });
   },
 
   // 输入姓氏
