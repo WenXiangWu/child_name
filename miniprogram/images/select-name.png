@@ -1,1 +1,6 @@
- 
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="none"/>
+  <text x="100" y="80" font-family="Arial" font-size="16" text-anchor="middle">请选择名字</text>
+  <circle cx="100" cy="120" r="30" stroke="#4a6bff" stroke-width="2" fill="none"/>
+  <path d="M85 120 L95 130 L115 110" stroke="#4a6bff" stroke-width="2" fill="none"/>
+</svg>

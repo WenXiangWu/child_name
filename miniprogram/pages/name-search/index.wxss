@@ -1,0 +1,284 @@
+.container {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding-bottom: 30rpx;
+}
+
+/* 搜索区域 */
+.search-area {
+  background-color: #fff;
+  padding: 30rpx;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #f5f7fa;
+  border-radius: 44rpx;
+  padding: 0 20rpx;
+  height: 88rpx;
+}
+
+.search-input {
+  flex: 1;
+  height: 88rpx;
+  font-size: 28rpx;
+}
+
+.search-btn {
+  width: 120rpx;
+  height: 70rpx;
+  background-color: #4a6bff;
+  border-radius: 35rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-btn text {
+  color: #fff;
+  font-size: 28rpx;
+}
+
+/* 筛选区域 */
+.filter-area {
+  background-color: #fff;
+  margin-top: 20rpx;
+  padding: 30rpx;
+}
+
+.filter-section {
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+}
+
+.tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+}
+
+.tag {
+  padding: 10rpx 30rpx;
+  background-color: #f5f7fa;
+  border-radius: 30rpx;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.tag.active {
+  background-color: #e6edff;
+  color: #4a6bff;
+  font-weight: bold;
+}
+
+.radio-group {
+  display: flex;
+  gap: 20rpx;
+}
+
+.radio {
+  flex: 1;
+  height: 80rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f7fa;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.radio.active {
+  background-color: #e6edff;
+  color: #4a6bff;
+  font-weight: bold;
+}
+
+/* 搜索结果 */
+.search-results {
+  background-color: #fff;
+  margin-top: 20rpx;
+  padding: 30rpx;
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.result-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.result-count {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx 0;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #4a6bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #999;
+}
+
+.name-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.name-item {
+  background-color: #f8f9fa;
+  border-radius: 12rpx;
+  padding: 20rpx;
+}
+
+.name-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.name-text {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.score-tag {
+  background-color: #ff6b6b;
+  color: #fff;
+  font-size: 24rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.name-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.name-gender {
+  font-size: 24rpx;
+  color: #666;
+  background-color: #f0f0f0;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  margin-right: 10rpx;
+}
+
+.name-meaning {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.name-styles {
+  display: flex;
+  gap: 10rpx;
+}
+
+.style-tag {
+  font-size: 22rpx;
+  color: #4a6bff;
+  background-color: #e6edff;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.empty-image {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 30rpx;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.empty-tips {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* 提示信息 */
+.tips {
+  background-color: #fff;
+  margin-top: 20rpx;
+  padding: 30rpx;
+}
+
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20rpx;
+}
+
+.tip-icon {
+  width: 36rpx;
+  height: 36rpx;
+  background-color: #4a6bff;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  margin-right: 20rpx;
+}
+
+.tip-text {
+  flex: 1;
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.6;
+}

@@ -1,0 +1,98 @@
+<view class="container">
+  <!-- 搜索区域 -->
+  <view class="search-area">
+    <view class="search-bar">
+      <input class="search-input" placeholder="输入名字关键词或寓意" value="{{searchKeyword}}" bindinput="inputKeyword" confirm-type="search" bindconfirm="searchNames" />
+      <view class="search-btn" bindtap="searchNames">
+        <text>搜索</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选区域 -->
+  <view class="filter-area">
+    <view class="filter-section">
+      <view class="section-title">名字风格</view>
+      <view class="tag-group">
+        <view class="tag {{selectedStyles.includes(style) ? 'active' : ''}}"
+              wx:for="{{nameStyles}}"
+              wx:for-item="style"
+              wx:key="*this"
+              bindtap="toggleStyle"
+              data-style="{{style}}">
+          {{style}}
+        </view>
+      </view>
+    </view>
+
+    <view class="filter-section">
+      <view class="section-title">性别</view>
+      <view class="radio-group">
+        <view class="radio {{selectedGender === gender ? 'active' : ''}}"
+              wx:for="{{genders}}"
+              wx:for-item="gender"
+              wx:key="*this"
+              bindtap="selectGender"
+              data-gender="{{gender}}">
+          {{gender}}
+        </view>
+      </view>
+    </view>
+
+    <view class="filter-section">
+      <view class="section-title">名字长度</view>
+      <view class="radio-group">
+        <view class="radio {{nameLength === 1 ? 'active' : ''}}" bindtap="setNameLength" data-length="1">单字</view>
+        <view class="radio {{nameLength === 2 ? 'active' : ''}}" bindtap="setNameLength" data-length="2">双字</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索结果 -->
+  <view class="search-results" wx:if="{{searchResults.length > 0 || loading}}">
+    <view class="result-header">
+      <view class="result-title">搜索结果</view>
+      <view class="result-count" wx:if="{{!loading}}">共 {{searchResults.length}} 个名字</view>
+    </view>
+
+    <view class="loading-container" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <view class="loading-text">正在搜索...</view>
+    </view>
+
+    <view class="name-list" wx:else>
+      <view class="name-item" wx:for="{{searchResults}}" wx:key="name" bindtap="viewNameDetail" data-index="{{index}}">
+        <view class="name-content">
+          <text class="name-text">{{item.name}}</text>
+          <view class="score-tag">{{item.score}}分</view>
+        </view>
+        <view class="name-info">
+          <text class="name-gender">{{item.gender}}</text>
+          <text class="name-meaning">{{item.meaning}}</text>
+        </view>
+        <view class="name-styles">
+          <view class="style-tag" wx:for="{{item.styles}}" wx:for-item="style" wx:key="*this">{{style}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && searchResults.length === 0 && hasSearched}}">
+    <image class="empty-image" src="/images/empty-search.png"></image>
+    <view class="empty-text">未找到符合条件的名字</view>
+    <view class="empty-tips">请尝试其他搜索条件</view>
+  </view>
+
+  <!-- 提示信息 -->
+  <view class="tips" wx:if="{{!hasSearched}}">
+    <view class="tip-item">
+      <view class="tip-icon">i</view>
+      <view class="tip-text">输入关键词或选择风格来搜索名字</view>
+    </view>
+    <view class="tip-item">
+      <view class="tip-icon">i</view>
+      <view class="tip-text">点击名字可查看详细分析</view>
+    </view>
+  </view>
+</view>

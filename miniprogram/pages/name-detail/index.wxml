@@ -49,7 +49,7 @@
         </block>
         <block wx:else>
           <view class="empty-state">
-            <image class="empty-image" src="/assets/images/empty-names.png"></image>
+            <image class="empty-image" src="/images/empty-names.png"></image>
             <view class="empty-text">暂无推荐名字</view>
             <button class="btn btn-primary" bindtap="regenerateNames">重新生成</button>
           </view>
@@ -132,7 +132,7 @@
         <!-- 更多分析维度可以根据需要添加 -->
       </scroll-view>
       <view class="empty-state" wx:else>
-        <image class="empty-image" src="/assets/images/select-name.png"></image>
+        <image class="empty-image" src="/images/select-name.png"></image>
         <view class="empty-text">请先选择一个名字</view>
       </view>
     </swiper-item>
@@ -141,11 +141,11 @@
   <!-- 底部按钮 -->
   <view class="bottom-buttons" wx:if="{{selectedName}}">
     <button class="btn btn-outline" bindtap="saveName">
-      <image class="btn-icon" src="/assets/images/icon-save.png"></image>
+      <image class="btn-icon" src="/images/icon-save.png"></image>
       收藏
     </button>
     <button class="btn btn-primary" open-type="share">
-      <image class="btn-icon" src="/assets/images/icon-share.png"></image>
+      <image class="btn-icon" src="/images/icon-share.png"></image>
       分享
     </button>
   </view>

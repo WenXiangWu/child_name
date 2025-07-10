@@ -1,4 +1,5 @@
-import { NameGenerationParams, Gender, NameLength, FiveElement } from '../../types/naming';
+import { NameGenerationParams, Gender, NameLength } from '../../types/naming';
+import { FiveElement } from '../../types/character';
 import { AppOption } from '../../types/app';
 
 const app = getApp<AppOption>();
@@ -25,7 +26,8 @@ Page({
     timeIndex: 0,
     meaningKeywords: [] as string[],
     avoidCharsInput: '',
-    desiredFiveElements: [] as FiveElement[]
+    desiredFiveElements: [] as FiveElement[],
+    isSubmitting: false, // 添加提交状态控制
   },
 
   onLoad() {
@@ -38,6 +40,19 @@ Page({
       'formData.showPronunciation': settings.showPronunciation,
       'formData.showMeaning': settings.showMeaning,
     });
+
+    // 如果有缓存的表单数据，恢复它
+    const cachedFormData = wx.getStorageSync('nameProcessFormData');
+    if (cachedFormData) {
+      try {
+        const parsedData = JSON.parse(cachedFormData);
+        this.setData({
+          ...parsedData
+        });
+      } catch (e) {
+        console.error('解析缓存表单数据失败', e);
+      }
+    }
   },
 
   // 步骤导航
@@ -74,6 +89,8 @@ Page({
       this.setData({
         currentStep: nextStep
       });
+      // 缓存当前表单数据
+      this.saveFormDataToCache();
     }
   },
 
@@ -89,13 +106,59 @@ Page({
 
   // 验证当前步骤
   validateCurrentStep(): boolean {
-    const { currentStep, formData } = this.data;
+    const { currentStep, formData, birthDate } = this.data;
 
     // 步骤1：基本信息
     if (currentStep === 0) {
-      if (!formData.familyName) {
+      if (!formData.familyName.trim()) {
         wx.showToast({
           title: '请输入姓氏',
+          icon: 'none'
+        });
+        return false;
+      }
+
+      // 验证姓氏是否为汉字
+      if (!/^[\u4e00-\u9fa5]{1,2}$/.test(formData.familyName)) {
+        wx.showToast({
+          title: '姓氏必须为1-2个汉字',
+          icon: 'none'
+        });
+        return false;
+      }
+    }
+
+    // 步骤2：出生信息 - 可选，但如果有日期，验证格式
+    if (currentStep === 1) {
+      if (birthDate && !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
+        wx.showToast({
+          title: '出生日期格式不正确',
+          icon: 'none'
+        });
+        return false;
+      }
+    }
+
+    // 步骤3：起名偏好 - 可以没有特别的验证
+
+    // 步骤4：分析维度 - 至少选择一个分析维度
+    if (currentStep === 3) {
+      if (!formData.showFiveElements &&
+          !formData.showPronunciation &&
+          !formData.showMeaning &&
+          !formData.showWuge &&
+          !formData.showZodiac) {
+        wx.showToast({
+          title: '请至少选择一个分析维度',
+          icon: 'none'
+        });
+        return false;
+      }
+
+      // 如果选择了生肖分析但没有出生日期
+      if (formData.showZodiac && !birthDate) {
+        wx.showToast({
+          title: '生肖分析需要出生日期',
           icon: 'none'
         });
         return false;
@@ -103,6 +166,23 @@ Page({
     }
 
     return true;
+  },
+
+  // 缓存表单数据
+  saveFormDataToCache() {
+    try {
+      const dataToCache = {
+        formData: this.data.formData,
+        birthDate: this.data.birthDate,
+        timeIndex: this.data.timeIndex,
+        meaningKeywords: this.data.meaningKeywords,
+        avoidCharsInput: this.data.avoidCharsInput,
+        desiredFiveElements: this.data.desiredFiveElements
+      };
+      wx.setStorageSync('nameProcessFormData', JSON.stringify(dataToCache));
+    } catch (e) {
+      console.error('缓存表单数据失败', e);
+    }
   },
 
   // 输入姓氏
@@ -221,6 +301,26 @@ Page({
 
   // 提交表单
   submitForm() {
+    // 最终验证
+    if (!this.validateCurrentStep()) {
+      return;
+    }
+
+    // 防止重复提交
+    if (this.data.isSubmitting) {
+      return;
+    }
+
+    this.setData({
+      isSubmitting: true
+    });
+
+    // 显示加载提示
+    wx.showLoading({
+      title: '正在生成名字...',
+      mask: true
+    });
+
     // 构建名字生成参数
     const params: NameGenerationParams = {
       familyName: this.data.formData.familyName,
@@ -265,6 +365,28 @@ Page({
       url: '/pages/name-detail/index',
       success: (res) => {
         res.eventChannel.emit('nameGenerationParams', params);
+
+        // 隐藏加载提示
+        wx.hideLoading();
+
+        // 重置提交状态
+        this.setData({
+          isSubmitting: false
+        });
+      },
+      fail: () => {
+        // 隐藏加载提示
+        wx.hideLoading();
+
+        // 重置提交状态
+        this.setData({
+          isSubmitting: false
+        });
+
+        wx.showToast({
+          title: '页面跳转失败',
+          icon: 'none'
+        });
       }
     });
   }

@@ -21,7 +21,7 @@
   </block>
   <block wx:else>
     <view class="empty-state">
-      <image class="empty-image" src="/assets/images/empty-history.png"></image>
+      <image class="empty-image" src="/images/empty-history.png"></image>
       <view class="empty-text">暂无历史记录</view>
       <view class="empty-tips">您生成的名字将会显示在这里</view>
       <navigator url="/pages/name-process/index" class="btn btn-primary">去起名</navigator>

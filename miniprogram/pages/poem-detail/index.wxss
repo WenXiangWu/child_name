@@ -1,0 +1,205 @@
+.container {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding-bottom: 30rpx;
+}
+
+/* 诗词内容区域 */
+.poem-content-area {
+  background-color: #fff;
+  padding: 40rpx;
+  margin-bottom: 20rpx;
+}
+
+.poem-title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.poem-author {
+  font-size: 28rpx;
+  color: #666;
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+
+.poem-text {
+  font-size: 32rpx;
+  color: #333;
+  line-height: 1.8;
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+
+.poem-themes {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.theme-tag {
+  font-size: 24rpx;
+  color: #4a6bff;
+  background-color: #e6edff;
+  padding: 6rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  display: flex;
+  background-color: #fff;
+  padding: 30rpx 0;
+  margin-bottom: 20rpx;
+}
+
+.action-button, .share-button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  padding: 0;
+  line-height: normal;
+  font-size: 24rpx;
+  color: #666;
+  margin: 0;
+}
+
+.share-button::after {
+  border: none;
+}
+
+.action-icon {
+  width: 48rpx;
+  height: 48rpx;
+  margin-bottom: 10rpx;
+}
+
+/* 注释区域 */
+.annotation-area {
+  background-color: #fff;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+  position: relative;
+  padding-left: 20rpx;
+}
+
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8rpx;
+  height: 32rpx;
+  background-color: #4a6bff;
+  border-radius: 4rpx;
+}
+
+.annotation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.annotation-item {
+  display: flex;
+}
+
+.annotation-text {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+  margin-right: 10rpx;
+}
+
+.annotation-detail {
+  flex: 1;
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* 相关诗词 */
+.related-poems {
+  background-color: #fff;
+  padding: 30rpx;
+}
+
+.related-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.related-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.related-item:last-child {
+  border-bottom: none;
+}
+
+.related-title {
+  font-size: 30rpx;
+  color: #333;
+  margin-right: 20rpx;
+}
+
+.related-author {
+  flex: 1;
+  font-size: 26rpx;
+  color: #999;
+}
+
+.arrow-right {
+  width: 16rpx;
+  height: 16rpx;
+  border-top: 3rpx solid #ccc;
+  border-right: 3rpx solid #ccc;
+  transform: rotate(45deg);
+}
+
+/* 加载中 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #f3f3f3;
+  border-top: 4rpx solid #4a6bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #999;
+}

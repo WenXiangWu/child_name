@@ -1,0 +1,115 @@
+<view class="container">
+  <!-- 搜索区域 -->
+  <view class="search-area">
+    <view class="search-bar">
+      <input class="search-input" placeholder="输入诗词名、作者或内容" value="{{searchKeyword}}" bindinput="inputKeyword" confirm-type="search" bindconfirm="searchPoems" />
+      <view class="search-btn" bindtap="searchPoems">
+        <text>搜索</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选标签页 -->
+  <view class="filter-tabs">
+    <view class="tab {{currentTab === 0 ? 'active' : ''}}" bindtap="switchTab" data-tab="0">朝代</view>
+    <view class="tab {{currentTab === 1 ? 'active' : ''}}" bindtap="switchTab" data-tab="1">类别</view>
+    <view class="tab {{currentTab === 2 ? 'active' : ''}}" bindtap="switchTab" data-tab="2">主题</view>
+  </view>
+
+  <!-- 筛选内容 -->
+  <swiper class="filter-content" current="{{currentTab}}" bindchange="swiperChange">
+    <!-- 朝代筛选 -->
+    <swiper-item>
+      <scroll-view scroll-y class="dynasty-container">
+        <view class="filter-list">
+          <view class="filter-item {{selectedDynasty === dynasty ? 'active' : ''}}"
+                wx:for="{{dynasties}}"
+                wx:for-item="dynasty"
+                wx:key="*this"
+                bindtap="selectDynasty"
+                data-dynasty="{{dynasty}}">
+            {{dynasty}}
+          </view>
+        </view>
+      </scroll-view>
+    </swiper-item>
+
+    <!-- 类别筛选 -->
+    <swiper-item>
+      <view class="category-container">
+        <view class="filter-list">
+          <view class="filter-item {{selectedCategory === category ? 'active' : ''}}"
+                wx:for="{{categories}}"
+                wx:for-item="category"
+                wx:key="*this"
+                bindtap="selectCategory"
+                data-category="{{category}}">
+            {{category}}
+          </view>
+        </view>
+      </view>
+    </swiper-item>
+
+    <!-- 主题筛选 -->
+    <swiper-item>
+      <view class="theme-container">
+        <view class="filter-list">
+          <view class="filter-item {{selectedThemes.includes(theme) ? 'active' : ''}}"
+                wx:for="{{themes}}"
+                wx:for-item="theme"
+                wx:key="*this"
+                bindtap="toggleTheme"
+                data-theme="{{theme}}">
+            {{theme}}
+          </view>
+        </view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 搜索结果 -->
+  <view class="search-results" wx:if="{{searchResults.length > 0 || loading}}">
+    <view class="result-header">
+      <view class="result-title">搜索结果</view>
+      <view class="result-count" wx:if="{{!loading}}">共 {{searchResults.length}} 首</view>
+    </view>
+
+    <view class="loading-container" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <view class="loading-text">正在搜索...</view>
+    </view>
+
+    <view class="poem-list" wx:else>
+      <view class="poem-item" wx:for="{{searchResults}}" wx:key="title" bindtap="viewPoemDetail" data-index="{{index}}">
+        <view class="poem-header">
+          <text class="poem-title">{{item.title}}</text>
+          <text class="poem-dynasty">{{item.dynasty}}</text>
+        </view>
+        <view class="poem-author">{{item.author}}</view>
+        <view class="poem-content">{{item.content}}</view>
+        <view class="poem-themes">
+          <view class="theme-tag" wx:for="{{item.themes}}" wx:for-item="theme" wx:key="*this">{{theme}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && searchResults.length === 0 && hasSearched}}">
+    <image class="empty-image" src="/images/empty-search.png"></image>
+    <view class="empty-text">未找到符合条件的诗词</view>
+    <view class="empty-tips">请尝试其他搜索条件</view>
+  </view>
+
+  <!-- 提示信息 -->
+  <view class="tips" wx:if="{{!hasSearched}}">
+    <view class="tip-item">
+      <view class="tip-icon">i</view>
+      <view class="tip-text">输入关键词或选择筛选条件来搜索诗词</view>
+    </view>
+    <view class="tip-item">
+      <view class="tip-icon">i</view>
+      <view class="tip-text">点击诗词可查看详细内容和注释</view>
+    </view>
+  </view>
+</view>

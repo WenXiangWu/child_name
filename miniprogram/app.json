@@ -6,7 +6,10 @@
     "pages/char-search/index",
     "pages/char-detail/index",
     "pages/my/index",
-    "pages/history/index"
+    "pages/history/index",
+    "pages/name-search/index",
+    "pages/poem-search/index",
+    "pages/poem-detail/index"
   ],
   "window": {
     "backgroundTextStyle": "light",
@@ -27,10 +30,22 @@
         "selectedIconPath": "images/tab-home-active.png"
       },
       {
+        "pagePath": "pages/name-search/index",
+        "text": "找名",
+        "iconPath": "images/tab-find-name.png",
+        "selectedIconPath": "images/tab-find-name-active.png"
+      },
+      {
         "pagePath": "pages/char-search/index",
         "text": "找字",
         "iconPath": "images/tab-search.png",
         "selectedIconPath": "images/tab-search-active.png"
+      },
+      {
+        "pagePath": "pages/poem-search/index",
+        "text": "查诗",
+        "iconPath": "images/tab-poem.png",
+        "selectedIconPath": "images/tab-poem-active.png"
       },
       {
         "pagePath": "pages/my/index",

@@ -1,1 +1,7 @@
-ECHO 处于打开状态。
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="none"/>
+  <text x="100" y="120" font-family="Arial" font-size="16" text-anchor="middle">鏈壘鍒扮鍚堟潯浠剁殑姹夊瓧</text>
+  <circle cx="100" cy="70" r="30" stroke="#ccc" stroke-width="2" fill="none"/>
+  <path d="M120 90 L135 105" stroke="#ccc" stroke-width="3" fill="none"/>
+  <line x1="135" y1="105" x2="145" y2="115" stroke="#ccc" stroke-width="3"/>
+</svg>

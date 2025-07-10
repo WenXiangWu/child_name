@@ -1,1 +1,5 @@
- 
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="none"/>
+  <text x="100" y="100" font-family="Arial" font-size="16" text-anchor="middle">暂无名字</text>
+  <path d="M50 70 H150 M50 100 H150 M50 130 H150" stroke="#ccc" stroke-width="2" fill="none"/>
+</svg>

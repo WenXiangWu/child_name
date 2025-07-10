@@ -1,0 +1,64 @@
+<view class="container" wx:if="{{poem}}">
+  <!-- 诗词内容区域 -->
+  <view class="poem-content-area">
+    <view class="poem-title">{{poem.title}}</view>
+    <view class="poem-author">{{poem.dynasty}} · {{poem.author}}</view>
+
+    <view class="poem-text">
+      <text>{{poem.content}}</text>
+    </view>
+
+    <view class="poem-themes">
+      <view class="theme-tag" wx:for="{{poem.themes}}" wx:key="*this">{{item}}</view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-buttons">
+    <view class="action-button" bindtap="toggleAnnotation">
+      <image class="action-icon" src="/images/icon-annotation.png"></image>
+      <text>注释</text>
+    </view>
+    <view class="action-button" bindtap="favoritePoem">
+      <image class="action-icon" src="/images/icon-favorite.png"></image>
+      <text>收藏</text>
+    </view>
+    <view class="action-button" bindtap="copyPoemContent">
+      <image class="action-icon" src="/images/icon-copy.png"></image>
+      <text>复制</text>
+    </view>
+    <button class="share-button" open-type="share">
+      <image class="action-icon" src="/images/icon-share.png"></image>
+      <text>分享</text>
+    </button>
+  </view>
+
+  <!-- 注释区域 -->
+  <view class="annotation-area" wx:if="{{showAnnotation}}">
+    <view class="section-title">注释</view>
+    <view class="annotation-list">
+      <view class="annotation-item" wx:for="{{annotations}}" wx:key="*this">
+        <view class="annotation-text">{{index}}：</view>
+        <view class="annotation-detail">{{item}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 相关诗词 -->
+  <view class="related-poems">
+    <view class="section-title">相关诗词</view>
+    <view class="related-list">
+      <view class="related-item" wx:for="{{relatedPoems}}" wx:key="title" bindtap="viewRelatedPoem" data-index="{{index}}">
+        <view class="related-title">{{item.title}}</view>
+        <view class="related-author">{{item.dynasty}} · {{item.author}}</view>
+        <view class="arrow-right"></view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 加载中 -->
+<view class="loading-container" wx:else>
+  <view class="loading-spinner"></view>
+  <view class="loading-text">加载中...</view>
+</view>
