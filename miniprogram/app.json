@@ -3,57 +3,46 @@
     "pages/index/index",
     "pages/name-process/index",
     "pages/name-detail/index",
-    "pages/char-search/index",
-    "pages/char-detail/index",
-    "pages/my/index",
-    "pages/history/index",
     "pages/name-search/index",
+    "pages/char-search/index",
     "pages/poem-search/index",
-    "pages/poem-detail/index"
+    "pages/poem-detail/index",
+    "pages/my/index"
   ],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "起名助手",
+    "navigationBarTitleText": "起名宝",
     "navigationBarTextStyle": "black"
   },
   "tabBar": {
     "color": "#999999",
-    "selectedColor": "#4a6bff",
+    "selectedColor": "#8b5a2b",
     "backgroundColor": "#ffffff",
     "borderStyle": "black",
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "images/tab-home.png",
-        "selectedIconPath": "images/tab-home-active.png"
+        "text": "首页"
       },
       {
         "pagePath": "pages/name-search/index",
-        "text": "找名",
-        "iconPath": "images/tab-find-name.png",
-        "selectedIconPath": "images/tab-find-name-active.png"
+        "text": "找名"
       },
       {
         "pagePath": "pages/char-search/index",
-        "text": "找字",
-        "iconPath": "images/tab-search.png",
-        "selectedIconPath": "images/tab-search-active.png"
+        "text": "找字"
       },
       {
         "pagePath": "pages/poem-search/index",
-        "text": "查诗",
-        "iconPath": "images/tab-poem.png",
-        "selectedIconPath": "images/tab-poem-active.png"
+        "text": "查诗"
       },
       {
         "pagePath": "pages/my/index",
-        "text": "我的",
-        "iconPath": "images/tab-my.png",
-        "selectedIconPath": "images/tab-my-active.png"
+        "text": "我的"
       }
     ]
   },
+  "style": "v2",
   "sitemapLocation": "sitemap.json"
 }
