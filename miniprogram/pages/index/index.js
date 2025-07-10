@@ -1,100 +1,35 @@
 // index.js
-const app = getApp();
+const app = getApp()
 
 Page({
   data: {
-    banners: [
-      {
-        id: 1,
-        image: '/images/banner1.png',
-        title: '专业起名服务'
-      },
-      {
-        id: 2,
-        image: '/images/banner2.png',
-        title: '多维度分析'
-      },
-      {
-        id: 3,
-        image: '/images/banner3.png',
-        title: '海量字库'
-      }
-    ],
-    features: [
-      {
-        id: 1,
-        icon: '/images/feature-name.png',
-        title: '智能起名',
-        desc: '基于大数据分析，为宝宝提供优质名字'
-      },
-      {
-        id: 2,
-        icon: '/images/feature-analysis.png',
-        title: '名字分析',
-        desc: '多维度分析名字寓意、音律、五行等'
-      },
-      {
-        id: 3,
-        icon: '/images/feature-search.png',
-        title: '找字助手',
-        desc: '通过拼音、部首、笔画等多种方式查字'
-      }
-    ],
-    quickForm: {
-      surname: '',
-      gender: '男'
-    },
-    isGenerating: false,
-    recentNames: [
-      {
-        fullName: '张明辉',
-        totalScore: 95,
-        implication: '光明、辉煌'
-      },
-      {
-        fullName: '李浩然',
-        totalScore: 92,
-        implication: '浩大、正气'
-      }
-    ]
+    surname: '',
+    gender: 'male',
+    searchChar: ''
   },
 
   onLoad() {
     // 页面加载时的逻辑
-    console.log('页面加载完成');
   },
 
-  // 开始起名
-  onStartNaming() {
-    wx.navigateTo({
-      url: '/pages/name-process/index'
-    });
-  },
-
-  // 找字功能
-  onFindChar() {
-    wx.switchTab({
-      url: '/pages/char-search/index'
-    });
-  },
-
-  // 更多选项
-  onMoreOptions() {
-    wx.navigateTo({
-      url: '/pages/name-process/index'
+  // 输入姓氏
+  inputSurname(e) {
+    this.setData({
+      surname: e.detail.value
     });
   },
 
   // 选择性别
-  onSelectGender(e) {
+  selectGender(e) {
+    const gender = e.currentTarget.dataset.gender;
     this.setData({
-      'quickForm.gender': e.currentTarget.dataset.gender
+      gender: gender
     });
   },
 
-  // 快速起名
-  onQuickGenerate() {
-    if (!this.data.quickForm.surname) {
+  // 搜索名字
+  searchNames() {
+    if (!this.data.surname) {
       wx.showToast({
         title: '请输入姓氏',
         icon: 'none'
@@ -102,62 +37,88 @@ Page({
       return;
     }
 
+    // 跳转到起名流程页面
+    wx.navigateTo({
+      url: `/pages/name-process/index?surname=${this.data.surname}&gender=${this.data.gender}`
+    });
+  },
+
+  // 蛇年好名
+  goToSnakeYear() {
+    wx.navigateTo({
+      url: '/pages/name-search/index?type=snake'
+    });
+  },
+
+  // 五行吉名
+  goToFiveElements() {
+    wx.navigateTo({
+      url: '/pages/name-search/index?type=fiveElements'
+    });
+  },
+
+  // 诗词佳名
+  goToPoetryNames() {
+    wx.navigateTo({
+      url: '/pages/poem-search/index'
+    });
+  },
+
+  // 好听名字
+  goToNiceNames() {
+    wx.navigateTo({
+      url: '/pages/name-search/index?type=nice'
+    });
+  },
+
+  // 属性查字
+  goToRadicalSearch() {
+    wx.switchTab({
+      url: '/pages/char-search/index'
+    });
+  },
+
+  // 生肖查字
+  goToZodiacSearch() {
+    wx.switchTab({
+      url: '/pages/char-search/index'
+    });
+  },
+
+  // 名字寓意
+  goToNameMeaning() {
+    wx.showToast({
+      title: '功能开发中',
+      icon: 'none'
+    });
+  },
+
+  // 名字查诗
+  goToNamePoetry() {
+    wx.switchTab({
+      url: '/pages/poem-search/index'
+    });
+  },
+
+  // 输入查询字符
+  inputSearchChar(e) {
     this.setData({
-      isGenerating: true
+      searchChar: e.detail.value
     });
+  },
 
-    // 模拟生成过程
-    setTimeout(() => {
-      this.setData({
-        isGenerating: false
+  // 查询字符
+  searchCharacter() {
+    if (!this.data.searchChar) {
+      wx.showToast({
+        title: '请输入汉字',
+        icon: 'none'
       });
+      return;
+    }
 
-      // 跳转到名字结果页
-      const params = {
-        familyName: this.data.quickForm.surname,
-        gender: this.data.quickForm.gender === '男' ? 'male' : 'female',
-        nameLength: 2,
-        isQuick: true
-      };
-
-      wx.navigateTo({
-        url: `/pages/name-detail/index?params=${encodeURIComponent(JSON.stringify(params))}`
-      });
-    }, 1500);
-  },
-
-  // 查看历史记录
-  onViewHistory() {
-    wx.navigateTo({
-      url: '/pages/history/index'
+    wx.switchTab({
+      url: '/pages/char-search/index'
     });
-  },
-
-  // 点击名字
-  onNameTap(e) {
-    const index = e.currentTarget.dataset.index;
-    const name = this.data.recentNames[index];
-
-    // 构造一个简单的名字对象传递给详情页
-    const nameDetail = {
-      fullName: name.fullName,
-      firstName: name.fullName.substring(1),
-      score: name.totalScore,
-      analysis: {
-        meaning: name.implication
-      }
-    };
-
-    wx.navigateTo({
-      url: `/pages/name-detail/index?shared=true&name=${encodeURIComponent(JSON.stringify(nameDetail))}`
-    });
-  },
-
-  // 分享小程序
-  onShareAppMessage() {
-    return {
-      title: '起名助手 - 专业的宝宝起名小程序',
-      path: '/pages/index/index'
-    };
   }
-});
+})

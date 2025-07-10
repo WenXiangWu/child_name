@@ -1,91 +1,104 @@
+<!--index.wxml-->
 <view class="container">
-  <!-- 顶部品牌区 -->
-  <view class="header">
-    <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
-    <view class="title-area">
-      <text class="title">起名助手</text>
-      <text class="subtitle">传统文化 · 智能起名</text>
+  <!-- 顶部品牌区域 -->
+  <view class="header-section">
+    <view class="brand-logo">
+      <image class="brand-bg" src="/images/brand-bg.png" mode="aspectFit"></image>
+      <view class="brand-text">
+        <text class="brand-name">起名宝</text>
+        <text class="brand-subtitle">官网</text>
+      </view>
+    </view>
+    <view class="brand-slogan">
+      <view class="slogan-line"></view>
+      <text class="slogan-text">名以载道，字蕴乾坤</text>
+      <view class="slogan-line"></view>
     </view>
   </view>
 
   <!-- 主功能区 -->
   <view class="main-functions">
-    <view class="function-card start-naming" bindtap="onStartNaming">
-      <view class="card-content">
-        <image class="card-icon" src="/images/naming-icon.png" mode="aspectFit"></image>
-        <view class="card-text">
-          <text class="card-title">开始起名</text>
-          <text class="card-desc">智能分析，多维度评分</text>
-        </view>
+    <view class="function-item" bindtap="goToSnakeYear">
+      <view class="function-icon snake-icon">
+        <image src="/images/snake-icon.png" mode="aspectFit"></image>
       </view>
-      <image class="arrow-icon" src="/images/arrow-right.png" mode="aspectFit"></image>
+      <text class="function-text">蛇年好名</text>
     </view>
-
-    <view class="function-card find-char" bindtap="onFindChar">
-      <view class="card-content">
-        <image class="card-icon" src="/images/char-icon.png" mode="aspectFit"></image>
-        <view class="card-text">
-          <text class="card-title">找字</text>
-          <text class="card-desc">多维度查找合适的字</text>
-        </view>
+    <view class="function-item" bindtap="goToFiveElements">
+      <view class="function-icon bagua-icon">
+        <image src="/images/bagua-icon.png" mode="aspectFit"></image>
       </view>
-      <image class="arrow-icon" src="/images/arrow-right.png" mode="aspectFit"></image>
+      <text class="function-text">五行吉名</text>
+    </view>
+    <view class="function-item" bindtap="goToPoetryNames">
+      <view class="function-icon book-icon">
+        <image src="/images/book-icon.png" mode="aspectFit"></image>
+      </view>
+      <text class="function-text">诗词佳名</text>
+    </view>
+    <view class="function-item" bindtap="goToNiceNames">
+      <view class="function-icon scroll-icon">
+        <image src="/images/scroll-icon.png" mode="aspectFit"></image>
+      </view>
+      <text class="function-text">好听名字</text>
     </view>
   </view>
 
   <!-- 快速起名区 -->
-  <view class="quick-naming">
-    <view class="section-header">
-      <text class="section-title">快速起名</text>
-      <text class="section-more" bindtap="onMoreOptions">更多选项</text>
-    </view>
-
-    <view class="quick-form">
-      <view class="form-item">
-        <text class="label">姓氏</text>
-        <input class="input" model:value="{{quickForm.surname}}" placeholder="请输入姓氏" maxlength="2" />
-      </view>
-
-      <view class="form-item">
-        <text class="label">性别</text>
-        <view class="radio-group">
-          <view class="radio {{quickForm.gender === '男' ? 'active' : ''}}" bindtap="onSelectGender" data-gender="男">
+  <view class="quick-naming-section">
+    <view class="section-content">
+      <view class="input-row">
+        <view class="input-group">
+          <text class="input-label">姓氏：</text>
+          <input class="name-input" placeholder="输入姓氏" value="{{surname}}" bindinput="inputSurname" />
+        </view>
+        <view class="gender-group">
+          <view class="gender-option {{gender === 'male' ? 'selected' : ''}}" bindtap="selectGender" data-gender="male">
             <text>男</text>
           </view>
-          <view class="radio {{quickForm.gender === '女' ? 'active' : ''}}" bindtap="onSelectGender" data-gender="女">
+          <view class="gender-option {{gender === 'female' ? 'selected' : ''}}" bindtap="selectGender" data-gender="female">
             <text>女</text>
           </view>
         </view>
       </view>
-
-      <button class="submit-btn" bindtap="onQuickGenerate" disabled="{{isGenerating}}">
-        <text wx:if="{{!isGenerating}}">立即起名</text>
-        <view wx:else class="loading">
-          <text>生成中</text>
-          <view class="loading-dots">
-            <text>.</text>
-            <text>.</text>
-            <text>.</text>
-          </view>
-        </view>
-      </button>
+      <button class="search-button" bindtap="searchNames">搜索名字</button>
     </view>
   </view>
 
-  <!-- 最近起名区 -->
-  <view class="recent-names" wx:if="{{recentNames.length > 0}}">
-    <view class="section-header">
-      <text class="section-title">最近起名</text>
-      <text class="section-more" bindtap="onViewHistory">查看更多</text>
+  <!-- 辅助功能区 -->
+  <view class="auxiliary-functions">
+    <view class="aux-function-item" bindtap="goToRadicalSearch">
+      <view class="aux-function-icon">
+        <image src="/images/radical-icon.png" mode="aspectFit"></image>
+      </view>
+      <text class="aux-function-text">属性查字</text>
     </view>
+    <view class="aux-function-item" bindtap="goToZodiacSearch">
+      <view class="aux-function-icon">
+        <image src="/images/stroke-icon.png" mode="aspectFit"></image>
+      </view>
+      <text class="aux-function-text">生肖查字</text>
+    </view>
+    <view class="aux-function-item" bindtap="goToNameMeaning">
+      <view class="aux-function-icon">
+        <image src="/images/house-icon.png" mode="aspectFit"></image>
+      </view>
+      <text class="aux-function-text">名字寓意</text>
+    </view>
+    <view class="aux-function-item" bindtap="goToNamePoetry">
+      <view class="aux-function-icon">
+        <image src="/images/poem-icon.png" mode="aspectFit"></image>
+      </view>
+      <text class="aux-function-text">名字查诗</text>
+    </view>
+  </view>
 
-    <view class="name-list">
-      <view class="name-item" wx:for="{{recentNames}}" wx:key="index" bindtap="onNameTap" data-index="{{index}}">
-        <view class="name-content">
-          <text class="name-text">{{item.fullName}}</text>
-          <view class="score-tag">{{item.totalScore}}分</view>
-        </view>
-        <text class="name-desc">{{item.implication}}</text>
+  <!-- 字典查询区 -->
+  <view class="dictionary-section">
+    <view class="section-content">
+      <view class="dictionary-input-row">
+        <input class="dictionary-input" placeholder="输入你想查询的汉字" value="{{searchChar}}" bindinput="inputSearchChar" />
+        <button class="dictionary-button" bindtap="searchCharacter">查字</button>
       </view>
     </view>
   </view>
