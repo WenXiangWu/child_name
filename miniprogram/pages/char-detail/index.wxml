@@ -1,0 +1,59 @@
+<view class="container">
+  <view class="char-card">
+    <view class="char-display">{{charData.char}}</view>
+    <view class="char-pinyin">{{charData.pinyin[0]}}</view>
+    <view class="char-info">
+      <view class="info-item">
+        <view class="info-label">部首</view>
+        <view class="info-value">{{charData.radical}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">笔画</view>
+        <view class="info-value">{{charData.strokes}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">五行</view>
+        <view class="info-value">{{charData.fiveElement}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">字义解释</view>
+    <view class="meaning-list">
+      <view class="meaning-item" wx:for="{{charData.meaning}}" wx:key="*this">
+        <view class="meaning-dot"></view>
+        <view class="meaning-text">{{item}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">常用词组</view>
+    <view class="phrase-list">
+      <view class="phrase-item" wx:for="{{phrases}}" wx:key="phrase">
+        <view class="phrase-text">{{item.phrase}}</view>
+        <view class="phrase-pinyin">{{item.pinyin}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">五行分析</view>
+    <view class="analysis-content">
+      <view class="element-badge {{charData.fiveElement === '金' ? 'jin' : charData.fiveElement === '木' ? 'mu' : charData.fiveElement === '水' ? 'shui' : charData.fiveElement === '火' ? 'huo' : 'tu'}}">{{charData.fiveElement}}</view>
+      <view class="analysis-text">{{fiveElementAnalysis}}</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">姓名学分析</view>
+    <view class="analysis-content">
+      <view class="analysis-text">{{nameAnalysis}}</view>
+    </view>
+  </view>
+
+  <view class="bottom-buttons">
+    <button class="btn btn-primary" bindtap="useInName">用于起名</button>
+  </view>
+</view>

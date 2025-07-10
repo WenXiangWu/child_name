@@ -1,0 +1,160 @@
+<view class="container">
+  <!-- 步骤指示器 -->
+  <view class="steps">
+    <view class="step {{currentStep >= 0 ? 'active' : ''}}" bindtap="goToStep" data-step="0">
+      <view class="step-num">1</view>
+      <view class="step-name">基本信息</view>
+    </view>
+    <view class="step-line {{currentStep >= 1 ? 'active' : ''}}"></view>
+    <view class="step {{currentStep >= 1 ? 'active' : ''}}" bindtap="goToStep" data-step="1">
+      <view class="step-num">2</view>
+      <view class="step-name">出生信息</view>
+    </view>
+    <view class="step-line {{currentStep >= 2 ? 'active' : ''}}"></view>
+    <view class="step {{currentStep >= 2 ? 'active' : ''}}" bindtap="goToStep" data-step="2">
+      <view class="step-num">3</view>
+      <view class="step-name">起名偏好</view>
+    </view>
+    <view class="step-line {{currentStep >= 3 ? 'active' : ''}}"></view>
+    <view class="step {{currentStep >= 3 ? 'active' : ''}}" bindtap="goToStep" data-step="3">
+      <view class="step-num">4</view>
+      <view class="step-name">分析维度</view>
+    </view>
+  </view>
+
+  <!-- 步骤内容 -->
+  <swiper class="step-content" current="{{currentStep}}" bindchange="swiperChange" duration="300">
+    <!-- 步骤1：基本信息 -->
+    <swiper-item>
+      <view class="step-container">
+        <view class="step-title">基本信息</view>
+        <view class="form-item">
+          <view class="label">姓氏</view>
+          <input class="input" value="{{formData.familyName}}" bindinput="inputFamilyName" placeholder="请输入姓氏" maxlength="2" />
+        </view>
+        <view class="form-item">
+          <view class="label">性别</view>
+          <view class="radio-group">
+            <view class="radio {{formData.gender === 'male' ? 'active' : ''}}" bindtap="selectGender" data-gender="male">男孩</view>
+            <view class="radio {{formData.gender === 'female' ? 'active' : ''}}" bindtap="selectGender" data-gender="female">女孩</view>
+            <view class="radio {{formData.gender === 'neutral' ? 'active' : ''}}" bindtap="selectGender" data-gender="neutral">中性</view>
+          </view>
+        </view>
+        <view class="form-item">
+          <view class="label">名字长度</view>
+          <view class="radio-group">
+            <view class="radio {{formData.nameLength === 1 ? 'active' : ''}}" bindtap="selectNameLength" data-length="1">单字</view>
+            <view class="radio {{formData.nameLength === 2 ? 'active' : ''}}" bindtap="selectNameLength" data-length="2">双字</view>
+          </view>
+        </view>
+      </view>
+    </swiper-item>
+
+    <!-- 步骤2：出生信息 -->
+    <swiper-item>
+      <view class="step-container">
+        <view class="step-title">出生信息</view>
+        <view class="form-item">
+          <view class="label">出生日期</view>
+          <picker mode="date" value="{{birthDate}}" bindchange="bindDateChange">
+            <view class="picker">
+              <view class="input">{{birthDate || '请选择出生日期'}}</view>
+            </view>
+          </picker>
+        </view>
+        <view class="form-item">
+          <view class="label">出生时辰</view>
+          <picker mode="selector" range="{{timeRanges}}" value="{{timeIndex}}" bindchange="bindTimeChange">
+            <view class="picker">
+              <view class="input">{{timeRanges[timeIndex] || '请选择出生时辰'}}</view>
+            </view>
+          </picker>
+        </view>
+        <view class="tip-box">
+          <view class="tip-title">提示</view>
+          <view class="tip-content">出生信息将用于分析生肖、八字喜忌等，帮助生成更适合宝宝的名字。</view>
+        </view>
+      </view>
+    </swiper-item>
+
+    <!-- 步骤3：起名偏好 -->
+    <swiper-item>
+      <view class="step-container">
+        <view class="step-title">起名偏好</view>
+        <view class="form-item">
+          <view class="label">名字风格</view>
+          <view class="tag-group">
+            <view class="tag {{formData.style === 'traditional' ? 'active' : ''}}" bindtap="selectStyle" data-style="traditional">传统经典</view>
+            <view class="tag {{formData.style === 'modern' ? 'active' : ''}}" bindtap="selectStyle" data-style="modern">现代时尚</view>
+            <view class="tag {{formData.style === 'literary' ? 'active' : ''}}" bindtap="selectStyle" data-style="literary">文艺诗意</view>
+            <view class="tag {{formData.style === 'unique' ? 'active' : ''}}" bindtap="selectStyle" data-style="unique">独特少见</view>
+          </view>
+        </view>
+        <view class="form-item">
+          <view class="label">字义偏好</view>
+          <view class="tag-group">
+            <view class="tag {{meaningKeywords.includes('智慧') ? 'active' : ''}}" bindtap="toggleMeaning" data-keyword="智慧">智慧</view>
+            <view class="tag {{meaningKeywords.includes('才华') ? 'active' : ''}}" bindtap="toggleMeaning" data-keyword="才华">才华</view>
+            <view class="tag {{meaningKeywords.includes('温柔') ? 'active' : ''}}" bindtap="toggleMeaning" data-keyword="温柔">温柔</view>
+            <view class="tag {{meaningKeywords.includes('坚强') ? 'active' : ''}}" bindtap="toggleMeaning" data-keyword="坚强">坚强</view>
+            <view class="tag {{meaningKeywords.includes('优雅') ? 'active' : ''}}" bindtap="toggleMeaning" data-keyword="优雅">优雅</view>
+            <view class="tag {{meaningKeywords.includes('勇敢') ? 'active' : ''}}" bindtap="toggleMeaning" data-keyword="勇敢">勇敢</view>
+            <view class="tag {{meaningKeywords.includes('诚信') ? 'active' : ''}}" bindtap="toggleMeaning" data-keyword="诚信">诚信</view>
+            <view class="tag {{meaningKeywords.includes('善良') ? 'active' : ''}}" bindtap="toggleMeaning" data-keyword="善良">善良</view>
+          </view>
+        </view>
+        <view class="form-item">
+          <view class="label">避免使用的字或字音</view>
+          <input class="input" value="{{avoidCharsInput}}" bindinput="inputAvoidChars" placeholder="请输入要避免的字，用逗号分隔" />
+        </view>
+      </view>
+    </swiper-item>
+
+    <!-- 步骤4：分析维度 -->
+    <swiper-item>
+      <view class="step-container">
+        <view class="step-title">分析维度</view>
+        <view class="form-item">
+          <view class="label">期望的五行属性</view>
+          <view class="tag-group">
+            <view class="tag {{desiredFiveElements.includes('金') ? 'active' : ''}}" bindtap="toggleFiveElement" data-element="金">金</view>
+            <view class="tag {{desiredFiveElements.includes('木') ? 'active' : ''}}" bindtap="toggleFiveElement" data-element="木">木</view>
+            <view class="tag {{desiredFiveElements.includes('水') ? 'active' : ''}}" bindtap="toggleFiveElement" data-element="水">水</view>
+            <view class="tag {{desiredFiveElements.includes('火') ? 'active' : ''}}" bindtap="toggleFiveElement" data-element="火">火</view>
+            <view class="tag {{desiredFiveElements.includes('土') ? 'active' : ''}}" bindtap="toggleFiveElement" data-element="土">土</view>
+          </view>
+        </view>
+        <view class="form-item">
+          <view class="label">分析维度选择</view>
+          <view class="checkbox-item">
+            <checkbox checked="{{formData.showFiveElements}}" bindtap="toggleAnalysisDimension" data-dimension="showFiveElements" />
+            <text>五行分析</text>
+          </view>
+          <view class="checkbox-item">
+            <checkbox checked="{{formData.showPronunciation}}" bindtap="toggleAnalysisDimension" data-dimension="showPronunciation" />
+            <text>音律分析</text>
+          </view>
+          <view class="checkbox-item">
+            <checkbox checked="{{formData.showMeaning}}" bindtap="toggleAnalysisDimension" data-dimension="showMeaning" />
+            <text>字义分析</text>
+          </view>
+          <view class="checkbox-item">
+            <checkbox checked="{{formData.showWuge}}" bindtap="toggleAnalysisDimension" data-dimension="showWuge" />
+            <text>五格分析</text>
+          </view>
+          <view class="checkbox-item">
+            <checkbox checked="{{formData.showZodiac}}" bindtap="toggleAnalysisDimension" data-dimension="showZodiac" />
+            <text>生肖喜忌分析</text>
+          </view>
+        </view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-buttons">
+    <button wx:if="{{currentStep > 0}}" class="btn btn-outline" bindtap="prevStep">上一步</button>
+    <button wx:if="{{currentStep < 3}}" class="btn btn-primary" bindtap="nextStep">下一步</button>
+    <button wx:if="{{currentStep === 3}}" class="btn btn-primary" bindtap="submitForm">开始起名</button>
+  </view>
+</view>

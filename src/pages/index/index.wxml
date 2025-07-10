@@ -1,0 +1,92 @@
+<view class="container">
+  <!-- 顶部品牌区 -->
+  <view class="header">
+    <image class="logo" src="/assets/images/logo.png" mode="aspectFit"></image>
+    <view class="title-area">
+      <text class="title">起名助手</text>
+      <text class="subtitle">传统文化 · 智能起名</text>
+    </view>
+  </view>
+
+  <!-- 主功能区 -->
+  <view class="main-functions">
+    <view class="function-card start-naming" bindtap="onStartNaming">
+      <view class="card-content">
+        <image class="card-icon" src="/assets/images/naming-icon.png" mode="aspectFit"></image>
+        <view class="card-text">
+          <text class="card-title">开始起名</text>
+          <text class="card-desc">智能分析，多维度评分</text>
+        </view>
+      </view>
+      <image class="arrow-icon" src="/assets/images/arrow-right.png" mode="aspectFit"></image>
+    </view>
+
+    <view class="function-card find-char" bindtap="onFindChar">
+      <view class="card-content">
+        <image class="card-icon" src="/assets/images/char-icon.png" mode="aspectFit"></image>
+        <view class="card-text">
+          <text class="card-title">找字</text>
+          <text class="card-desc">多维度查找合适的字</text>
+        </view>
+      </view>
+      <image class="arrow-icon" src="/assets/images/arrow-right.png" mode="aspectFit"></image>
+    </view>
+  </view>
+
+  <!-- 快速起名区 -->
+  <view class="quick-naming">
+    <view class="section-header">
+      <text class="section-title">快速起名</text>
+      <text class="section-more" bindtap="onMoreOptions">更多选项</text>
+    </view>
+
+    <view class="quick-form">
+      <view class="form-item">
+        <text class="label">姓氏</text>
+        <input class="input" model:value="{{quickForm.surname}}" placeholder="请输入姓氏" maxlength="2" />
+      </view>
+
+      <view class="form-item">
+        <text class="label">性别</text>
+        <view class="radio-group">
+          <view class="radio {{quickForm.gender === '男' ? 'active' : ''}}" bindtap="onSelectGender" data-gender="男">
+            <text>男</text>
+          </view>
+          <view class="radio {{quickForm.gender === '女' ? 'active' : ''}}" bindtap="onSelectGender" data-gender="女">
+            <text>女</text>
+          </view>
+        </view>
+      </view>
+
+      <button class="submit-btn" bindtap="onQuickGenerate" disabled="{{isGenerating}}">
+        <text wx:if="{{!isGenerating}}">立即起名</text>
+        <view wx:else class="loading">
+          <text>生成中</text>
+          <view class="loading-dots">
+            <text>.</text>
+            <text>.</text>
+            <text>.</text>
+          </view>
+        </view>
+      </button>
+    </view>
+  </view>
+
+  <!-- 最近起名区 -->
+  <view class="recent-names" wx:if="{{recentNames.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">最近起名</text>
+      <text class="section-more" bindtap="onViewHistory">查看更多</text>
+    </view>
+
+    <view class="name-list">
+      <view class="name-item" wx:for="{{recentNames}}" wx:key="index" bindtap="onNameTap" data-index="{{index}}">
+        <view class="name-content">
+          <text class="name-text">{{item.fullName}}</text>
+          <view class="score-tag">{{item.totalScore}}分</view>
+        </view>
+        <text class="name-desc">{{item.implication}}</text>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,30 @@
+<view class="container">
+  <view class="header">
+    <view class="title">历史记录</view>
+    <view class="clear-btn" bindtap="clearHistory" wx:if="{{historyList.length > 0}}">清空</view>
+  </view>
+
+  <block wx:if="{{historyList.length > 0}}">
+    <view class="history-list">
+      <view class="history-item" wx:for="{{historyList}}" wx:key="id" bindtap="viewNameDetail" data-name="{{item}}">
+        <view class="name-info">
+          <view class="name-text">{{item.fullName}}</view>
+          <view class="name-pinyin">
+            <block wx:for="{{item.characters}}" wx:for-item="char" wx:key="char">
+              {{char.pinyin[0]}}{{index < item.characters.length - 1 ? ' ' : ''}}
+            </block>
+          </view>
+        </view>
+        <view class="name-score">{{item.analysis.overallScore}}分</view>
+      </view>
+    </view>
+  </block>
+  <block wx:else>
+    <view class="empty-state">
+      <image class="empty-image" src="/assets/images/empty-history.png"></image>
+      <view class="empty-text">暂无历史记录</view>
+      <view class="empty-tips">您生成的名字将会显示在这里</view>
+      <navigator url="/pages/name-process/index" class="btn btn-primary">去起名</navigator>
+    </view>
+  </block>
+</view>

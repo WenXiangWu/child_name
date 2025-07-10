@@ -1,11 +1,9 @@
 # Dependencies
 node_modules/
 miniprogram_npm/
-package-lock.json
 
-# Build
+# Build output
 dist/
-build/
 
 # IDE
 .idea/
@@ -23,12 +21,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Local
+# Local env files
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
 
-# WeChat Dev Tools
-project.config.json
-project.private.config.json 
+# Mini Program specific
+project.private.config.json

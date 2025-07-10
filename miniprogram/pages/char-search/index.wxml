@@ -1,0 +1,146 @@
+<view class="container">
+  <!-- 搜索区域 -->
+  <view class="search-area">
+    <view class="search-bar">
+      <input class="search-input" placeholder="输入汉字、拼音或部首" value="{{searchKeyword}}" bindinput="inputKeyword" confirm-type="search" bindconfirm="searchChars" />
+      <view class="search-btn" bindtap="searchChars">
+        <image class="search-icon" src="/images/icon-search.png"></image>
+      </view>
+    </view>
+    <view class="search-tabs">
+      <view class="tab {{currentTab === 0 ? 'active' : ''}}" bindtap="switchTab" data-tab="0">拼音</view>
+      <view class="tab {{currentTab === 1 ? 'active' : ''}}" bindtap="switchTab" data-tab="1">部首</view>
+      <view class="tab {{currentTab === 2 ? 'active' : ''}}" bindtap="switchTab" data-tab="2">笔画</view>
+      <view class="tab {{currentTab === 3 ? 'active' : ''}}" bindtap="switchTab" data-tab="3">五行</view>
+    </view>
+  </view>
+
+  <!-- 内容区域 -->
+  <swiper class="content-swiper" current="{{currentTab}}" bindchange="swiperChange">
+    <!-- 拼音搜索 -->
+    <swiper-item>
+      <scroll-view scroll-y class="pinyin-container">
+        <view class="pinyin-groups">
+          <view class="pinyin-group" wx:for="{{pinyinGroups}}" wx:key="initial">
+            <view class="group-title">{{item.initial}}</view>
+            <view class="pinyin-list">
+              <view class="pinyin-item {{selectedPinyin === pinyin ? 'active' : ''}}"
+                    wx:for="{{item.pinyins}}"
+                    wx:for-item="pinyin"
+                    wx:key="*this"
+                    bindtap="selectPinyin"
+                    data-pinyin="{{pinyin}}">
+                {{pinyin}}
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </swiper-item>
+
+    <!-- 部首搜索 -->
+    <swiper-item>
+      <scroll-view scroll-y class="radical-container">
+        <view class="radical-groups">
+          <view class="radical-group" wx:for="{{radicalGroups}}" wx:key="strokeCount">
+            <view class="group-title">{{item.strokeCount}}画</view>
+            <view class="radical-list">
+              <view class="radical-item {{selectedRadical === radical ? 'active' : ''}}"
+                    wx:for="{{item.radicals}}"
+                    wx:for-item="radical"
+                    wx:key="*this"
+                    bindtap="selectRadical"
+                    data-radical="{{radical}}">
+                {{radical}}
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </swiper-item>
+
+    <!-- 笔画搜索 -->
+    <swiper-item>
+      <view class="stroke-container">
+        <view class="stroke-count">
+          <view class="count-title">笔画数：{{strokeCount}}</view>
+          <slider class="count-slider" min="1" max="30" value="{{strokeCount}}" show-value bindchange="strokeCountChange" activeColor="#4a6bff" block-size="24" />
+        </view>
+        <view class="stroke-range">
+          <view class="range-title">笔画范围：</view>
+          <view class="range-inputs">
+            <input class="range-input" type="number" value="{{strokeRange[0]}}" bindinput="inputMinStroke" />
+            <view class="range-separator">-</view>
+            <input class="range-input" type="number" value="{{strokeRange[1]}}" bindinput="inputMaxStroke" />
+          </view>
+          <button class="range-btn" bindtap="searchByStrokeRange">确定</button>
+        </view>
+      </view>
+    </swiper-item>
+
+    <!-- 五行搜索 -->
+    <swiper-item>
+      <view class="five-elements-container">
+        <view class="element-list">
+          <view class="element-item {{selectedElement === '金' ? 'active' : ''}}" bindtap="selectElement" data-element="金">
+            <view class="element-circle jin">金</view>
+            <view class="element-name">金</view>
+          </view>
+          <view class="element-item {{selectedElement === '木' ? 'active' : ''}}" bindtap="selectElement" data-element="木">
+            <view class="element-circle mu">木</view>
+            <view class="element-name">木</view>
+          </view>
+          <view class="element-item {{selectedElement === '水' ? 'active' : ''}}" bindtap="selectElement" data-element="水">
+            <view class="element-circle shui">水</view>
+            <view class="element-name">水</view>
+          </view>
+          <view class="element-item {{selectedElement === '火' ? 'active' : ''}}" bindtap="selectElement" data-element="火">
+            <view class="element-circle huo">火</view>
+            <view class="element-name">火</view>
+          </view>
+          <view class="element-item {{selectedElement === '土' ? 'active' : ''}}" bindtap="selectElement" data-element="土">
+            <view class="element-circle tu">土</view>
+            <view class="element-name">土</view>
+          </view>
+        </view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 搜索结果 -->
+  <view class="search-results" wx:if="{{searchResults.length > 0 || loading}}">
+    <view class="result-header">
+      <view class="result-title">搜索结果</view>
+      <view class="result-count" wx:if="{{!loading}}">共 {{searchResults.length}} 个字</view>
+    </view>
+
+    <view class="loading-container" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <view class="loading-text">正在搜索...</view>
+    </view>
+
+    <view class="char-grid" wx:else>
+      <view class="char-item" wx:for="{{searchResults}}" wx:key="char" bindtap="viewCharDetail" data-char="{{item}}">
+        <view class="char-text">{{item.char}}</view>
+        <view class="char-pinyin">{{item.pinyin[0]}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{!loading && searchResults.length === 0 && hasSearched}}">
+    <image class="empty-image" src="/images/empty-search.png"></image>
+    <view class="empty-text">未找到符合条件的汉字</view>
+    <view class="empty-tips">请尝试其他搜索条件</view>
+  </view>
+
+  <view class="tips" wx:if="{{!hasSearched}}">
+    <view class="tip-item">
+      <view class="tip-icon">i</view>
+      <view class="tip-text">可以通过拼音、部首、笔画数或五行属性查找汉字</view>
+    </view>
+    <view class="tip-item">
+      <view class="tip-icon">i</view>
+      <view class="tip-text">点击汉字可查看详细信息</view>
+    </view>
+  </view>
+</view>

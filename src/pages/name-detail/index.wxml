@@ -1,0 +1,152 @@
+<view class="container">
+  <!-- 顶部导航 -->
+  <view class="nav-bar">
+    <view class="nav-item {{currentTab === 0 ? 'active' : ''}}" bindtap="switchTab" data-tab="0">推荐名字</view>
+    <view class="nav-item {{currentTab === 1 ? 'active' : ''}}" bindtap="switchTab" data-tab="1">名字分析</view>
+  </view>
+
+  <!-- 内容区域 -->
+  <swiper class="content-swiper" current="{{currentTab}}" bindchange="swiperChange">
+    <!-- 推荐名字列表 -->
+    <swiper-item>
+      <scroll-view scroll-y class="name-list-container">
+        <block wx:if="{{loading}}">
+          <view class="loading-container">
+            <view class="loading-spinner"></view>
+            <view class="loading-text">正在为您生成名字...</view>
+          </view>
+        </block>
+        <block wx:elif="{{nameList.length > 0}}">
+          <view class="name-list">
+            <view class="section-header">
+              <view class="section-title">为{{formData.familyName}}{{formData.gender === 'male' ? '先生' : formData.gender === 'female' ? '女士' : ''}}推荐的名字</view>
+              <view class="section-more" bindtap="regenerateNames">重新生成</view>
+            </view>
+
+            <view class="name-items">
+              <view class="name-item {{selectedNameIndex === index ? 'selected' : ''}}"
+                    wx:for="{{nameList}}"
+                    wx:key="id"
+                    bindtap="selectName"
+                    data-index="{{index}}">
+                <view class="name-header">
+                  <view class="name-text">{{item.fullName}}</view>
+                  <view class="name-score">{{item.analysis.overallScore}}分</view>
+                </view>
+                <view class="name-pinyin">
+                  <block wx:for="{{item.characters}}" wx:for-item="char" wx:key="char">
+                    {{char.pinyin[0]}}{{index < item.characters.length - 1 ? ' ' : ''}}
+                  </block>
+                </view>
+                <view class="name-tags">
+                  <view class="tag tag-primary" wx:for="{{item.characters}}" wx:for-item="char" wx:key="char">
+                    {{char.fiveElement}}
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+        <block wx:else>
+          <view class="empty-state">
+            <image class="empty-image" src="/images/empty-names.png"></image>
+            <view class="empty-text">暂无推荐名字</view>
+            <button class="btn btn-primary" bindtap="regenerateNames">重新生成</button>
+          </view>
+        </block>
+      </scroll-view>
+    </swiper-item>
+
+    <!-- 名字分析 -->
+    <swiper-item>
+      <scroll-view scroll-y class="analysis-container" wx:if="{{selectedName}}">
+        <!-- 名字展示 -->
+        <view class="name-card">
+          <view class="name-display">{{selectedName.fullName}}</view>
+          <view class="name-pinyin">
+            <block wx:for="{{selectedName.characters}}" wx:key="char">
+              {{item.pinyin[0]}}{{index < selectedName.characters.length - 1 ? ' ' : ''}}
+            </block>
+          </view>
+          <view class="overall-score">
+            <view class="score-circle">
+              <view class="score-text">{{selectedName.analysis.overallScore}}</view>
+            </view>
+            <view class="score-label">综合评分</view>
+          </view>
+        </view>
+
+        <!-- 分析维度 -->
+        <view class="analysis-section" wx:if="{{formData.showFiveElements}}">
+          <view class="section-header">
+            <view class="section-title">五行分析</view>
+          </view>
+          <view class="analysis-content">
+            <view class="analysis-chart">
+              <view class="five-elements">
+                <view class="element-item" wx:for="{{selectedName.analysis.fiveElements.chars}}" wx:key="index">
+                  <view class="element-char">{{selectedName.characters[index].char}}</view>
+                  <view class="element-name {{item === '金' ? 'jin' : item === '木' ? 'mu' : item === '水' ? 'shui' : item === '火' ? 'huo' : item === '土' ? 'tu' : item}}">{{item}}</view>
+                </view>
+              </view>
+            </view>
+            <view class="analysis-text">{{selectedName.analysis.fiveElements.description}}</view>
+            <view class="analysis-score">评分：{{selectedName.analysis.fiveElements.score}}</view>
+          </view>
+        </view>
+
+        <view class="analysis-section" wx:if="{{formData.showPronunciation}}">
+          <view class="section-header">
+            <view class="section-title">音律分析</view>
+          </view>
+          <view class="analysis-content">
+            <view class="analysis-chart">
+              <view class="tone-chart">
+                <view class="tone-item" wx:for="{{selectedName.analysis.pronunciation.tones}}" wx:key="index">
+                  <view class="tone-char">{{selectedName.characters[index].char}}</view>
+                  <view class="tone-value">{{selectedName.characters[index].tone[0]}}声</view>
+                  <view class="tone-type">{{item}}</view>
+                </view>
+              </view>
+            </view>
+            <view class="analysis-text">{{selectedName.analysis.pronunciation.description}}</view>
+            <view class="analysis-score">评分：{{selectedName.analysis.pronunciation.score}}</view>
+          </view>
+        </view>
+
+        <view class="analysis-section" wx:if="{{formData.showMeaning}}">
+          <view class="section-header">
+            <view class="section-title">字义分析</view>
+          </view>
+          <view class="analysis-content">
+            <view class="meaning-overall">{{selectedName.analysis.meaning.overall}}</view>
+            <view class="meaning-details">
+              <view class="meaning-item" wx:for="{{selectedName.analysis.meaning.details}}" wx:key="index">
+                {{item}}
+              </view>
+            </view>
+            <view class="analysis-score">评分：{{selectedName.analysis.meaning.score}}</view>
+          </view>
+        </view>
+
+        <!-- 更多分析维度可以根据需要添加 -->
+      </scroll-view>
+      <view class="empty-state" wx:else>
+        <image class="empty-image" src="/images/select-name.png"></image>
+        <view class="empty-text">请先选择一个名字</view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-buttons" wx:if="{{selectedName}}">
+    <button class="btn btn-outline" bindtap="saveName">
+      <image class="btn-icon" src="/images/icon-save.png"></image>
+      收藏
+    </button>
+    <button class="btn btn-primary" open-type="share">
+      <image class="btn-icon" src="/images/icon-share.png"></image>
+      分享
+    </button>
+  </view>
+</view>
