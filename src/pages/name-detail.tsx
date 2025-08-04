@@ -17,6 +17,7 @@ import { SocialScorer } from '../lib/qiming/social-scorer';
 import { PinyinAnalyzer } from '../lib/qiming/pinyin-analyzer';
 import { weightedScoreCalculator, ScoreComponents, DEFAULT_WEIGHTS } from '../lib/qiming/weighted-score-calculator';
 import { WeightConfig } from '../lib/qiming/types';
+import { evaluateNumber } from '../lib/qiming/constants';
 
 const NameDetailPage: React.FC = () => {
   const router = useRouter();
@@ -165,6 +166,35 @@ const NameDetailPage: React.FC = () => {
     if (score >= 75) return 'text-yellow-600 bg-yellow-50';
     if (score >= 65) return 'text-orange-600 bg-orange-50';
     return 'text-red-600 bg-red-50';
+  };
+
+  // 获取五格吉凶颜色
+  const getGridColor = (value: number) => {
+    const evaluation = evaluateNumber(value);
+    switch (evaluation) {
+      case '大吉':
+        return 'text-green-600 bg-green-50 border-green-200';
+      case '次吉':
+        return 'text-blue-600 bg-blue-50 border-blue-200';
+      case '中性':
+        return 'text-gray-600 bg-gray-50 border-gray-200';
+      case '凶':
+        return 'text-red-600 bg-red-50 border-red-200';
+      default:
+        return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+  // 将五行拼音转换为中文
+  const getWuxingChinese = (pinyin: string) => {
+    const wuxingMap: { [key: string]: string } = {
+      'jin': '金',
+      'mu': '木', 
+      'shui': '水',
+      'huo': '火',
+      'tu': '土'
+    };
+    return wuxingMap[pinyin] || pinyin;
   };
 
   // 生成星级评分
@@ -322,15 +352,15 @@ const NameDetailPage: React.FC = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">天格五行:</span>
-              <span className="font-medium text-gray-800">{nameData.sancai.heaven}</span>
+              <span className="font-medium text-gray-800">{getWuxingChinese(nameData.sancai.heaven)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">人格五行:</span>
-              <span className="font-medium text-gray-800">{nameData.sancai.human}</span>
+              <span className="font-medium text-gray-800">{getWuxingChinese(nameData.sancai.human)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">地格五行:</span>
-              <span className="font-medium text-gray-800">{nameData.sancai.earth}</span>
+              <span className="font-medium text-gray-800">{getWuxingChinese(nameData.sancai.earth)}</span>
             </div>
           </div>
         </div>
@@ -372,8 +402,8 @@ const NameDetailPage: React.FC = () => {
               <div className="font-medium text-gray-800 mb-1">{grid.name}</div>
               <div className="text-xs text-gray-600">{grid.desc}</div>
               <div className="mt-2">
-                <span className={`px-2 py-1 rounded text-xs ${getScoreColor(grid.value)}`}>
-                  {grid.value >= 30 ? '吉' : '凶'}
+                <span className={`px-2 py-1 rounded text-xs border ${getGridColor(grid.value)}`}>
+                  {evaluateNumber(grid.value)}
                 </span>
               </div>
             </div>
@@ -387,17 +417,17 @@ const NameDetailPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center bg-blue-50 rounded-lg p-6">
             <div className="text-3xl mb-2">☁️</div>
-            <div className="font-semibold text-blue-800">天格 - {nameData.sancai.heaven}</div>
+            <div className="font-semibold text-blue-800">天格 - {getWuxingChinese(nameData.sancai.heaven)}</div>
             <div className="text-sm text-blue-600 mt-2">代表祖宗运势和家族传承</div>
           </div>
           <div className="text-center bg-green-50 rounded-lg p-6">
             <div className="text-3xl mb-2">👤</div>
-            <div className="font-semibold text-green-800">人格 - {nameData.sancai.human}</div>
+            <div className="font-semibold text-green-800">人格 - {getWuxingChinese(nameData.sancai.human)}</div>
             <div className="text-sm text-green-600 mt-2">代表个人主运和性格特征</div>
           </div>
           <div className="text-center bg-yellow-50 rounded-lg p-6">
             <div className="text-3xl mb-2">🌍</div>
-            <div className="font-semibold text-yellow-800">地格 - {nameData.sancai.earth}</div>
+            <div className="font-semibold text-yellow-800">地格 - {getWuxingChinese(nameData.sancai.earth)}</div>
             <div className="text-sm text-yellow-600 mt-2">代表前运和早年运势</div>
           </div>
         </div>
