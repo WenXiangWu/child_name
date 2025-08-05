@@ -50,7 +50,7 @@ export default function Home() {
                 <Link href="/naming" className="text-gray-600 hover:text-gray-800">
                   专业取名
                 </Link>
-                <Link href="/cultural-info" className="text-gray-600 hover:text-gray-800">
+                <Link href="/culture/overview" className="text-gray-600 hover:text-gray-800">
                   文化科普
                 </Link>
                 <Link href="/about" className="text-gray-600 hover:text-gray-800">
@@ -89,57 +89,114 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="border-4 border-red-500 rounded-2xl p-8 bg-white/80 backdrop-blur-sm">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {/* 三才五格分析 */}
-                  <Link href="/culture/sancai-wuge" className="group">
-                    <div className="text-center p-6 rounded-xl bg-gradient-to-br from-purple-50 to-indigo-100 group-hover:from-purple-100 group-hover:to-indigo-200 transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
-                        <span className="text-2xl">🔮</span>
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-800 mb-3">三才五格分析</h3>
-                      <p className="text-sm text-gray-600 leading-relaxed">
-                        基于传统姓名学理论，精确计算三才五格数理，确保名字蕴含美好寓意与运势。
-                      </p>
-                      <div className="mt-4 text-purple-600 text-sm font-medium group-hover:text-purple-700">
-                        了解更多 →
-                      </div>
-                    </div>
-                  </Link>
+              {/* 滚动展示的五种取名方式 */}
+              <div className="relative overflow-hidden rounded-2xl border-4 border-red-500 bg-white/80 backdrop-blur-sm">
+                <div 
+                  className="flex gap-8 p-8 animate-scroll hover:pause-animation"
+                  style={{
+                    width: 'calc(100% * 2)',
+                    animation: 'scroll 20s linear infinite'
+                  }}
+                >
+                  {/* 重复两次卡片以实现无缝滚动 */}
+                  {Array.from({ length: 2 }).map((_, repeatIndex) => (
+                    <div key={repeatIndex} className="flex gap-8 min-w-full">
+                      {/* 三才五格分析 */}
+                      <Link href="/culture/sancai-wuge" className="group min-w-[300px]">
+                        <div className="text-center p-6 rounded-xl bg-gradient-to-br from-purple-50 to-indigo-100 group-hover:from-purple-100 group-hover:to-indigo-200 transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
+                            <span className="text-2xl">🔮</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-800 mb-3">三才五格分析</h3>
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            基于传统姓名学理论，精确计算三才五格数理，确保名字蕴含美好寓意与运势。
+                          </p>
+                          <div className="mt-4 text-purple-600 text-sm font-medium group-hover:text-purple-700">
+                            了解更多 →
+                          </div>
+                        </div>
+                      </Link>
 
-                  {/* 五行平衡 */}
-                  <Link href="/culture/wuxing-balance" className="group">
-                    <div className="text-center p-6 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-100 group-hover:from-emerald-100 group-hover:to-teal-200 transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
-                        <span className="text-2xl">⚖️</span>
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-800 mb-3">五行平衡</h3>
-                      <p className="text-sm text-gray-600 leading-relaxed">
-                        根据生辰信息分析五行属性，确保名字协调平衡，符合个人命理特征。
-                      </p>
-                      <div className="mt-4 text-emerald-600 text-sm font-medium group-hover:text-emerald-700">
-                        了解更多 →
-                      </div>
-                    </div>
-                  </Link>
+                      {/* 五行平衡 */}
+                      <Link href="/culture/wuxing-balance" className="group min-w-[300px]">
+                        <div className="text-center p-6 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-100 group-hover:from-emerald-100 group-hover:to-teal-200 transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
+                            <span className="text-2xl">⚖️</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-800 mb-3">五行平衡</h3>
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            根据生辰信息分析五行属性，确保名字协调平衡，符合个人命理特征。
+                          </p>
+                          <div className="mt-4 text-emerald-600 text-sm font-medium group-hover:text-emerald-700">
+                            了解更多 →
+                          </div>
+                        </div>
+                      </Link>
 
-                  {/* 音韵美感 */}
-                  <Link href="/culture/phonetic-beauty" className="group">
-                    <div className="text-center p-6 rounded-xl bg-gradient-to-br from-rose-50 to-pink-100 group-hover:from-rose-100 group-hover:to-pink-200 transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full flex items-center justify-center">
-                        <span className="text-2xl">🎵</span>
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-800 mb-3">音韵美感</h3>
-                      <p className="text-sm text-gray-600 leading-relaxed">
-                        分析声调搭配，确保名字读音优美和谐，朗朗上口，富有音律美感。
-                      </p>
-                      <div className="mt-4 text-rose-600 text-sm font-medium group-hover:text-rose-700">
-                        了解更多 →
-                      </div>
+                      {/* 音韵美感 */}
+                      <Link href="/culture/phonetic-beauty" className="group min-w-[300px]">
+                        <div className="text-center p-6 rounded-xl bg-gradient-to-br from-rose-50 to-pink-100 group-hover:from-rose-100 group-hover:to-pink-200 transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full flex items-center justify-center">
+                            <span className="text-2xl">🎵</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-800 mb-3">音韵美感</h3>
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            分析声调搭配，确保名字读音优美和谐，朗朗上口，富有音律美感。
+                          </p>
+                          <div className="mt-4 text-rose-600 text-sm font-medium group-hover:text-rose-700">
+                            了解更多 →
+                          </div>
+                        </div>
+                      </Link>
+
+                      {/* 八字喜用神 */}
+                      <Link href="/culture/bazi-xiyongshen" className="group min-w-[300px]">
+                        <div className="text-center p-6 rounded-xl bg-gradient-to-br from-orange-50 to-red-100 group-hover:from-orange-100 group-hover:to-red-200 transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center">
+                            <span className="text-2xl">🔥</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-800 mb-3">八字喜用神</h3>
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            基于出生时刻精准分析命局，确定五行喜忌，实现个性化精准补益。
+                          </p>
+                          <div className="mt-4 text-orange-600 text-sm font-medium group-hover:text-orange-700">
+                            了解更多 →
+                          </div>
+                        </div>
+                      </Link>
+
+                      {/* 意境底蕴派 */}
+                      <Link href="/culture/cultural-heritage" className="group min-w-[300px]">
+                        <div className="text-center p-6 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-100 group-hover:from-amber-100 group-hover:to-yellow-200 transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-full flex items-center justify-center">
+                            <span className="text-2xl">📚</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-800 mb-3">意境底蕴派</h3>
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            从经史子集中汲取智慧，将深厚文化内涵融入姓名，承载千年文脉。
+                          </p>
+                          <div className="mt-4 text-amber-600 text-sm font-medium group-hover:text-amber-700">
+                            了解更多 →
+                          </div>
+                        </div>
+                      </Link>
                     </div>
-                  </Link>
+                  ))}
                 </div>
               </div>
+
+              <style jsx>{`
+                @keyframes scroll {
+                  0% { transform: translateX(0); }
+                  100% { transform: translateX(-50%); }
+                }
+                .animate-scroll {
+                  animation: scroll 20s linear infinite;
+                }
+                .pause-animation:hover .animate-scroll {
+                  animation-play-state: paused;
+                }
+              `}</style>
             </div>
           </section>
         </div>

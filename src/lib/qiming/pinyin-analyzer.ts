@@ -44,34 +44,67 @@ export class PinyinAnalyzer {
    */
   private async loadGSCPinyinData(): Promise<void> {
     try {
-      const response = await fetch(getStaticUrl('gsc_pinyin.csv'));
+      const response = await fetch(getStaticUrl('processed/pinyin-processed.json'));
       
       if (!response.ok) {
         throw new Error(`HTTP错误: ${response.status} ${response.statusText}`);
       }
 
-      const csvText = await response.text();
-      const lines = csvText.split('\n');
+      const jsonData = await response.json();
+      const pinyinData = jsonData.data;
 
-      console.log(`开始处理 ${lines.length} 行GSC拼音数据`);
+      console.log(`开始处理拼音数据，共 ${Object.keys(pinyinData).length} 个汉字`);
 
-      for (let i = 1; i < lines.length; i++) { // 跳过header
-        const line = lines[i].trim();
-        if (!line) continue;
-
-        const columns = line.split(',');
-        if (columns.length >= 8) {
-          const entry = this.parseGSCEntry(columns);
-          if (entry) {
-            this.pinyinDict.set(entry.word, entry);
-          }
+      for (const [char, data] of Object.entries(pinyinData)) {
+        const entry = this.parseProcessedEntry(char, data as any);
+        if (entry) {
+          this.pinyinDict.set(entry.word, entry);
         }
       }
 
-      console.log(`GSC拼音数据处理完成，加载了 ${this.pinyinDict.size} 个汉字`);
+      console.log(`拼音数据处理完成，加载了 ${this.pinyinDict.size} 个汉字`);
     } catch (error) {
-      console.error('加载GSC拼音数据失败:', error);
+      console.error('加载拼音数据失败:', error);
       throw error;
+    }
+  }
+
+  /**
+   * 解析处理后的JSON数据条目
+   */
+  private parseProcessedEntry(char: string, data: any): GSCPinyinEntry | null {
+    try {
+      if (!char || char.length !== 1) {
+        return null; // 只处理单个汉字
+      }
+
+      const pinyin = data.pinyin || '';
+      const tone = data.tone || 0;
+      const pinyinList = [pinyin];
+      const tones = [tone];
+
+      // 如果没有五行信息，尝试根据部首推断
+      const wuxing = data.wuxing || this.inferWuxingFromChar(char);
+
+      const entry: GSCPinyinEntry = {
+        num: '',
+        word: char,
+        pinyin: pinyin,
+        radical: data.radical || '',
+        strokeCount: data.strokeCount || 0,
+        wuxing: wuxing,
+        traditional: data.traditional || char,
+        wubi: data.wubi || '',
+        pinyinList,
+        tones,
+        mainPinyin: pinyin,
+        mainTone: tone
+      };
+
+      return entry;
+    } catch (error) {
+      console.warn('解析处理后数据条目失败:', char, data, error);
+      return null;
     }
   }
 
@@ -372,6 +405,31 @@ export class PinyinAnalyzer {
       return pattern[0] !== pattern[1] && pattern[1] !== pattern[2];
     }
     return false;
+  }
+
+  /**
+   * 根据汉字推断五行属性
+   */
+  private inferWuxingFromChar(char: string): WuxingElement {
+    // 简单的五行推断规则，基于常见的部首
+    const wuxingRadicals = {
+      'jin': ['金', '钅', '刀', '刂', '斤', '戈', '匕', '刀', '钢', '铁', '银', '铜'],
+      'mu': ['木', '艹', '竹', '禾', '米', '林', '森', '枝', '叶', '草', '花', '树'],
+      'shui': ['水', '氵', '冫', '雨', '雪', '云', '海', '河', '江', '湖', '泪', '汗'],
+      'huo': ['火', '灬', '日', '阳', '光', '明', '亮', '热', '烈', '焰', '灯', '烧'],
+      'tu': ['土', '山', '石', '田', '地', '城', '墙', '坚', '固', '岩', '沙', '泥']
+    };
+
+    for (const [element, radicals] of Object.entries(wuxingRadicals)) {
+      for (const radical of radicals) {
+        if (char.includes(radical)) {
+          return element as WuxingElement;
+        }
+      }
+    }
+
+    // 默认返回土
+    return 'tu';
   }
 
   /**
