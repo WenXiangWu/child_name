@@ -50,6 +50,10 @@ export default function Home() {
                 <Link href="/naming" className="text-gray-600 hover:text-gray-800">
                   专业取名
                 </Link>
+                <Link href="/poetry" className="text-gray-600 hover:text-gray-800 flex items-center gap-1">
+                  <span>📚</span>
+                  诗词典籍
+                </Link>
                 <Link href="/culture/overview" className="text-gray-600 hover:text-gray-800">
                   文化科普
                 </Link>
@@ -177,6 +181,22 @@ export default function Home() {
                           </p>
                           <div className="mt-4 text-amber-600 text-sm font-medium group-hover:text-amber-700">
                             了解更多 →
+                          </div>
+                        </div>
+                      </Link>
+
+                      {/* 诗词典籍 */}
+                      <Link href="/poetry" className="group min-w-[300px]">
+                        <div className="text-center p-6 rounded-xl bg-gradient-to-br from-cyan-50 to-blue-100 group-hover:from-cyan-100 group-hover:to-blue-200 transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center">
+                            <span className="text-2xl">📖</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-800 mb-3">诗词典籍</h3>
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            浏览收录的诗经、楚辞、唐诗、宋词等经典诗词，为取名提供灵感源泉。
+                          </p>
+                          <div className="mt-4 text-cyan-600 text-sm font-medium group-hover:text-cyan-700">
+                            浏览典籍 →
                           </div>
                         </div>
                       </Link>

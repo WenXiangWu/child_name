@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 
@@ -13,6 +13,7 @@ const Layout: React.FC<LayoutProps> = ({
   title = '宝宝取名网 - 帮助父母找到完美的名字',
   description = '为您的宝宝找到一个有意义、吉祥的好名字，结合传统文化与现代审美，让宝宝的名字独特而美好。'
 }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-white">
       <Head>
@@ -36,19 +37,63 @@ const Layout: React.FC<LayoutProps> = ({
             <Link href="/generate" className="text-gray-600 hover:text-primary-600">
               名字生成
             </Link>
+            <Link href="/xinhua-dict" className="text-gray-600 hover:text-primary-600">
+              新华字典
+            </Link>
             <Link href="/about" className="text-gray-600 hover:text-primary-600">
               关于我们
             </Link>
           </nav>
           
           <div className="md:hidden">
-            <button className="text-gray-500 hover:text-gray-700">
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-gray-500 hover:text-gray-700"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
           </div>
         </div>
+
+        {/* 移动端菜单 */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-white border-b border-gray-200">
+            <div className="container mx-auto px-4 py-2">
+              <nav className="flex flex-col space-y-2">
+                <Link 
+                  href="/" 
+                  className="text-gray-600 hover:text-primary-600 py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  首页
+                </Link>
+                <Link 
+                  href="/generate" 
+                  className="text-gray-600 hover:text-primary-600 py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  名字生成
+                </Link>
+                <Link 
+                  href="/xinhua-dict" 
+                  className="text-gray-600 hover:text-primary-600 py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  新华字典
+                </Link>
+                <Link 
+                  href="/about" 
+                  className="text-gray-600 hover:text-primary-600 py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  关于我们
+                </Link>
+              </nav>
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="flex-grow">
@@ -76,6 +121,11 @@ const Layout: React.FC<LayoutProps> = ({
                 <li>
                   <Link href="/generate" className="text-gray-600 hover:text-primary-600">
                     名字生成
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/xinhua-dict" className="text-gray-600 hover:text-primary-600">
+                    新华字典
                   </Link>
                 </li>
                 <li>
