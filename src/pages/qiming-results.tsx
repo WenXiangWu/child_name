@@ -261,8 +261,8 @@ ${index + 1}. ${name.fullName}
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">参数错误</h2>
           <p className="text-gray-600 mb-6">缺少必要的生成参数</p>
-          <Link href="/qiming-test" className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
-            返回测试页面
+          <Link href="/" className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+            返回首页
           </Link>
         </div>
       </div>
@@ -380,10 +380,10 @@ ${index + 1}. ${name.fullName}
             </button>
 
             <Link
-              href="/qiming-test"
+              href="/"
               className="bg-gray-600 text-white px-4 py-2 rounded text-sm hover:bg-gray-700"
             >
-              返回测试
+              返回首页
             </Link>
           </div>
         </div>

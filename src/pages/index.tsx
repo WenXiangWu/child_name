@@ -70,6 +70,10 @@ export default function Home() {
                   <span>📚</span>
                   诗词典籍
                 </Link>
+                <Link href="/baijiaxing" className="text-amber-600 hover:text-amber-800 flex items-center gap-1">
+                  <span>📜</span>
+                  百家姓
+                </Link>
                 <Link href="/culture/overview" className="text-gray-600 hover:text-gray-800">
                   文化科普
                 </Link>
@@ -78,17 +82,7 @@ export default function Home() {
                 </Link>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-4">
-                <Link href="/standard-characters-test" className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1">
-                  <span>🏛️</span>
-                  规范汉字验证
-                </Link>
-                <Link href="/qiming-test" className="text-sm text-gray-500 hover:text-gray-700">
-                  功能测试
-                </Link>
-              </div>
-            </div>
+
           </div>
         </div>
       </nav>

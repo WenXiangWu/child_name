@@ -1122,8 +1122,8 @@ const NamingPage: React.FC = () => {
               宝宝取名专家
             </Link>
             <div className="flex items-center gap-4">
-              <Link href="/qiming-test" className="text-gray-600 hover:text-gray-800">
-                功能测试
+              <Link href="/baijiaxing" className="text-amber-600 hover:text-amber-800">
+                百家姓
               </Link>
               <Link href="/about" className="text-gray-600 hover:text-gray-800">
                 关于我们
