@@ -44,6 +44,9 @@ const Layout: React.FC<LayoutProps> = ({
             <Link href="/name-duplicate-check" className="text-gray-600 hover:text-primary-600">
               重名查询
             </Link>
+            <Link href="/text-converter" className="text-gray-600 hover:text-primary-600">
+              简繁转换
+            </Link>
             <Link href="/xinhua-dict" className="text-gray-600 hover:text-primary-600">
               新华字典
             </Link>
@@ -97,6 +100,13 @@ const Layout: React.FC<LayoutProps> = ({
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   重名查询
+                </Link>
+                <Link 
+                  href="/text-converter" 
+                  className="text-gray-600 hover:text-primary-600 py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  简繁转换
                 </Link>
                 <Link 
                   href="/xinhua-dict" 

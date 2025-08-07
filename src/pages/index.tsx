@@ -62,6 +62,10 @@ export default function Home() {
                   <span>🔍</span>
                   重名查询
                 </Link>
+                <Link href="/text-converter" className="text-gray-600 hover:text-gray-800 flex items-center gap-1">
+                  <span>🔄</span>
+                  简繁转换
+                </Link>
                 <Link href="/poetry" className="text-gray-600 hover:text-gray-800 flex items-center gap-1">
                   <span>📚</span>
                   诗词典籍
