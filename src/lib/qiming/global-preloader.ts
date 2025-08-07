@@ -115,14 +115,17 @@ class GlobalDataPreloader {
           // 动态导入避免循环依赖
           const { QimingDataLoader } = await import('./data-loader');
           const { PinyinAnalyzer } = await import('./pinyin-analyzer');
+          const { StandardCharactersValidator } = await import('./standard-characters-validator');
           
           // 预加载核心数据
           const dataLoader = QimingDataLoader.getInstance();
           const pinyinAnalyzer = PinyinAnalyzer.getInstance();
+          const standardValidator = StandardCharactersValidator.getInstance();
           
           await Promise.all([
             dataLoader.preloadCoreData(),
-            pinyinAnalyzer.initialize()
+            pinyinAnalyzer.initialize(),
+            standardValidator.initialize() // 🎯 新增：预加载标准字符验证器
           ]);
         }
       }

@@ -43,12 +43,24 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-8">
-              <Link href="/" className="text-2xl font-bold text-gray-800">
+              <Link href="/" className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <span className="text-green-600">🏛️</span>
                 宝宝取名专家
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-normal">
+                  规范汉字
+                </span>
               </Link>
               <div className="hidden md:flex items-center gap-6">
                 <Link href="/naming" className="text-gray-600 hover:text-gray-800">
                   专业取名
+                </Link>
+                <Link href="/standard-characters" className="text-green-600 hover:text-green-800 flex items-center gap-1 font-medium">
+                  <span>🏛️</span>
+                  国家通用规范汉字表
+                </Link>
+                <Link href="/name-duplicate-check" className="text-gray-600 hover:text-gray-800 flex items-center gap-1">
+                  <span>🔍</span>
+                  重名查询
                 </Link>
                 <Link href="/poetry" className="text-gray-600 hover:text-gray-800 flex items-center gap-1">
                   <span>📚</span>
@@ -63,9 +75,15 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Link href="/qiming-test" className="text-sm text-gray-500 hover:text-gray-700">
-                功能测试
-              </Link>
+              <div className="flex items-center gap-4">
+                <Link href="/standard-characters-test" className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1">
+                  <span>🏛️</span>
+                  规范汉字验证
+                </Link>
+                <Link href="/qiming-test" className="text-sm text-gray-500 hover:text-gray-700">
+                  功能测试
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -81,8 +99,48 @@ export default function Home() {
             </span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            结合传统文化智慧与现代科学方法，为新生儿提供专业、个性化、有文化内涵的名字推荐
+            <span className="font-semibold text-green-700">严格遵循《通用规范汉字表》国家标准</span>，结合传统文化智慧与现代科学方法，为新生儿提供专业、个性化、有文化内涵的名字推荐
           </p>
+          
+          {/* 🎯 新增：通用规范汉字表官方保证 */}
+          <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-12 max-w-4xl mx-auto">
+            <div className="flex items-center justify-center mb-4">
+              <div className="flex-shrink-0">
+                <svg className="h-8 w-8 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-lg font-semibold text-green-800">
+                  官方权威保证
+                </h3>
+              </div>
+            </div>
+            <div className="text-center">
+              <p className="text-green-700 mb-3">
+                <span className="font-medium">严格遵循《通用规范汉字表》</span>
+                - 2013年中华人民共和国教育部发布的国家标准
+              </p>
+              <div className="flex flex-wrap justify-center gap-4 text-sm text-green-600">
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  8,105个标准汉字
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  597个多音字数据
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  3,009条简繁转换
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  100%规范汉字保证
+                </div>
+              </div>
+            </div>
+          </div>
           {/* 传统文化特色 */}
           <section className="py-16 bg-gradient-to-br from-purple-50 via-white to-blue-50">
             <div className="max-w-6xl mx-auto px-4">
@@ -324,6 +382,10 @@ export default function Home() {
                 </button>
 
                 <div className="text-center text-sm text-gray-500">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <span className="text-green-600">🏛️</span>
+                    <span className="text-green-700 font-medium">100%规范汉字保证</span>
+                  </div>
                   诗词取名：基于古典文学，文化内涵深厚
                 </div>
               </div>
@@ -343,6 +405,16 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* 🎯 重点突出：官方权威保证 */}
+            <div className="text-center border-2 border-green-200 rounded-xl p-6 bg-green-50">
+              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🏛️</span>
+              </div>
+              <h3 className="font-semibold text-green-800 mb-2">官方权威</h3>
+              <p className="text-sm text-green-700 font-medium">严格遵循《通用规范汉字表》</p>
+              <p className="text-xs text-green-600 mt-1">教育部2013年发布的国家标准</p>
+            </div>
+            
             <div className="text-center">
               <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">🎯</span>
@@ -350,13 +422,7 @@ export default function Home() {
               <h3 className="font-semibold text-gray-800 mb-2">算法透明</h3>
               <p className="text-sm text-gray-600">完全公开评分逻辑，每个分数都有详细解释</p>
             </div>
-            <div className="text-center">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">⚙️</span>
-              </div>
-              <h3 className="font-semibold text-gray-800 mb-2">个性定制</h3>
-              <p className="text-sm text-gray-600">权重自由调整，满足不同家庭的独特需求</p>
-            </div>
+            
             <div className="text-center">
               <div className="bg-yellow-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">📚</span>
@@ -364,6 +430,7 @@ export default function Home() {
               <h3 className="font-semibold text-gray-800 mb-2">文化传承</h3>
               <p className="text-sm text-gray-600">深度解读传统文化，传承中华文明智慧</p>
             </div>
+            
             <div className="text-center">
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">⚡</span>

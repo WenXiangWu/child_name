@@ -37,6 +37,13 @@ const Layout: React.FC<LayoutProps> = ({
             <Link href="/generate" className="text-gray-600 hover:text-primary-600">
               名字生成
             </Link>
+            <Link href="/standard-characters" className="text-green-600 hover:text-green-700 font-medium flex items-center gap-1">
+              <span>🏛️</span>
+              规范汉字表
+            </Link>
+            <Link href="/name-duplicate-check" className="text-gray-600 hover:text-primary-600">
+              重名查询
+            </Link>
             <Link href="/xinhua-dict" className="text-gray-600 hover:text-primary-600">
               新华字典
             </Link>
@@ -75,6 +82,21 @@ const Layout: React.FC<LayoutProps> = ({
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   名字生成
+                </Link>
+                <Link 
+                  href="/standard-characters" 
+                  className="text-green-600 hover:text-green-700 py-2 font-medium flex items-center gap-1"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <span>🏛️</span>
+                  国家通用规范汉字表
+                </Link>
+                <Link 
+                  href="/name-duplicate-check" 
+                  className="text-gray-600 hover:text-primary-600 py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  重名查询
                 </Link>
                 <Link 
                   href="/xinhua-dict" 
@@ -121,6 +143,12 @@ const Layout: React.FC<LayoutProps> = ({
                 <li>
                   <Link href="/generate" className="text-gray-600 hover:text-primary-600">
                     名字生成
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/standard-characters" className="text-green-600 hover:text-green-700 font-medium flex items-center gap-1">
+                    <span>🏛️</span>
+                    规范汉字表
                   </Link>
                 </li>
                 <li>

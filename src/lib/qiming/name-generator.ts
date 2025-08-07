@@ -12,16 +12,19 @@ import {
 } from './types';
 import { SancaiWugeCalculator } from './sancai-calculator';
 import { QimingDataLoader } from './data-loader';
+import { StandardCharactersValidator } from './standard-characters-validator';
 import { isDataReady } from './global-preloader';
 import { DEFAULT_CONFIG } from './constants';
 
 export class QimingNameGenerator {
   private sancaiCalculator: SancaiWugeCalculator;
   private dataLoader: QimingDataLoader;
+  private standardValidator: StandardCharactersValidator;
 
   constructor() {
     this.sancaiCalculator = new SancaiWugeCalculator();
     this.dataLoader = QimingDataLoader.getInstance();
+    this.standardValidator = StandardCharactersValidator.getInstance();
   }
 
   /**
@@ -35,6 +38,9 @@ export class QimingNameGenerator {
     if (!isDataReady()) {
       await this.dataLoader.preloadCoreData();
     }
+
+    // 初始化标准字符验证器
+    await this.standardValidator.initialize();
 
     // 1. 获取最佳笔画组合 - 对应get_best_ge_bihua
     const strokeCombinations = await this.sancaiCalculator.getBestStrokeCombinations(
@@ -78,6 +84,9 @@ export class QimingNameGenerator {
 
       // 5. 生成名字组合
       for (const midChar of midCandidates) {
+        // 🎯 新增：过滤非通用规范汉字表字符
+        if (!this.standardValidator.isStandardCharacter(midChar)) continue;
+        
         // 过滤非常用字
         if (!commonWords.has(midChar)) continue;
         
@@ -85,6 +94,9 @@ export class QimingNameGenerator {
         if (config.avoidedWords?.includes(midChar)) continue;
 
         for (const lastChar of lastCandidates) {
+          // 🎯 新增：过滤非通用规范汉字表字符
+          if (!this.standardValidator.isStandardCharacter(lastChar)) continue;
+          
           // 过滤非常用字
           if (!commonWords.has(lastChar)) continue;
           
@@ -193,7 +205,8 @@ export class QimingNameGenerator {
     const nameList: string[] = [];
     
     for (const word of wordList) {
-      if (commonWords.has(word)) {
+      // 🎯 新增：确保小名用字也符合通用规范汉字表
+      if (this.standardValidator.isStandardCharacter(word) && commonWords.has(word)) {
         nameList.push('小' + word);
       }
     }
@@ -461,7 +474,72 @@ export class QimingNameGenerator {
     return {
       dataLoaded: this.dataLoader.getLoadStatus(),
       calculatorReady: !!this.sancaiCalculator,
+      standardValidator: this.standardValidator.getStats(),
       timestamp: new Date().toISOString()
     };
+  }
+
+  /**
+   * 验证名字是否符合通用规范汉字表要求
+   * 提供给外部调用的验证接口
+   */
+  async validateName(fullName: string): Promise<{
+    isValid: boolean;
+    invalidChars: string[];
+    suggestions: string[];
+  }> {
+    await this.standardValidator.initialize();
+    return this.standardValidator.validateName(fullName);
+  }
+
+  /**
+   * 分析数据源的标准字符合规性
+   * 用于调试和数据质量监控
+   */
+  async analyzeDataCompliance(): Promise<Record<string, any>> {
+    await this.standardValidator.initialize();
+    
+    const reports: Record<string, any> = {};
+    
+    // 分析五行字典合规性
+    try {
+      const wuxingData = await this.dataLoader.loadWuxingDataSimplified();
+      const allWuxingChars: string[] = [];
+      
+      for (const wuxingChars of Object.values(wuxingData)) {
+        for (const chars of Object.values(wuxingChars)) {
+          if (Array.isArray(chars)) {
+            allWuxingChars.push(...chars);
+          }
+        }
+      }
+      
+      reports.wuxingDict = await this.standardValidator.analyzeDataSource(
+        '五行字典(简体)', 
+        [...new Set(allWuxingChars)]
+      );
+    } catch (error) {
+      console.error('分析五行字典失败:', error);
+    }
+    
+    // 分析常用字合规性
+    try {
+      const maleCommon = await this.dataLoader.getCommonNameWords('男');
+      const femaleCommon = await this.dataLoader.getCommonNameWords('女');
+      
+      reports.maleCommonWords = await this.standardValidator.analyzeDataSource(
+        '男性常用字', 
+        Array.from(maleCommon)
+      );
+      
+      reports.femaleCommonWords = await this.standardValidator.analyzeDataSource(
+        '女性常用字', 
+        Array.from(femaleCommon)
+      );
+    } catch (error) {
+      console.error('分析常用字失败:', error);
+    }
+    
+    return reports;
   }
 }
