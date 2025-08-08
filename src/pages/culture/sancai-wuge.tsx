@@ -8,6 +8,9 @@ const SancaiWugePage: React.FC = () => {
   const [progress, setProgress] = useState(0);
   const [calculatorInput, setCalculatorInput] = useState({ surname: '', firstName: '' });
   const [calculatorResult, setCalculatorResult] = useState<any>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [invalidChars, setInvalidChars] = useState<string[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   // 计算学习进度
   useEffect(() => {
@@ -16,22 +19,75 @@ const SancaiWugePage: React.FC = () => {
     setProgress(((currentIndex + 1) / sections.length) * 100);
   }, [activeSection]);
 
-  // 简化的五格计算函数
+  // 加载字符数据库
+  const [characterDatabase, setCharacterDatabase] = useState<any>(null);
+
+  useEffect(() => {
+    const loadCharacterDatabase = async () => {
+      try {
+        const response = await fetch('/data/final-enhanced-character-database.json');
+        const data = await response.json();
+        console.log('数据库加载成功，数据库键:', Object.keys(data).slice(0, 10));
+        console.log('字符数据总数:', data.data ? Object.keys(data.data).length : 0);
+        setCharacterDatabase(data.data || {});
+      } catch (error) {
+        console.error('加载字符数据库失败:', error);
+      }
+    };
+    loadCharacterDatabase();
+  }, []);
+
+  // 精确的五格计算函数（使用真实康熙字典数据）
   const calculateWuge = (surname: string, firstName: string) => {
-    if (!surname || !firstName) return null;
+    if (!surname || !firstName || !characterDatabase) return null;
     
-    // 简化的笔画计算（实际应该用完整的笔画数据库）
-    const getStrokes = (char: string) => {
-      const strokeMap: { [key: string]: number } = {
-        '王': 4, '李': 7, '张': 11, '刘': 15, '陈': 16, '杨': 13, '赵': 14, '黄': 12, '周': 8, '吴': 7,
-        '浩': 11, '然': 12, '明': 8, '海': 11, '洋': 10, '辉': 15, '伟': 11, '强': 12, '军': 9, '华': 14
-      };
-      return strokeMap[char] || char.length * 3; // 简化计算
+    // 从数据库获取准确的康熙笔画数
+    const getKangxiStrokes = (char: string): number => {
+      // 数据库直接在根对象下包含字符数据，跳过meta等元数据字段
+      const charData = characterDatabase[char];
+      
+
+      
+      // 检查是否是有效的字符数据（有char属性的才是字符数据）
+      if (charData && typeof charData === 'object' && charData.char === char && charData.strokes) {
+        // 优先使用康熙笔画
+        if (charData.strokes.kangxi && charData.strokes.kangxi > 0) {
+          return charData.strokes.kangxi;
+        }
+        
+        // 如果没有康熙笔画，使用繁体笔画
+        if (charData.strokes.traditional && charData.strokes.traditional > 0) {
+          return charData.strokes.traditional;
+        }
+        
+        // 最后使用简体笔画
+        if (charData.strokes.simplified && charData.strokes.simplified > 0) {
+          return charData.strokes.simplified;
+        }
+      }
+      
+      console.warn(`未找到字符 "${char}" 的笔画数据 - 不是通用规范汉字`);
+      return 0; // 返回0表示未找到
     };
     
-    const surnameStrokes = getStrokes(surname);
-    const firstStrokes = getStrokes(firstName[0]);
-    const lastStrokes = firstName.length > 1 ? getStrokes(firstName[1]) : 0;
+    // 计算每个字符的康熙笔画数
+    const surnameStrokes = getKangxiStrokes(surname);
+    const firstStrokes = getKangxiStrokes(firstName[0]);
+    const lastStrokes = firstName.length > 1 ? getKangxiStrokes(firstName[1]) : 0;
+    
+    // 检查是否所有字符都能找到笔画数据
+    if (surnameStrokes === 0) {
+      console.error(`姓氏 "${surname}" 未找到笔画数据`);
+      return null;
+    }
+    if (firstStrokes === 0) {
+      console.error(`名字首字 "${firstName[0]}" 未找到笔画数据`);
+      return null;
+    }
+    if (firstName.length > 1 && lastStrokes === 0) {
+      console.error(`名字末字 "${firstName[1]}" 未找到笔画数据`);
+      return null;
+    }
     
     const tiange = surnameStrokes + 1;
     const renge = surnameStrokes + firstStrokes;
@@ -64,9 +120,76 @@ const SancaiWugePage: React.FC = () => {
   };
 
   // 处理计算器输入
-  const handleCalculate = () => {
-    const result = calculateWuge(calculatorInput.surname, calculatorInput.firstName);
-    setCalculatorResult(result);
+  const handleCalculate = async () => {
+    // 清除之前的错误信息
+    setErrorMessage('');
+    setInvalidChars([]);
+    setCalculatorResult(null);
+
+    // 检查数据库是否已加载
+    if (!characterDatabase) {
+      setErrorMessage('字符数据库正在加载中，请稍后再试！');
+      return;
+    }
+
+    // 验证输入
+    if (!calculatorInput.surname.trim()) {
+      setErrorMessage('请输入姓氏！');
+      return;
+    }
+    if (!calculatorInput.firstName.trim()) {
+      setErrorMessage('请输入名字！');
+      return;
+    }
+    
+    // 验证输入字符是否为中文
+    const chineseRegex = /^[\u4e00-\u9fa5]+$/;
+    if (!chineseRegex.test(calculatorInput.surname.trim())) {
+      setErrorMessage('姓氏必须是中文字符！');
+      return;
+    }
+    if (!chineseRegex.test(calculatorInput.firstName.trim())) {
+      setErrorMessage('名字必须是中文字符！');
+      return;
+    }
+    
+    setIsCalculating(true);
+    
+    // 添加轻微延迟以显示加载状态
+    setTimeout(() => {
+      try {
+        // 检查所有字符是否都是通用规范汉字
+        const allChars = (calculatorInput.surname.trim() + calculatorInput.firstName.trim()).split('');
+        const notFoundChars: string[] = [];
+        
+        allChars.forEach(char => {
+          const charData = characterDatabase[char];
+          if (!charData || !charData.char || !charData.strokes) {
+            notFoundChars.push(char);
+          }
+        });
+        
+        if (notFoundChars.length > 0) {
+          setInvalidChars(notFoundChars);
+          setErrorMessage(`以下字符不是《通用规范汉字表》中的标准汉字：${notFoundChars.join('、')}`);
+          setIsCalculating(false);
+          return;
+        }
+        
+        const result = calculateWuge(calculatorInput.surname.trim(), calculatorInput.firstName.trim());
+        if (result) {
+          setCalculatorResult(result);
+          console.log('计算结果:', result); // 调试信息
+        } else {
+          setErrorMessage('计算过程中出现错误，请重试！');
+        }
+      } catch (error) {
+        console.error('计算出错:', error);
+        setErrorMessage('计算过程中出现错误，请重试！');
+      } finally {
+        setIsCalculating(false);
+      }
+    }, 300);
   };
 
   return (
@@ -437,17 +560,94 @@ const SancaiWugePage: React.FC = () => {
                       <div className="text-center">
                         <button
                           onClick={handleCalculate}
-                          className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all transform hover:scale-105"
+                          disabled={isCalculating || !characterDatabase}
+                          className={`px-8 py-3 rounded-lg font-semibold transition-all transform ${
+                            isCalculating || !characterDatabase
+                              ? 'bg-gray-400 cursor-not-allowed' 
+                              : 'bg-blue-600 hover:bg-blue-700 hover:scale-105'
+                          } text-white`}
                         >
-                          立即计算
+                          {!characterDatabase ? (
+                            <span className="flex items-center gap-2">
+                              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                              </svg>
+                              加载字典数据...
+                            </span>
+                          ) : isCalculating ? (
+                            <span className="flex items-center gap-2">
+                              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                              </svg>
+                              计算中...
+                            </span>
+                          ) : (
+                            '立即计算'
+                          )}
                         </button>
+                        {!characterDatabase && (
+                          <p className="text-sm text-gray-500 mt-2">
+                            正在加载康熙字典数据库，请稍候...
+                          </p>
+                        )}
                       </div>
                     </div>
+
+                    {/* 错误提示展示 */}
+                    {errorMessage && (
+                      <div className="mt-6 bg-red-50 border border-red-200 rounded-xl p-6">
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-sm font-medium text-red-800">输入错误</h3>
+                            <div className="mt-2 text-sm text-red-700">
+                              {errorMessage}
+                            </div>
+                            {invalidChars.length > 0 && (
+                              <div className="mt-4">
+                                <p className="text-sm text-red-700 mb-2">
+                                  以下字符需要通过《通用规范汉字表》进行查询确认：
+                                </p>
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                  {invalidChars.map((char, index) => (
+                                    <span key={index} className="inline-flex items-center px-2 py-1 bg-red-100 text-red-800 text-sm font-medium rounded border border-red-300">
+                                      {char}
+                                    </span>
+                                  ))}
+                                </div>
+                                <Link 
+                                  href="/standard-characters"
+                                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                  </svg>
+                                  查询通用规范汉字表
+                                </Link>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* 计算结果展示 */}
                     {calculatorResult && (
                       <div className="mt-8 bg-white p-6 rounded-xl shadow-lg">
-                        <h4 className="text-lg font-bold text-gray-800 mb-4 text-center">计算结果</h4>
+                        <h4 className="text-lg font-bold text-gray-800 mb-4 text-center">
+                          计算结果 - {calculatorInput.surname}{calculatorInput.firstName}
+                        </h4>
+                        <div className="text-center text-sm text-gray-600 mb-4">
+                          <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                            ✓ 基于权威康熙字典数据
+                          </span>
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
                           {[
                             { name: '天格', value: calculatorResult.tiange.value, wuxing: calculatorResult.tiange.wuxing, color: 'blue' },
