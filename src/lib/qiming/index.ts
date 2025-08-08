@@ -9,12 +9,14 @@ export { SancaiWugeCalculator } from './sancai-calculator';
 export { QimingDataLoader } from './data-loader';
 export { QimingNameGenerator } from './name-generator';
 export { PinyinAnalyzer } from './pinyin-analyzer';
+export { ZodiacService, zodiacService } from './zodiac-service';
 
 import { QimingNameGenerator } from './name-generator';
 import { SancaiWugeCalculator } from './sancai-calculator';
 import { QimingDataLoader } from './data-loader';
 import { PinyinAnalyzer } from './pinyin-analyzer';
-import { NameGenerationConfig, GeneratedName, NameValidationResult, PhoneticAnalysis } from './types';
+import { ZodiacService } from './zodiac-service';
+import { NameGenerationConfig, GeneratedName, NameValidationResult, PhoneticAnalysis, ZodiacAnimal, ZodiacCharacterEvaluation } from './types';
 import { ensureDataReady, isDataReady, getLoadingState } from './global-preloader';
 
 /**
@@ -26,6 +28,7 @@ export class QimingAPI {
   private calculator: SancaiWugeCalculator;
   private dataLoader: QimingDataLoader;
   private pinyinAnalyzer: PinyinAnalyzer;
+  private zodiacService: ZodiacService;
   private initialized: boolean = false;
 
   constructor() {
@@ -33,6 +36,7 @@ export class QimingAPI {
     this.calculator = new SancaiWugeCalculator();
     this.dataLoader = QimingDataLoader.getInstance();
     this.pinyinAnalyzer = PinyinAnalyzer.getInstance();
+    this.zodiacService = ZodiacService.getInstance();
   }
 
   /**
@@ -48,7 +52,8 @@ export class QimingAPI {
     try {
       await Promise.all([
         this.dataLoader.preloadCoreData(),
-        this.pinyinAnalyzer.initialize()
+        this.pinyinAnalyzer.initialize(),
+        this.zodiacService.initialize()
       ]);
 
       this.initialized = true;
@@ -194,6 +199,67 @@ export class QimingAPI {
   }> {
     await this.initialize();
     return this.pinyinAnalyzer.getStats();
+  }
+
+  /**
+   * 根据年份获取生肖
+   */
+  async getZodiacByYear(year: number): Promise<ZodiacAnimal> {
+    await this.ensureInitialized();
+    return this.zodiacService.getZodiacByYear(year);
+  }
+
+  /**
+   * 评估字符的生肖适宜性
+   */
+  async evaluateCharacterForZodiac(char: string, zodiac: ZodiacAnimal): Promise<ZodiacCharacterEvaluation> {
+    await this.ensureInitialized();
+    return this.zodiacService.evaluateCharacterForZodiac(char, zodiac);
+  }
+
+  /**
+   * 评估完整名字的生肖适宜性
+   */
+  async evaluateNameForZodiac(
+    familyName: string, 
+    givenName: string, 
+    zodiac: ZodiacAnimal
+  ): Promise<{
+    zodiac: ZodiacAnimal;
+    characters: ZodiacCharacterEvaluation[];
+    overallScore: number;
+    summary: string;
+  }> {
+    await this.ensureInitialized();
+    return this.zodiacService.evaluateNameForZodiac(familyName, givenName, zodiac);
+  }
+
+  /**
+   * 获取生肖推荐字符
+   */
+  async getRecommendedCharactersForZodiac(zodiac: ZodiacAnimal): Promise<string[]> {
+    await this.ensureInitialized();
+    return this.zodiacService.getRecommendedCharacters(zodiac);
+  }
+
+  /**
+   * 获取生肖忌用字符
+   */
+  async getAvoidedCharactersForZodiac(zodiac: ZodiacAnimal): Promise<string[]> {
+    await this.ensureInitialized();
+    return this.zodiacService.getAvoidedCharacters(zodiac);
+  }
+
+  /**
+   * 筛选适合生肖的字符
+   */
+  async filterCharactersForZodiac(
+    characters: string[], 
+    zodiac: ZodiacAnimal, 
+    minScore: number = 3
+  ): Promise<{ suitable: string[], evaluations: ZodiacCharacterEvaluation[] }> {
+    await this.ensureInitialized();
+    return this.zodiacService.filterCharactersForZodiac(characters, zodiac, minScore);
   }
 }
 

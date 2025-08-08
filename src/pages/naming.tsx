@@ -11,7 +11,9 @@ import {
   GeneratedName, 
   NameGenerationConfig,
   WuxingElement,
-  Gender
+  Gender,
+  ZodiacAnimal,
+  zodiacService
 } from '../lib/qiming';
 import StrokeAnalysisPopup from '../components/StrokeAnalysisPopup';
 import WuxingAnalysisPopup from '../components/WuxingAnalysisPopup';
@@ -32,6 +34,8 @@ const NamingPage: React.FC = () => {
   const [useLunarAnalysis, setUseLunarAnalysis] = useState(true);
   const [lunarInfo, setLunarInfo] = useState<LunarInfo | null>(null);
   const [xiYongShenResult, setXiYongShenResult] = useState<any>(null);
+  const [zodiac, setZodiac] = useState<ZodiacAnimal | null>(null);
+  const [useZodiacFiltering, setUseZodiacFiltering] = useState(true);
   
   // 个性化设置状态
   const [weights, setWeights] = useState({
@@ -50,7 +54,7 @@ const NamingPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [generatedNames, setGeneratedNames] = useState<GeneratedName[]>([]);
   const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set());
-  const [sortBy, setSortBy] = useState<'score' | 'name' | 'sancai'>('score');
+  const [sortBy, setSortBy] = useState<'score' | 'name' | 'sancai' | 'zodiac'>('score');
   const [filterScore, setFilterScore] = useState(0);
   
   // 分页状态
@@ -68,6 +72,27 @@ const NamingPage: React.FC = () => {
   const [showPhoneticFiltering, setShowPhoneticFiltering] = useState(false);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [showCulturalInfo, setShowCulturalInfo] = useState(false);
+
+  // 监听出生日期变化，自动计算生肖
+  useEffect(() => {
+    const calculateZodiac = async () => {
+      if (birthDate) {
+        try {
+          const year = new Date(birthDate).getFullYear();
+          await zodiacService.initialize();
+          const calculatedZodiac = zodiacService.getZodiacByYear(year);
+          setZodiac(calculatedZodiac);
+          console.log(`出生年份 ${year} 对应生肖: ${calculatedZodiac}`);
+        } catch (error) {
+          console.error('计算生肖失败:', error);
+        }
+      } else {
+        setZodiac(null);
+      }
+    };
+
+    calculateZodiac();
+  }, [birthDate]);
 
   // 时间描述函数 - 更精确的十二时辰划分
   const getTimeDescription = (time: string): string => {
@@ -152,6 +177,8 @@ const NamingPage: React.FC = () => {
         gender: String(gender || ''),
         birthDate: String(birthDate || ''),
         birthTime: String(birthTime || ''),
+        zodiac: zodiac || undefined,
+        useZodiacFiltering: Boolean(useZodiacFiltering),
         preferredElements: Array.isArray(preferredWuxing) ? [...preferredWuxing] : [],
         avoidedWords: avoidedWords ? String(avoidedWords).split('') : [],
         scoreThreshold: Number(scoreThreshold || 80),
@@ -243,6 +270,11 @@ const NamingPage: React.FC = () => {
           return a.fullName.localeCompare(b.fullName);
         case 'sancai':
           return a.sancai.combination.localeCompare(b.sancai.combination);
+        case 'zodiac':
+          // 按生肖评估分数排序，如果没有生肖评估则按基础评分排序
+          const aZodiacScore = a.zodiacEvaluation?.overallScore || a.score;
+          const bZodiacScore = b.zodiacEvaluation?.overallScore || b.score;
+          return bZodiacScore - aZodiacScore;
         default:
           return 0;
       }
@@ -385,6 +417,11 @@ const NamingPage: React.FC = () => {
                     weekday: 'long'
                   })}
                 </p>
+                {zodiac && (
+                  <p className="text-xs text-green-600 mt-1">
+                    🐾 生肖：{zodiac}年
+                  </p>
+                )}
                 <p className="text-xs text-green-600">
                   生辰八字计算将基于此日期时间
                 </p>
@@ -634,6 +671,21 @@ const NamingPage: React.FC = () => {
                 使用繁体字笔画计算
               </label>
             </div>
+
+            {zodiac && (
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="useZodiacFiltering"
+                  checked={useZodiacFiltering}
+                  onChange={(e) => setUseZodiacFiltering(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="useZodiacFiltering" className="ml-2 text-sm text-gray-700">
+                  启用生肖筛选 ({zodiac}年适用)
+                </label>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -957,12 +1009,13 @@ const NamingPage: React.FC = () => {
             <label className="text-sm font-medium">排序:</label>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'score' | 'name' | 'sancai')}
+              onChange={(e) => setSortBy(e.target.value as 'score' | 'name' | 'sancai' | 'zodiac')}
               className="border border-gray-300 rounded px-3 py-1 text-sm"
             >
               <option value="score">按评分</option>
               <option value="name">按名字</option>
               <option value="sancai">按三才</option>
+              {zodiac && <option value="zodiac">按生肖</option>}
             </select>
           </div>
 
@@ -1041,6 +1094,36 @@ const NamingPage: React.FC = () => {
                 <span className="text-gray-600">字义组合:</span>
                 <span className="font-medium text-gray-800">{name.midChar} + {name.lastChar}</span>
               </div>
+
+              {/* 生肖评估显示 */}
+              {name.zodiacEvaluation && (
+                <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-green-700 font-medium">生肖评估 ({name.zodiacEvaluation.zodiac}年):</span>
+                    <span className="font-medium text-green-800">{name.zodiacEvaluation.overallScore.toFixed(1)}分</span>
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">{name.midChar}:</span>
+                      <span className={`font-medium ${
+                        name.zodiacEvaluation.midCharEval.isFavorable ? 'text-green-600' : 
+                        name.zodiacEvaluation.midCharEval.isUnfavorable ? 'text-red-600' : 'text-gray-600'
+                      }`}>
+                        {name.zodiacEvaluation.midCharEval.score}分
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">{name.lastChar}:</span>
+                      <span className={`font-medium ${
+                        name.zodiacEvaluation.lastCharEval.isFavorable ? 'text-green-600' : 
+                        name.zodiacEvaluation.lastCharEval.isUnfavorable ? 'text-red-600' : 'text-gray-600'
+                      }`}>
+                        {name.zodiacEvaluation.lastCharEval.score}分
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-5 gap-1 text-xs">
                 {[

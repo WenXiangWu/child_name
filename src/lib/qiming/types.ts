@@ -35,6 +35,52 @@ export interface NameCorpusProcessedData {
 // 性别类型
 export type Gender = 'male' | 'female';
 
+// 生肖类型
+export type ZodiacAnimal = '鼠' | '牛' | '虎' | '兔' | '龙' | '蛇' | '马' | '羊' | '猴' | '鸡' | '狗' | '猪';
+
+// 生肖信息接口
+export interface ZodiacInfo {
+  id: string;
+  name: ZodiacAnimal;
+  element: WuxingElement;
+  years: number[];
+  traits: string[];
+  favorable: {
+    radicals: string[];
+    characters: string[];
+    meanings: string[];
+    reasons: Record<string, string>;
+  };
+  unfavorable: {
+    radicals: string[];
+    characters: string[];
+    reasons: Record<string, string>;
+  };
+}
+
+// 生肖数据结构
+export interface ZodiacData {
+  meta: {
+    version: string;
+    description: string;
+    lastUpdated: string;
+    source: string;
+  };
+  zodiacs: Record<ZodiacAnimal, ZodiacInfo>;
+  yearMapping: Record<string, ZodiacAnimal>;
+}
+
+// 生肖字符评估结果
+export interface ZodiacCharacterEvaluation {
+  char: string;
+  zodiac: ZodiacAnimal;
+  score: number; // 0-5分
+  isFavorable: boolean;
+  isUnfavorable: boolean;
+  reason: string;
+  relatedRadicals: string[];
+}
+
 // 三才五格计算结果
 export interface GridCalculation {
   tiange: number;    // 天格
@@ -133,6 +179,12 @@ export interface GeneratedName {
   sancai: SancaiResult;   // 三才结果
   score: number;          // 综合评分
   explanation?: string;   // 解释说明
+  zodiacEvaluation?: {    // 生肖评估结果
+    zodiac: ZodiacAnimal;
+    midCharEval: ZodiacCharacterEvaluation;
+    lastCharEval: ZodiacCharacterEvaluation;
+    overallScore: number; // 生肖整体评分
+  };
 }
 
 // 名字生成配置 - 对应qiming的config.py
@@ -148,6 +200,9 @@ export interface NameGenerationConfig {
     hour: number;
     minute: number;
   };
+  
+  // 生肖信息 - 基于出生年份确定
+  zodiac?: ZodiacAnimal;
   
   // 五行偏好 - 对应SELECTED_XITONGSHEN
   preferredWuxing?: WuxingElement[];
@@ -179,6 +234,9 @@ export interface NameGenerationConfig {
   
   // 个性化权重配置
   weights?: WeightConfig;
+  
+  // 生肖筛选配置
+  useZodiacFiltering?: boolean;  // 是否启用生肖筛选
 }
 
 // 个性化权重配置接口
