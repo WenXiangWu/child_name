@@ -77,6 +77,10 @@ export default function Home() {
                 <Link href="/culture/overview" className="text-gray-600 hover:text-gray-800">
                   文化科普
                 </Link>
+                <Link href="/culture/lunar-calendar" className="text-red-600 hover:text-red-800 flex items-center gap-1">
+                  <span>🏮</span>
+                  农历万年历
+                </Link>
                 <Link href="/about" className="text-gray-600 hover:text-gray-800">
                   关于我们
                 </Link>
@@ -155,7 +159,7 @@ export default function Home() {
                   className="flex gap-8 p-8 animate-scroll hover:pause-animation"
                   style={{
                     width: 'calc(100% * 2)',
-                    animation: 'scroll 20s linear infinite'
+                    animation: 'scroll 25s linear infinite'
                   }}
                 >
                   {/* 重复两次卡片以实现无缝滚动 */}
@@ -241,6 +245,22 @@ export default function Home() {
                         </div>
                       </Link>
 
+                      {/* 生肖取名 */}
+                      <Link href="/culture/zodiac-naming" className="group min-w-[300px]">
+                        <div className="text-center p-6 rounded-xl bg-gradient-to-br from-lime-50 to-green-100 group-hover:from-lime-100 group-hover:to-green-200 transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-lime-500 to-green-600 rounded-full flex items-center justify-center">
+                            <span className="text-2xl">🐲</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-800 mb-3">生肖取名</h3>
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            根据十二生肖特性与五行理论，结合汉字字根象征意义，为宝宝选择符合生肖特征的美好名字。
+                          </p>
+                          <div className="mt-4 text-lime-600 text-sm font-medium group-hover:text-lime-700">
+                            了解更多 →
+                          </div>
+                        </div>
+                      </Link>
+
                       {/* 诗词典籍 */}
                       <Link href="/poetry" className="group min-w-[300px]">
                         <div className="text-center p-6 rounded-xl bg-gradient-to-br from-cyan-50 to-blue-100 group-hover:from-cyan-100 group-hover:to-blue-200 transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
@@ -267,7 +287,7 @@ export default function Home() {
                   100% { transform: translateX(-50%); }
                 }
                 .animate-scroll {
-                  animation: scroll 20s linear infinite;
+                  animation: scroll 25s linear infinite;
                 }
                 .pause-animation:hover .animate-scroll {
                   animation-play-state: paused;

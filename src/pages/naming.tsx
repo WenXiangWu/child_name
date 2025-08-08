@@ -18,6 +18,7 @@ import WuxingAnalysisPopup from '../components/WuxingAnalysisPopup';
 import SancaiCalculationPopup from '../components/SancaiCalculationPopup';
 import CandidateFilteringPopup from '../components/CandidateFilteringPopup';
 import PhoneticFilteringPopup from '../components/PhoneticFilteringPopup';
+import { LunarCalendar as LunarCalendarLib, LunarInfo } from '@/lib/lunar';
 
 const NamingPage: React.FC = () => {
   const router = useRouter();
@@ -28,6 +29,9 @@ const NamingPage: React.FC = () => {
   const [gender, setGender] = useState<Gender | ''>('');
   const [birthDate, setBirthDate] = useState('');
   const [birthTime, setBirthTime] = useState('');
+  const [useLunarAnalysis, setUseLunarAnalysis] = useState(true);
+  const [lunarInfo, setLunarInfo] = useState<LunarInfo | null>(null);
+  const [xiYongShenResult, setXiYongShenResult] = useState<any>(null);
   
   // 个性化设置状态
   const [weights, setWeights] = useState({

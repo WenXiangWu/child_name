@@ -64,6 +64,18 @@ const CultureOverviewPage: React.FC = () => {
       bgGradient: 'from-amber-50 to-yellow-100',
       features: ['经史为基', '诗词为翼', '意境深远'],
       path: '/culture/cultural-heritage'
+    },
+    {
+      id: 'zodiac-naming',
+      title: '生肖姓名学',
+      subtitle: '传统智慧的现代传承',
+      description: '根据十二生肖特性与五行理论，结合汉字字根象征意义，为宝宝选择符合生肖特征的美好名字。',
+      icon: '🐲',
+      color: 'green',
+      gradient: 'from-green-500 to-emerald-600',
+      bgGradient: 'from-green-50 to-emerald-100',
+      features: ['生肖特性', '五行调和', '字根分析'],
+      path: '/culture/zodiac-naming'
     }
   ];
 
@@ -71,8 +83,8 @@ const CultureOverviewPage: React.FC = () => {
     <Layout>
       <Head>
         <title>传统文化取名方法汇总 - 宝宝取名专家</title>
-        <meta name="description" content="深入了解五大传统取名流派：三才五格、五行平衡、音韵美感、八字喜用神、意境底蕴派，掌握中华文化的取名智慧。" />
-        <meta name="keywords" content="传统文化,取名方法,三才五格,五行平衡,音韵美感,八字喜用神,意境底蕴" />
+        <meta name="description" content="深入了解六大传统取名流派：三才五格、五行平衡、音韵美感、八字喜用神、意境底蕴派、生肖姓名学，掌握中华文化的取名智慧。" />
+        <meta name="keywords" content="传统文化,取名方法,三才五格,五行平衡,音韵美感,八字喜用神,意境底蕴,生肖姓名学" />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -91,7 +103,7 @@ const CultureOverviewPage: React.FC = () => {
             <div className="mb-6">
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm">
                 <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
-                五大取名流派完整解析
+                六大取名流派完整解析
               </div>
             </div>
             
@@ -102,8 +114,8 @@ const CultureOverviewPage: React.FC = () => {
               结合传统文化智慧与现代科学方法
             </div>
             <p className="text-lg text-blue-200 max-w-4xl mx-auto mb-8 leading-relaxed">
-              深入探索中华传统文化中的五大取名流派，从数理分析到文化传承，
-              从声韵美感到命理调衡，为新生儿提供专业、个性化、有文化内涵的名字推荐。
+              深入探索中华传统文化中的六大取名流派，从数理分析到文化传承，
+              从声韵美感到命理调衡，再到生肖特性，为新生儿提供专业、个性化、有文化内涵的名字推荐。
             </p>
             
             {/* 统计数据 */}
@@ -113,7 +125,7 @@ const CultureOverviewPage: React.FC = () => {
                 <div className="text-sm text-blue-300">年文化传承</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
-                <div className="text-3xl font-bold text-purple-200 mb-2">5</div>
+                <div className="text-3xl font-bold text-purple-200 mb-2">6</div>
                 <div className="text-sm text-purple-300">大取名流派</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
@@ -233,6 +245,36 @@ const CultureOverviewPage: React.FC = () => {
                   className="text-rose-700 text-xs font-medium hover:text-rose-800"
                 >
                   美感学习 →
+                </Link>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div className="text-center p-6 bg-emerald-50 rounded-xl border border-emerald-200">
+                <div className="text-3xl mb-3">🐲</div>
+                <h3 className="text-lg font-bold text-emerald-800 mb-2">生肖文化</h3>
+                <p className="text-sm text-emerald-600 mb-3">
+                  探索生肖姓名学，融合传统智慧与现代需求
+                </p>
+                <Link 
+                  href="/culture/zodiac-naming"
+                  className="text-emerald-700 text-xs font-medium hover:text-emerald-800"
+                >
+                  生肖探索 →
+                </Link>
+              </div>
+              
+              <div className="text-center p-6 bg-gray-50 rounded-xl border border-gray-200">
+                <div className="text-3xl mb-3">🔄</div>
+                <h3 className="text-lg font-bold text-gray-800 mb-2">综合应用</h3>
+                <p className="text-sm text-gray-600 mb-3">
+                  结合多种方法，打造最适合的取名方案
+                </p>
+                <Link 
+                  href="/generate"
+                  className="text-gray-700 text-xs font-medium hover:text-gray-800"
+                >
+                  智能取名 →
                 </Link>
               </div>
             </div>

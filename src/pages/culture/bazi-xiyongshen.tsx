@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
+import LunarCalendar from '@/components/LunarCalendar';
+import { LunarCalendar as LunarCalendarLib, LunarInfo } from '@/lib/lunar';
 
 const BaziXiyongshenPage: React.FC = () => {
   const [activeSection, setActiveSection] = useState<'overview' | 'theory' | 'calculation' | 'cases' | 'modern' | 'thinking'>('overview');
@@ -11,9 +13,12 @@ const BaziXiyongshenPage: React.FC = () => {
     month: '', 
     day: '', 
     hour: '',
+    minute: '',
     gender: 'male' as 'male' | 'female'
   });
-  const [calculatorResult, setCalculatorResult] = useState<any>(null);
+  const [calculatorResult, setCalculatorResult] = useState<LunarInfo | null>(null);
+  const [xiYongShenResult, setXiYongShenResult] = useState<any>(null);
+  const [showLunarCalendar, setShowLunarCalendar] = useState(false);
 
   // 计算学习进度
   useEffect(() => {
@@ -22,41 +27,69 @@ const BaziXiyongshenPage: React.FC = () => {
     setProgress(((currentIndex + 1) / sections.length) * 100);
   }, [activeSection]);
 
-  // 简化的八字分析函数（演示用）
+  // 真实的八字分析函数
   const analyzeBazi = () => {
     if (!calculatorInput.year || !calculatorInput.month || !calculatorInput.day || !calculatorInput.hour) {
       return null;
     }
     
-    // 这里是简化的演示逻辑，实际应该用专业的八字排盘算法
-    const mockBazi = {
-      year: '癸卯',
-      month: '己未', 
-      day: '乙未',
-      time: '辛巳',
-      dayMaster: '乙木',
-      strength: '身弱',
-      xiyongshen: {
-        xi: '水',
-        yong: '木',
-        ji: '金土',
-        description: '日主乙木生于未月土旺之时，身弱需水滋养、木助身'
-      },
-      wuxing: {
-        wood: 2,
-        fire: 1, 
-        earth: 3,
-        metal: 1,
-        water: 1
-      }
-    };
-    
-    return mockBazi;
+    try {
+      // 解析时辰
+      let hour = 0;
+      if (calculatorInput.hour.includes('子时')) hour = 0;
+      else if (calculatorInput.hour.includes('丑时')) hour = 2;
+      else if (calculatorInput.hour.includes('寅时')) hour = 4;
+      else if (calculatorInput.hour.includes('卯时')) hour = 6;
+      else if (calculatorInput.hour.includes('辰时')) hour = 8;
+      else if (calculatorInput.hour.includes('巳时')) hour = 10;
+      else if (calculatorInput.hour.includes('午时')) hour = 12;
+      else if (calculatorInput.hour.includes('未时')) hour = 14;
+      else if (calculatorInput.hour.includes('申时')) hour = 16;
+      else if (calculatorInput.hour.includes('酉时')) hour = 18;
+      else if (calculatorInput.hour.includes('戌时')) hour = 20;
+      else if (calculatorInput.hour.includes('亥时')) hour = 22;
+      
+      const minute = parseInt(calculatorInput.minute) || 0;
+      
+      // 获取农历信息
+      const lunarInfo = LunarCalendarLib.getLunarInfo(
+        parseInt(calculatorInput.year),
+        parseInt(calculatorInput.month),
+        parseInt(calculatorInput.day),
+        hour,
+        minute
+      );
+      
+      // 计算喜用神
+      const xiYongShen = LunarCalendarLib.getXiYongShen(lunarInfo);
+      
+      return { lunarInfo, xiYongShen };
+    } catch (error) {
+      console.error('八字分析失败:', error);
+      alert('请检查输入的日期时间是否正确');
+      return null;
+    }
   };
 
   const handleCalculate = () => {
     const result = analyzeBazi();
-    setCalculatorResult(result);
+    if (result) {
+      setCalculatorResult(result.lunarInfo);
+      setXiYongShenResult(result.xiYongShen);
+    }
+  };
+
+  // 处理农历日期选择
+  const handleDateSelect = (lunarInfo: LunarInfo) => {
+    setCalculatorInput({
+      year: lunarInfo.solar.year.toString(),
+      month: lunarInfo.solar.month.toString(),
+      day: lunarInfo.solar.day.toString(),
+      hour: '子时 (23:00-1:00)',
+      minute: '0',
+      gender: calculatorInput.gender
+    });
+    setShowLunarCalendar(false);
   };
 
   return (
@@ -422,35 +455,41 @@ const BaziXiyongshenPage: React.FC = () => {
                   {/* 在线分析器 */}
                   <div className="bg-gradient-to-r from-orange-50 to-red-50 p-8 rounded-2xl border border-orange-200 mb-8">
                     <h3 className="text-2xl font-bold text-orange-800 mb-6 text-center">🔮 在线八字分析器</h3>
-                    <div className="max-w-3xl mx-auto">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className="max-w-4xl mx-auto">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                         <div>
                           <label className="block text-sm font-medium text-orange-700 mb-2">出生年份</label>
                           <input
-                            type="text"
+                            type="number"
                             value={calculatorInput.year}
                             onChange={(e) => setCalculatorInput(prev => ({ ...prev, year: e.target.value }))}
                             placeholder="如：2023"
+                            min="1900"
+                            max="2100"
                             className="w-full px-4 py-3 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-orange-700 mb-2">出生月份</label>
                           <input
-                            type="text"
+                            type="number"
                             value={calculatorInput.month}
                             onChange={(e) => setCalculatorInput(prev => ({ ...prev, month: e.target.value }))}
                             placeholder="如：8"
+                            min="1"
+                            max="12"
                             className="w-full px-4 py-3 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-orange-700 mb-2">出生日期</label>
                           <input
-                            type="text"
+                            type="number"
                             value={calculatorInput.day}
                             onChange={(e) => setCalculatorInput(prev => ({ ...prev, day: e.target.value }))}
                             placeholder="如：15"
+                            min="1"
+                            max="31"
                             className="w-full px-4 py-3 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                           />
                         </div>
@@ -476,60 +515,249 @@ const BaziXiyongshenPage: React.FC = () => {
                             <option value="亥时">亥时 (21:00-23:00)</option>
                           </select>
                         </div>
+                        <div>
+                          <label className="block text-sm font-medium text-orange-700 mb-2">分钟（可选）</label>
+                          <input
+                            type="number"
+                            value={calculatorInput.minute}
+                            onChange={(e) => setCalculatorInput(prev => ({ ...prev, minute: e.target.value }))}
+                            placeholder="如：30"
+                            min="0"
+                            max="59"
+                            className="w-full px-4 py-3 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-orange-700 mb-2">性别</label>
+                          <select
+                            value={calculatorInput.gender}
+                            onChange={(e) => setCalculatorInput(prev => ({ ...prev, gender: e.target.value as 'male' | 'female' }))}
+                            className="w-full px-4 py-3 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          >
+                            <option value="male">男</option>
+                            <option value="female">女</option>
+                          </select>
+                        </div>
                       </div>
-                      <div className="text-center">
+                      
+                      <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
                         <button
                           onClick={handleCalculate}
                           className="px-8 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-all transform hover:scale-105"
                         >
-                          立即分析
+                          🔮 立即分析
+                        </button>
+                        <button
+                          onClick={() => setShowLunarCalendar(!showLunarCalendar)}
+                          className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all transform hover:scale-105"
+                        >
+                          📅 农历选择
                         </button>
                       </div>
+
+                      {/* 农历日历选择器 */}
+                      {showLunarCalendar && (
+                        <div className="mb-6">
+                          <LunarCalendar
+                            onDateSelect={handleDateSelect}
+                            className="max-w-2xl mx-auto"
+                          />
+                        </div>
+                      )}
                     </div>
 
                     {/* 分析结果展示 */}
-                    {calculatorResult && (
-                      <div className="mt-8 bg-white p-6 rounded-xl shadow-lg">
-                        <h4 className="text-lg font-bold text-gray-800 mb-4 text-center">分析结果</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                          <div className="text-center p-3 bg-gray-50 rounded-lg">
-                            <div className="text-sm text-gray-600 mb-1">年柱</div>
-                            <div className="text-lg font-bold text-gray-800">{calculatorResult.year}</div>
-                          </div>
-                          <div className="text-center p-3 bg-gray-50 rounded-lg">
-                            <div className="text-sm text-gray-600 mb-1">月柱</div>
-                            <div className="text-lg font-bold text-gray-800">{calculatorResult.month}</div>
-                          </div>
-                          <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                            <div className="text-sm text-blue-600 mb-1">日柱(日主)</div>
-                            <div className="text-lg font-bold text-blue-800">{calculatorResult.day}</div>
-                          </div>
-                          <div className="text-center p-3 bg-gray-50 rounded-lg">
-                            <div className="text-sm text-gray-600 mb-1">时柱</div>
-                            <div className="text-lg font-bold text-gray-800">{calculatorResult.time}</div>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="bg-orange-50 p-4 rounded-lg">
-                            <h5 className="font-bold text-orange-800 mb-2">日主分析</h5>
-                            <div className="text-sm text-orange-700">
-                              <p><strong>日主：</strong>{calculatorResult.dayMaster}</p>
-                              <p><strong>强弱：</strong>{calculatorResult.strength}</p>
+                    {calculatorResult && xiYongShenResult && (
+                      <div className="mt-8 space-y-6">
+                        {/* 基本信息 */}
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                          <h4 className="text-lg font-bold text-gray-800 mb-4 text-center">✨ 八字基本信息</h4>
+                          
+                          {/* 阳历农历对照 */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div className="bg-blue-50 p-4 rounded-lg">
+                              <h5 className="font-bold text-blue-800 mb-2">📅 阳历信息</h5>
+                              <div className="text-sm text-blue-700 space-y-1">
+                                <p><strong>公历：</strong>{calculatorResult.solar.year}年{calculatorResult.solar.month}月{calculatorResult.solar.day}日</p>
+                                <p><strong>时间：</strong>{calculatorResult.solar.hour}时{calculatorResult.solar.minute}分</p>
+                                <p><strong>星期：</strong>{calculatorResult.solar.weekday}</p>
+                                <p><strong>星座：</strong>{calculatorResult.solar.constellation}</p>
+                              </div>
+                            </div>
+                            <div className="bg-red-50 p-4 rounded-lg">
+                              <h5 className="font-bold text-red-800 mb-2">🏮 农历信息</h5>
+                              <div className="text-sm text-red-700 space-y-1">
+                                <p><strong>农历：</strong>{LunarCalendarLib.formatLunarDate(calculatorResult)}</p>
+                                <p><strong>生肖：</strong>{calculatorResult.lunar.yearInChinese.slice(-1)}年</p>
+                                <p><strong>节气：</strong>{calculatorResult.solarTerms.current || '无'}</p>
+                                {calculatorResult.lunar.festivals.length > 0 && (
+                                  <p><strong>节日：</strong>{calculatorResult.lunar.festivals.join('、')}</p>
+                                )}
+                              </div>
                             </div>
                           </div>
-                          <div className="bg-green-50 p-4 rounded-lg">
-                            <h5 className="font-bold text-green-800 mb-2">喜用神</h5>
-                            <div className="text-sm text-green-700">
-                              <p><strong>喜神：</strong>{calculatorResult.xiyongshen.xi}</p>
-                              <p><strong>用神：</strong>{calculatorResult.xiyongshen.yong}</p>
-                              <p><strong>忌神：</strong>{calculatorResult.xiyongshen.ji}</p>
+
+                          {/* 四柱八字 */}
+                          <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-6 rounded-lg">
+                            <h5 className="font-bold text-amber-800 mb-4 text-center">🏗️ 四柱八字</h5>
+                            <div className="grid grid-cols-4 gap-4">
+                              <div className="text-center p-3 bg-white rounded-lg border border-amber-200">
+                                <div className="text-sm text-amber-600 mb-1">年柱</div>
+                                <div className="text-lg font-bold text-amber-800">{calculatorResult.eightChar.year}</div>
+                                <div className="text-xs text-amber-600 mt-1">祖上根基</div>
+                              </div>
+                              <div className="text-center p-3 bg-white rounded-lg border border-amber-200">
+                                <div className="text-sm text-amber-600 mb-1">月柱</div>
+                                <div className="text-lg font-bold text-amber-800">{calculatorResult.eightChar.month}</div>
+                                <div className="text-xs text-amber-600 mt-1">父母宫位</div>
+                              </div>
+                              <div className="text-center p-3 bg-blue-100 rounded-lg border-2 border-blue-300">
+                                <div className="text-sm text-blue-600 mb-1">日柱(日主)</div>
+                                <div className="text-lg font-bold text-blue-800">{calculatorResult.eightChar.day}</div>
+                                <div className="text-xs text-blue-600 mt-1">自身核心</div>
+                              </div>
+                              <div className="text-center p-3 bg-white rounded-lg border border-amber-200">
+                                <div className="text-sm text-amber-600 mb-1">时柱</div>
+                                <div className="text-lg font-bold text-amber-800">{calculatorResult.eightChar.time}</div>
+                                <div className="text-xs text-amber-600 mt-1">子女后代</div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                        
-                        <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                          <div className="text-sm text-blue-700">{calculatorResult.xiyongshen.description}</div>
+
+                        {/* 五行分析 */}
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                          <h4 className="text-lg font-bold text-gray-800 mb-4 text-center">🌟 五行强弱分析</h4>
+                          <div className="grid grid-cols-5 gap-4 mb-6">
+                            {[
+                              { element: '木', count: calculatorResult.eightChar.wuxing.wood, color: 'green' },
+                              { element: '火', count: calculatorResult.eightChar.wuxing.fire, color: 'red' },
+                              { element: '土', count: calculatorResult.eightChar.wuxing.earth, color: 'yellow' },
+                              { element: '金', count: calculatorResult.eightChar.wuxing.metal, color: 'gray' },
+                              { element: '水', count: calculatorResult.eightChar.wuxing.water, color: 'blue' }
+                            ].map((item, index) => (
+                              <div key={index} className={`text-center p-4 bg-${item.color}-50 rounded-lg border border-${item.color}-200`}>
+                                <div className={`text-2xl font-bold text-${item.color}-700 mb-2`}>{item.element}</div>
+                                <div className={`text-sm text-${item.color}-600`}>{item.count.toFixed(1)}分</div>
+                                <div className={`w-full bg-${item.color}-200 rounded-full h-2 mt-2`}>
+                                  <div 
+                                    className={`bg-${item.color}-500 h-2 rounded-full transition-all duration-500`}
+                                    style={{ width: `${Math.min(item.count * 20, 100)}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 喜用神分析 */}
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                          <h4 className="text-lg font-bold text-gray-800 mb-4 text-center">🎯 喜用神分析</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="bg-green-50 p-4 rounded-lg">
+                              <h5 className="font-bold text-green-800 mb-2">✅ 喜神</h5>
+                              <div className="text-sm text-green-700">
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                  {xiYongShenResult.xiShen.map((shen: string, index: number) => (
+                                    <span key={index} className="px-3 py-1 bg-green-200 text-green-800 rounded-full text-sm font-medium">
+                                      {shen}
+                                    </span>
+                                  ))}
+                                </div>
+                                <p className="text-xs">最需要补充的五行</p>
+                              </div>
+                            </div>
+                            <div className="bg-blue-50 p-4 rounded-lg">
+                              <h5 className="font-bold text-blue-800 mb-2">🎯 用神</h5>
+                              <div className="text-sm text-blue-700">
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                  {xiYongShenResult.yongShen.map((shen: string, index: number) => (
+                                    <span key={index} className="px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-sm font-medium">
+                                      {shen}
+                                    </span>
+                                  ))}
+                                </div>
+                                <p className="text-xs">能解决问题的五行</p>
+                              </div>
+                            </div>
+                            <div className="bg-red-50 p-4 rounded-lg">
+                              <h5 className="font-bold text-red-800 mb-2">❌ 忌神</h5>
+                              <div className="text-sm text-red-700">
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                  {xiYongShenResult.jiShen.map((shen: string, index: number) => (
+                                    <span key={index} className="px-3 py-1 bg-red-200 text-red-800 rounded-full text-sm font-medium">
+                                      {shen}
+                                    </span>
+                                  ))}
+                                </div>
+                                <p className="text-xs">需要避免的五行</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                            <h5 className="font-bold text-purple-800 mb-2">📋 专业分析</h5>
+                            <p className="text-sm text-purple-700">{xiYongShenResult.description}</p>
+                            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-purple-600">
+                              <div>
+                                <strong>日主五行：</strong>{xiYongShenResult.dayMasterElement}
+                              </div>
+                              <div>
+                                <strong>日主强弱：</strong>{xiYongShenResult.strength}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 吉神方位 */}
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                          <h4 className="text-lg font-bold text-gray-800 mb-4 text-center">🧭 吉神方位</h4>
+                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                            {[
+                              { name: '喜神', position: calculatorResult.gods.xi, icon: '😊', color: 'pink' },
+                              { name: '福神', position: calculatorResult.gods.fu, icon: '🍀', color: 'green' },
+                              { name: '财神', position: calculatorResult.gods.cai, icon: '💰', color: 'yellow' },
+                              { name: '阳贵神', position: calculatorResult.gods.yangGui, icon: '☀️', color: 'orange' },
+                              { name: '阴贵神', position: calculatorResult.gods.yinGui, icon: '🌙', color: 'purple' }
+                            ].map((god, index) => (
+                              <div key={index} className={`text-center p-4 bg-${god.color}-50 rounded-lg border border-${god.color}-200`}>
+                                <div className="text-2xl mb-2">{god.icon}</div>
+                                <div className={`font-bold text-${god.color}-800 mb-1`}>{god.name}</div>
+                                <div className={`text-sm text-${god.color}-600`}>{god.position}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 宜忌事项 */}
+                        <div className="bg-white p-6 rounded-xl shadow-lg">
+                          <h4 className="text-lg font-bold text-gray-800 mb-4 text-center">📝 今日宜忌</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-green-50 p-4 rounded-lg">
+                              <h5 className="font-bold text-green-800 mb-3 flex items-center">
+                                <span className="mr-2">✅</span>宜
+                              </h5>
+                              <div className="flex flex-wrap gap-2">
+                                {calculatorResult.activities.yi.map((activity: string, index: number) => (
+                                  <span key={index} className="px-3 py-1 bg-green-200 text-green-800 rounded-lg text-sm">
+                                    {activity}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="bg-red-50 p-4 rounded-lg">
+                              <h5 className="font-bold text-red-800 mb-3 flex items-center">
+                                <span className="mr-2">❌</span>忌
+                              </h5>
+                              <div className="flex flex-wrap gap-2">
+                                {calculatorResult.activities.ji.map((activity: string, index: number) => (
+                                  <span key={index} className="px-3 py-1 bg-red-200 text-red-800 rounded-lg text-sm">
+                                    {activity}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}
