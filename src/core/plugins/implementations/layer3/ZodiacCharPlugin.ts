@@ -446,7 +446,11 @@ import {
         throw new Error(`未找到生肖 ${zodiac} 的偏好数据`);
       }
   
-      const reasons = { positive: [], negative: [], neutral: [] };
+      const reasons = { 
+        positive: [] as string[], 
+        negative: [] as string[], 
+        neutral: [] as string[] 
+      };
       let score = 50; // 基础分数
   
       // 偏旁部首分析
@@ -469,7 +473,7 @@ import {
         if (shapeAnalysis.compatibility === 'favorable') {
           score += 15;
           reasons.positive.push(shapeAnalysis.explanation);
-        } else if (shapeAnalysis.compatibility === 'unfavorable') {
+        } else if ((shapeAnalysis.compatibility as string) === 'unfavorable') {
           score -= 10;
           reasons.negative.push(shapeAnalysis.explanation);
         } else {
@@ -507,7 +511,7 @@ import {
         suitability,
         score: Math.round(score),
         reasons,
-        radicalAnalysis,
+        radicalAnalysis: radicalAnalysis || undefined,
         shapeAnalysis
       };
     }

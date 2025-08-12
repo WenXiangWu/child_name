@@ -5,7 +5,7 @@
 import { 
   NamingPlugin, 
   StandardInput, 
-  StandardOutput, 
+  PluginOutput, 
   CertaintyLevel,
   ValidationResult
 } from '../interfaces/NamingPlugin';
@@ -46,7 +46,7 @@ export interface PipelineInput {
 export interface PipelineOutput {
   requestId: string;
   success: boolean;
-  results: Map<string, StandardOutput>;
+  results: Map<string, PluginOutput>;
   errors: PipelineError[];
   warnings: string[];
   metadata: {
@@ -120,7 +120,7 @@ export class NamingPipeline {
       const executionOrder = this.container.getExecutionOrder(enabledPlugins);
       
       // 4. 根据策略执行插件
-      if (context.options.parallelExecution) {
+      if (context.options?.parallelExecution) {
         await this.executeParallelStrategy(executionOrder, input, context);
       } else {
         await this.executeSequentialStrategy(executionOrder, input, context);
@@ -251,7 +251,7 @@ export class NamingPipeline {
       // 验证插件输入
       const validation = plugin.validate(standardInput);
       if (!validation.valid) {
-        if (context.options.skipOptionalFailures && this.isOptionalPlugin(pluginId)) {
+        if (context.options?.skipOptionalFailures && this.isOptionalPlugin(pluginId)) {
           context.warnings.push(`可选插件 ${pluginId} 验证失败，跳过执行: ${validation.errors.join(', ')}`);
           context.skippedPlugins.push(pluginId);
           return;
@@ -264,7 +264,7 @@ export class NamingPipeline {
       const result = await this.executeWithTimeout(
         plugin, 
         standardInput, 
-        context.options.timeout
+        context.options?.timeout || 5000
       );
 
       // 验证输出
@@ -288,14 +288,14 @@ export class NamingPipeline {
       context.errors.push({
         pluginId,
         error: errorMessage,
-        fatal: !context.options.skipOptionalFailures || !this.isOptionalPlugin(pluginId),
+        fatal: !context.options?.skipOptionalFailures || !this.isOptionalPlugin(pluginId),
         timestamp: Date.now()
       });
 
       this.lifecycleManager.markError(pluginId, errorMessage);
 
       // 如果是必需插件失败，且不允许跳过，则抛出错误
-      if (!context.options.skipOptionalFailures || !this.isOptionalPlugin(pluginId)) {
+      if (!context.options?.skipOptionalFailures || !this.isOptionalPlugin(pluginId)) {
         throw error;
       } else {
         context.skippedPlugins.push(pluginId);
@@ -310,7 +310,7 @@ export class NamingPipeline {
     plugin: NamingPlugin,
     input: StandardInput,
     timeout: number
-  ): Promise<StandardOutput> {
+  ): Promise<PluginOutput> {
     return new Promise(async (resolve, reject) => {
       const timer = setTimeout(() => {
         reject(new Error(`插件执行超时 (${timeout}ms)`));
@@ -392,7 +392,7 @@ export class NamingPipeline {
   /**
    * 验证输出
    */
-  private validateOutput(output: StandardOutput): ValidationResult {
+  private validateOutput(output: PluginOutput): ValidationResult {
     const errors: string[] = [];
     
     if (!output.pluginId) {
@@ -430,7 +430,12 @@ export class NamingPipeline {
         startTime: context.startTime,
         certaintyLevel: input.certaintyLevel,
         pluginResults: context.pluginResults,
-        errors: context.errors,
+        errors: context.errors.map(pipelineError => ({
+          code: pipelineError.fatal ? 'FATAL_ERROR' : 'PLUGIN_ERROR',
+          message: `${pipelineError.pluginId}: ${pipelineError.error}`,
+          details: pipelineError.context,
+          timestamp: pipelineError.timestamp
+        })),
         warnings: context.warnings
       }
     };
@@ -563,7 +568,7 @@ export class NamingPipeline {
         executedPlugins: context.executedPlugins,
         skippedPlugins: context.skippedPlugins,
         failedPlugins,
-        executionStrategy: context.options.parallelExecution ? 'parallel' : 'sequential',
+        executionStrategy: context.options?.parallelExecution ? 'parallel' : 'sequential',
         certaintyLevel: context.certaintyLevel
       }
     };

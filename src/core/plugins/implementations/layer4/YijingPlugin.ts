@@ -5,11 +5,10 @@
 import { 
   NamingPlugin, 
   StandardInput, 
-  StandardOutput, 
+  PluginOutput, 
   PluginConfig, 
   PluginContext,
   ValidationResult,
-  HealthStatus,
   PluginDependency
 } from '../../interfaces/NamingPlugin';
 import { QimingDataLoader } from '../../../common/data-loader';
@@ -77,6 +76,7 @@ export class YijingPlugin implements NamingPlugin {
     name: '周易卦象插件',
     description: '基于三才五格数据计算周易六十四卦，分析卦象的象征意义和人生指导',
     author: 'Qiming System',
+    category: 'evaluation' as const,
     tags: ['yijing', 'hexagram', 'divination', 'traditional']
   };
 
@@ -102,7 +102,7 @@ export class YijingPlugin implements NamingPlugin {
     }
   }
 
-  async process(input: StandardInput): Promise<StandardOutput> {
+  async process(input: StandardInput): Promise<PluginOutput> {
     if (!this.initialized) {
       throw new Error('插件未初始化');
     }
@@ -162,16 +162,11 @@ export class YijingPlugin implements NamingPlugin {
     return this.initialized && !!this.dataLoader;
   }
 
-  getHealthStatus(): HealthStatus {
+  getHealthStatus(): { status: 'healthy' | 'degraded' | 'unhealthy'; message: string; lastCheck: number; } {
     return {
       status: this.initialized ? 'healthy' : 'unhealthy',
       message: this.initialized ? '周易卦象插件运行正常' : '插件未初始化',
-      lastCheck: Date.now(),
-      details: {
-        initialized: this.initialized,
-        trigramDataLoaded: this.trigrams?.size > 0,
-        hexagramDataLoaded: this.hexagrams?.size > 0
-      }
+      lastCheck: Date.now()
     };
   }
 

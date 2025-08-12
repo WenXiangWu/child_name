@@ -226,19 +226,21 @@ import {
      */
     private async loadWuxingData(): Promise<void> {
       try {
-        // 从数据加载器获取五行数据
-        const wuxingDict = await this.dataLoader.getWuxingData();
+        // TODO: 实现五行数据加载
+        // const wuxingDict = await this.dataLoader.loadWuxingDataSimplified();
+        console.warn('WuxingCharPlugin: getWuxingData method not implemented yet');
         
-        for (const [char, wuxing] of Object.entries(wuxingDict)) {
-          this.wuxingData.set(char, {
-            character: char,
-            primaryWuxing: wuxing as WuxingElement,
-            analysisMethod: 'comprehensive',
-            confidence: 0.9,
-            details: {},
-            explanation: `字典记录的五行属性为${wuxing}`
-          });
-        }
+        // 临时用空的五行数据
+        // for (const [char, wuxing] of Object.entries(wuxingDict)) {
+        //   this.wuxingData.set(char, {
+        //     character: char,
+        //     primaryWuxing: wuxing as WuxingElement,
+        //     analysisMethod: 'comprehensive',
+        //     confidence: 0.9,
+        //     details: {},
+        //     explanation: `字典记录的五行属性为${wuxing}`
+        //   });
+        // }
   
         // 如果基础数据不足，加载常用字五行补充数据
         if (this.wuxingData.size < 500) {

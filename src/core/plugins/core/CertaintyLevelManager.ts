@@ -516,7 +516,7 @@ export class CertaintyLevelManager {
     const availablePlugins: Record<CertaintyLevel, number> = {} as any;
     const levelConfigs: Record<CertaintyLevel, LevelConfig> = {} as any;
 
-    for (const level of Object.values(CertaintyLevel)) {
+    for (const level of Object.values(CertaintyLevel).filter(v => typeof v === 'number') as CertaintyLevel[]) {
       const config = this.getLevelConfig(level);
       availablePlugins[level] = config.enabledPlugins.filter(id => 
         this.container.isPluginAvailable(id)

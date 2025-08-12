@@ -264,13 +264,15 @@ import {
      */
     private async loadMeaningDatabase(): Promise<void> {
       try {
-        // 从数据加载器获取字义数据
-        const meaningDict = await this.dataLoader.getMeaningData();
+        // TODO: 实现字义数据加载
+        // const meaningDict = await this.dataLoader.getMeaningData();
+        console.warn('MeaningPlugin: getMeaningData method not implemented yet');
         
-        for (const [char, meaning] of Object.entries(meaningDict)) {
-          // 这里应该是完整的数据结构，简化处理
-          this.meaningDatabase.set(char, meaning as CharacterMeaning);
-        }
+        // 临时用空的意义数据
+        // for (const [char, meaning] of Object.entries(meaningDict)) {
+        //   // 这里应该是完整的数据结构，简化处理
+        //   this.meaningDatabase.set(char, meaning as CharacterMeaning);
+        // }
   
         // 如果基础数据不足，加载常用字寓意补充数据
         if (this.meaningDatabase.size < 500) {
@@ -838,8 +840,9 @@ import {
       }
   
       // 根据性别匹配度调整
+      const genderKey = genderData.gender as 'male' | 'female' | 'neutral';
       const genderMatchScore = meanings.reduce((sum, m) => 
-        sum + m.genderSuitability[genderData.gender], 0
+        sum + (m.genderSuitability[genderKey] || 0), 0
       ) / meanings.length;
       
       const genderConfidenceMultiplier = genderMatchScore / 100;

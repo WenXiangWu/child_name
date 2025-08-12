@@ -297,7 +297,11 @@ export class PredueDateHandler {
         reasoning: `预产期跨越生肖年边界，建议以${primary}为主，${fallback}为辅进行姓名分析`
       },
       confidence: Math.max(probability.previous, probability.next),
-      dateRange,
+      dateRange: {
+        start: dateRange.start,
+        end: dateRange.end,
+        mostLikely: dateRange.center
+      },
       warnings: [
         '预产期跨越生肖年边界，分析结果存在不确定性',
         '建议提供更精确的预产期信息',
@@ -332,7 +336,11 @@ export class PredueDateHandler {
         reasoning: `预产期在单一生肖年内，可直接使用${zodiac}进行姓名分析`
       },
       confidence: 0.9,
-      dateRange,
+      dateRange: {
+        start: dateRange.start,
+        end: dateRange.end,
+        mostLikely: dateRange.center
+      },
       warnings: [],
       metadata: {
         boundaryCheck: false,
@@ -356,7 +364,11 @@ export class PredueDateHandler {
         reasoning: '无法确定生肖信息，建议使用传统姓名学方法'
       },
       confidence: 0.3,
-      dateRange,
+      dateRange: {
+        start: dateRange.start,
+        end: dateRange.end,
+        mostLikely: dateRange.center
+      },
       warnings: [
         '无法确定生肖信息',
         '建议提供更精确的预产期信息',

@@ -75,12 +75,17 @@ export class ConfigManager {
   /**
    * 加载全局配置
    */
-  async loadGlobalConfig(configPath?: string): Promise<void> {
+  async loadGlobalConfig(configPathOrObject?: string | Partial<GlobalConfig>): Promise<void> {
     try {
-      if (configPath) {
-        // 从文件加载配置
-        const configData = await this.loadConfigFile(configPath);
-        this.globalConfig = { ...this.globalConfig, ...configData };
+      if (configPathOrObject) {
+        if (typeof configPathOrObject === 'string') {
+          // 从文件加载配置
+          const configData = await this.loadConfigFile(configPathOrObject);
+          this.globalConfig = { ...this.globalConfig, ...configData };
+        } else {
+          // 直接使用传入的配置对象
+          this.globalConfig = { ...this.globalConfig, ...configPathOrObject };
+        }
       }
     } catch (error) {
       console.warn('加载全局配置失败，使用默认配置:', error);

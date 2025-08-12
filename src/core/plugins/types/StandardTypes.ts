@@ -179,20 +179,4 @@ export interface ProcessingOptions {
   debugMode: boolean;
 }
 
-// 导出所有类型
-export type {
-  BasicInfo,
-  NameInfo,
-  WuxingInfo,
-  SancaiConfig,
-  WugeConfig,
-  ZodiacInfo,
-  StandardInput,
-  StandardOutput,
-  NameSuggestion,
-  StrokeAnalysis,
-  ProcessingContext,
-  PluginResult,
-  ValidationResult,
-  ProcessingOptions
-};
+// 所有类型已在声明时导出，此处仅为文档说明

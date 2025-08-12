@@ -73,7 +73,7 @@ export interface InputData {
   birthInfo?: {
     year: number;
     month: number;
-    day: number;
+    day?: number;
     hour?: number;
     minute?: number;
   };

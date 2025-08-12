@@ -348,15 +348,7 @@ export class ErrorHandler {
   }
 }
 
-// 导出所有错误类型和处理器
-export {
-  PluginSystemError,
-  PluginNotFoundError,
-  PluginLoadError,
-  PluginExecutionError,
-  PluginTimeoutError,
-  DependencyError,
-  CircularDependencyError,
-  ValidationError,
-  ErrorHandler
-};
+// 所有类已在声明时导出，此处仅为文档说明
+// export: PluginSystemError, PluginNotFoundError, PluginLoadError, 
+// PluginExecutionError, PluginTimeoutError, DependencyError,
+// CircularDependencyError, ValidationError, ErrorHandler

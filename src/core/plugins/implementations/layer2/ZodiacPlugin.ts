@@ -95,7 +95,7 @@ export class ZodiacPlugin implements NamingPlugin {
     const startTime = Date.now();
     
     // 获取出生时间插件的结果
-    const timeResult = input.context.getPluginResult('birth-time');
+    const timeResult = input.context.pluginResults.get('birth-time');
     if (!timeResult) {
       throw new Error('未找到出生时间插件的结果');
     }
@@ -324,7 +324,7 @@ export class ZodiacPlugin implements NamingPlugin {
     const warnings: string[] = [];
 
     // 检查是否有出生时间依赖
-    if (!input.context.getPluginResult || !input.context.getPluginResult('birth-time')) {
+    if (!input.context.pluginResults.has('birth-time')) {
       errors.push('生肖分析需要出生时间插件的结果');
     }
 

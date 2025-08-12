@@ -5,11 +5,10 @@
 import { 
   NamingPlugin, 
   StandardInput, 
-  StandardOutput, 
+  PluginOutput, 
   PluginConfig, 
   PluginContext,
   ValidationResult,
-  HealthStatus,
   PluginDependency
 } from '../../interfaces/NamingPlugin';
 import { QimingDataLoader } from '../../../common/data-loader';
@@ -74,6 +73,7 @@ export class SancaiPlugin implements NamingPlugin {
     name: '三才五格插件',
     description: '计算和分析传统姓名学中的三才五格体系，包括天格、人格、地格、外格、总格的吉凶分析',
     author: 'Qiming System',
+    category: 'evaluation' as const,
     tags: ['sancai', 'wuge', 'traditional', 'numerology']
   };
 
@@ -93,7 +93,7 @@ export class SancaiPlugin implements NamingPlugin {
     }
   }
 
-  async process(input: StandardInput): Promise<StandardOutput> {
+  async process(input: StandardInput): Promise<PluginOutput> {
     if (!this.initialized) {
       throw new Error('插件未初始化');
     }
@@ -180,15 +180,11 @@ export class SancaiPlugin implements NamingPlugin {
     return this.initialized && !!this.dataLoader;
   }
 
-  getHealthStatus(): HealthStatus {
+  getHealthStatus(): { status: 'healthy' | 'degraded' | 'unhealthy'; message: string; lastCheck: number; } {
     return {
       status: this.initialized ? 'healthy' : 'unhealthy',
       message: this.initialized ? '三才五格插件运行正常' : '插件未初始化',
-      lastCheck: Date.now(),
-      details: {
-        initialized: this.initialized,
-        dataLoaderAvailable: !!this.dataLoader
-      }
+      lastCheck: Date.now()
     };
   }
 

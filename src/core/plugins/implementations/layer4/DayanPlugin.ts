@@ -5,11 +5,10 @@
 import { 
   NamingPlugin, 
   StandardInput, 
-  StandardOutput, 
+  PluginOutput, 
   PluginConfig, 
   PluginContext,
   ValidationResult,
-  HealthStatus,
   PluginDependency
 } from '../../interfaces/NamingPlugin';
 import { QimingDataLoader } from '../../../common/data-loader';
@@ -88,6 +87,7 @@ export class DayanPlugin implements NamingPlugin {
     name: '大衍数插件',
     description: '基于大衍筮法和81数理进行姓名的数理分析，评估性格特征和命运趋向',
     author: 'Qiming System',
+    category: 'evaluation' as const,
     tags: ['dayan', 'numerology', 'analysis', 'traditional']
   };
 
@@ -111,7 +111,7 @@ export class DayanPlugin implements NamingPlugin {
     }
   }
 
-  async process(input: StandardInput): Promise<StandardOutput> {
+  async process(input: StandardInput): Promise<PluginOutput> {
     if (!this.initialized) {
       throw new Error('插件未初始化');
     }
@@ -185,15 +185,11 @@ export class DayanPlugin implements NamingPlugin {
     return this.initialized && !!this.dataLoader;
   }
 
-  getHealthStatus(): HealthStatus {
+  getHealthStatus(): { status: 'healthy' | 'degraded' | 'unhealthy'; message: string; lastCheck: number; } {
     return {
       status: this.initialized ? 'healthy' : 'unhealthy',
       message: this.initialized ? '大衍数插件运行正常' : '插件未初始化',
-      lastCheck: Date.now(),
-      details: {
-        initialized: this.initialized,
-        databaseLoaded: this.dayanDatabase?.size > 0
-      }
+      lastCheck: Date.now()
     };
   }
 

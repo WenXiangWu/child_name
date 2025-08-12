@@ -60,8 +60,8 @@ export class BirthTimePlugin implements NamingPlugin {
     const { data } = input;
     
     // 判断处理模式
-    if (data.birthInfo) {
-      return this.processExactTime(data.birthInfo, startTime);
+    if (data.birthInfo && data.birthInfo.day !== undefined) {
+      return this.processExactTime(data.birthInfo as BirthInfo, startTime);
     } else if (data.predueDate) {
       return this.processPredueDate(data.predueDate, startTime);
     } else {
@@ -157,8 +157,8 @@ export class BirthTimePlugin implements NamingPlugin {
     }
 
     // 验证确定出生时间
-    if (data.birthInfo) {
-      const validation = this.validateBirthInfo(data.birthInfo);
+    if (data.birthInfo && data.birthInfo.day !== undefined) {
+      const validation = this.validateBirthInfo(data.birthInfo as BirthInfo);
       errors.push(...validation.errors);
       warnings.push(...validation.warnings);
     }

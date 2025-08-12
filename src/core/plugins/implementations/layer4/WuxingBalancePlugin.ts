@@ -5,11 +5,10 @@
 import { 
   NamingPlugin, 
   StandardInput, 
-  StandardOutput, 
+  PluginOutput, 
   PluginConfig, 
   PluginContext,
   ValidationResult,
-  HealthStatus,
   PluginDependency
 } from '../../interfaces/NamingPlugin';
 import { QimingDataLoader } from '../../../common/data-loader';
@@ -99,6 +98,7 @@ export class WuxingBalancePlugin implements NamingPlugin {
     name: '五行平衡插件',
     description: '综合分析姓氏、字符、笔画等多维度五行属性，评估整体五行平衡状况并提供优化建议',
     author: 'Qiming System',
+    category: 'evaluation' as const,
     tags: ['wuxing', 'balance', 'harmony', 'optimization']
   };
 
@@ -118,7 +118,7 @@ export class WuxingBalancePlugin implements NamingPlugin {
     }
   }
 
-  async process(input: StandardInput): Promise<StandardOutput> {
+  async process(input: StandardInput): Promise<PluginOutput> {
     if (!this.initialized) {
       throw new Error('插件未初始化');
     }
@@ -202,15 +202,11 @@ export class WuxingBalancePlugin implements NamingPlugin {
     return this.initialized && !!this.dataLoader;
   }
 
-  getHealthStatus(): HealthStatus {
+  getHealthStatus(): { status: 'healthy' | 'degraded' | 'unhealthy'; message: string; lastCheck: number; } {
     return {
       status: this.initialized ? 'healthy' : 'unhealthy',
       message: this.initialized ? '五行平衡插件运行正常' : '插件未初始化',
-      lastCheck: Date.now(),
-      details: {
-        initialized: this.initialized,
-        dataLoaderAvailable: !!this.dataLoader
-      }
+      lastCheck: Date.now()
     };
   }
 

@@ -119,8 +119,8 @@ export class XiYongShenPlugin implements NamingPlugin {
     const startTime = Date.now();
     
     // 获取依赖插件的结果
-    const timeResult = input.context.getPluginResult('birth-time');
-    const baziResult = input.context.getPluginResult('bazi');
+    const timeResult = input.context.pluginResults.get('birth-time');
+    const baziResult = input.context.pluginResults.get('bazi');
     
     if (!timeResult) {
       throw new Error('未找到出生时间插件的结果');
@@ -554,7 +554,7 @@ export class XiYongShenPlugin implements NamingPlugin {
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    if (!input.context.getPluginResult || !input.context.getPluginResult('birth-time')) {
+    if (!input.context.pluginResults.has('birth-time')) {
       errors.push('五行喜用神分析需要出生时间插件的结果');
     }
 

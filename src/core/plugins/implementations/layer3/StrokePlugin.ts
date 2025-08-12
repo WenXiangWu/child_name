@@ -210,17 +210,19 @@ import {
      */
     private async loadStrokeData(): Promise<void> {
       try {
-        // 从数据加载器获取笔画数据
-        const strokeDict = await this.dataLoader.getStrokeData();
+        // TODO: 实现笔画数据加载
+        // const strokeDict = await this.dataLoader.getStrokeData();
+        console.warn('StrokePlugin: getStrokeData method not implemented yet');
         
-        for (const [char, strokes] of Object.entries(strokeDict)) {
-          this.strokeData.set(char, {
-            character: char,
-            strokes: strokes as number,
-            source: 'kangxi',
-            confidence: 1.0
-          });
-        }
+        // 临时用空的笔画数据
+        // for (const [char, strokes] of Object.entries(strokeDict)) {
+        //   this.strokeData.set(char, {
+        //     character: char,
+        //     strokes: strokes as number,
+        //     source: 'kangxi',
+        //     confidence: 1.0
+        //   });
+        // }
   
         // 如果基础数据不足，加载常用汉字笔画补充数据
         if (this.strokeData.size < 1000) {
@@ -439,15 +441,24 @@ import {
       const givenStrokes = strokeData.map(item => item.strokes);
   
       try {
-        const sancaiResult = await this.sancaiCalculator.calculateSancaiWuge(surnameStrokes, givenStrokes);
+        // 构建GridCalculation对象
+        const grids = {
+          tiange: surnameStrokes + 1,
+          renge: surnameStrokes + (givenStrokes[0] || 0),
+          dige: (givenStrokes[0] || 0) + (givenStrokes[1] || 0),
+          zongge: surnameStrokes + givenStrokes.reduce((sum, strokes) => sum + strokes, 0),
+          waige: surnameStrokes + givenStrokes.reduce((sum, strokes) => sum + strokes, 0) - (surnameStrokes + (givenStrokes[0] || 0)) + 1
+        };
+        
+        const sancaiResult = await this.sancaiCalculator.calculateSancai(grids);
         
         return {
-          tianGe: sancaiResult.tianGe,
-          renGe: sancaiResult.renGe,
-          diGe: sancaiResult.diGe,
-          waiGe: sancaiResult.waiGe,
-          zongGe: sancaiResult.zongGe,
-          sancaiType: sancaiResult.sancaiType || 'unknown'
+          tianGe: grids.tiange,
+          renGe: grids.renge,
+          diGe: grids.dige,
+          waiGe: grids.waige,
+          zongGe: grids.zongge,
+          sancaiType: sancaiResult.combination || 'unknown'
         };
       } catch (error) {
         console.warn('三才五格计算失败:', error);

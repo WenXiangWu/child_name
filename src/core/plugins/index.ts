@@ -6,10 +6,13 @@
 export * from './interfaces/NamingPlugin';
 
 // 核心类
-export { PluginContainer, ContainerConfig } from './core/PluginContainer';
+export { PluginContainer } from './core/PluginContainer';
+export type { ContainerConfig } from './core/PluginContainer';
 export { DependencyGraph } from './core/DependencyGraph';
-export { PluginRegistry, RegistryEntry } from './core/PluginRegistry';
-export { ConfigManager, GlobalConfig, PluginManifest } from './core/ConfigManager';
+export { PluginRegistry } from './core/PluginRegistry';
+export type { RegistryEntry } from './core/PluginRegistry';
+export { ConfigManager } from './core/ConfigManager';
+export type { GlobalConfig, PluginManifest } from './core/ConfigManager';
 
 // 类型导出
 export type {

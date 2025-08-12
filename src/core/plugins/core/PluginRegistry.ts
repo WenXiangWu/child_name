@@ -23,17 +23,15 @@ export class PluginRegistry {
    * 注册插件
    */
   async register(plugin: NamingPlugin): Promise<void> {
-    const metadata = await plugin.getMetadata();
-    
     // 检查插件ID是否已存在
-    if (this.plugins.has(metadata.id)) {
-      throw new Error(`插件 ${metadata.id} 已存在`);
+    if (this.plugins.has(plugin.id)) {
+      throw new Error(`插件 ${plugin.id} 已存在`);
     }
 
     // 创建注册条目
     const entry: RegistryEntry = {
       plugin,
-      metadata,
+      metadata: plugin.metadata,
       registeredAt: new Date(),
       lastUsed: new Date(),
       usageCount: 0,
@@ -41,14 +39,14 @@ export class PluginRegistry {
     };
 
     // 添加到主注册表
-    this.plugins.set(metadata.id, entry);
+    this.plugins.set(plugin.id, entry);
 
     // 添加到分类索引
-    this.addToCategory(metadata.id, metadata.category);
+    this.addToCategory(plugin.id, plugin.metadata.category);
 
     // 添加到标签索引
-    for (const tag of metadata.tags) {
-      this.addToTag(metadata.id, tag);
+    for (const tag of plugin.metadata.tags) {
+      this.addToTag(plugin.id, tag);
     }
   }
 
@@ -260,7 +258,7 @@ export class PluginRegistry {
   async cleanup(): Promise<void> {
     for (const [id, entry] of this.plugins) {
       try {
-        await entry.plugin.cleanup?.();
+        await entry.plugin.destroy();
       } catch (error) {
         console.warn(`插件 ${id} 清理失败:`, error);
       }
