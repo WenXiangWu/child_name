@@ -1,0 +1,34 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2024-01-01",
+  "datasets": {
+    "characters": {
+      "standard": "characters/standard-characters.json",
+      "standardMin": "characters/standard-characters.min.json",
+      "database": "characters/final-enhanced-character-database.json",
+      "databaseMin": "characters/final-enhanced-character-database.min.json",
+      "strokes": "characters/real-stroke-data.json",
+      "wuxingSimplified": "characters/wuxing_dict_jianti.json",
+      "wuxingTraditional": "characters/wuxing_dict_fanti.json"
+    },
+    "names": {
+      "familyNames": "names/baijiaxing.json",
+      "familyNamesTxt": "names/baijiaxing.txt",
+      "corpus": "names/name-corpus.txt"
+    },
+    "poetry": {
+      "chinese": "poetry/chinese-poetry/",
+      "processed": "poetry/poetry/"
+    },
+    "rules": {
+      "sancaiRules": "rules/sancai-rules.json",
+      "sancaiData": "rules/sancai.txt",
+      "zodiac": "rules/zodiac-data.json"
+    },
+    "configs": {
+      "wordIndex": "configs/word-index.json",
+      "wordChunks": "configs/word-chunks/",
+      "processed": "configs/processed/"
+    }
+  }
+}
