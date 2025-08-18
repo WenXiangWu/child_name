@@ -389,9 +389,9 @@ export class BirthTimePlugin implements NamingPlugin {
    */
   private getZodiacElement(zodiac: string): string {
     const elementMap: Record<string, string> = {
-      '鼠': 'shui', '牛': 'tu', '虎': 'mu', '兔': 'mu',
-      '龙': 'tu', '蛇': 'huo', '马': 'huo', '羊': 'tu',
-      '猴': 'jin', '鸡': 'jin', '狗': 'tu', '猪': 'shui'
+      '鼠': '水', '牛': '土', '虎': '木', '兔': '木',
+      '龙': '土', '蛇': '火', '马': '火', '羊': '土',
+      '猴': '金', '鸡': '金', '狗': '土', '猪': '水'
     };
     return elementMap[zodiac] || 'unknown';
   }

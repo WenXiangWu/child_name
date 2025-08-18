@@ -93,24 +93,62 @@ export class ZodiacPlugin implements NamingPlugin {
    */
   async process(input: StandardInput): Promise<PluginOutput> {
     const startTime = Date.now();
+    const context = input.context;
+    
+    context.log && context.log('info', '🐲 开始生肖分析');
     
     // 获取出生时间插件的结果
     const timeResult = input.context.pluginResults.get('birth-time');
     if (!timeResult) {
+      context.log && context.log('error', '❌ 缺少出生时间信息');
       throw new Error('未找到出生时间插件的结果');
     }
 
-    const timeInfo = timeResult.timeInfo;
+    context.log && context.log('info', '📅 获取出生时间信息', { 
+      hasTimeResult: !!timeResult,
+      confidence: timeResult.confidence 
+    });
+
+    const timeInfo = timeResult.results?.timeInfo;
+    if (!timeInfo) {
+      context.log && context.log('error', '❌ 出生时间结果格式错误');
+      throw new Error('出生时间插件结果中缺少timeInfo字段');
+    }
+
+    context.log && context.log('info', '⏰ 时间信息分析', {
+      type: timeInfo.type,
+      year: timeInfo.year,
+      hasExactDate: !!(timeInfo.month && timeInfo.day)
+    });
+
     let zodiacAnalysis: ZodiacAnalysisResult;
     
     // 根据时间信息类型进行处理
     if (timeInfo.type === 'exact') {
-      zodiacAnalysis = await this.processExactTime(timeInfo);
+      context.log && context.log('info', '🎯 执行精确时间生肖分析');
+      zodiacAnalysis = await this.processExactTime(timeInfo, context);
     } else if (timeInfo.type === 'predue') {
-      zodiacAnalysis = await this.processPredueMode(timeInfo, timeResult);
+      context.log && context.log('info', '📊 执行预产期生肖分析');
+      zodiacAnalysis = await this.processPredueMode(timeInfo, timeResult, context);
     } else {
-      throw new Error('不支持的时间信息类型');
+      context.log && context.log('error', '❌ 不支持的时间类型', { type: timeInfo.type });
+      throw new Error(`不支持的时间信息类型: ${timeInfo.type}`);
     }
+
+    context.log && context.log('info', '✅ 生肖分析完成', {
+      primaryZodiac: zodiacAnalysis.primaryZodiac,
+      strategy: zodiacAnalysis.strategy,
+      confidence: zodiacAnalysis.confidence,
+      hasFallback: !!zodiacAnalysis.fallbackZodiac
+    });
+
+    const characterGuidance = this.generateCharacterGuidance(zodiacAnalysis);
+    
+    context.log && context.log('info', '📝 生成字符指导建议', {
+      preferredRadicals: zodiacAnalysis.recommendations.preferredRadicals.length,
+      avoidedRadicals: zodiacAnalysis.recommendations.avoidedRadicals.length,
+      namingPrinciples: zodiacAnalysis.recommendations.namingPrinciples.length
+    });
 
     return {
       pluginId: this.id,
@@ -119,7 +157,7 @@ export class ZodiacPlugin implements NamingPlugin {
         primaryZodiac: zodiacAnalysis.primaryZodiac,
         strategy: zodiacAnalysis.strategy,
         recommendations: zodiacAnalysis.recommendations,
-        characterGuidance: this.generateCharacterGuidance(zodiacAnalysis),
+        characterGuidance,
         namingPrinciples: zodiacAnalysis.recommendations.namingPrinciples
       },
       confidence: zodiacAnalysis.confidence,
@@ -134,9 +172,27 @@ export class ZodiacPlugin implements NamingPlugin {
   /**
    * 处理确定时间
    */
-  private async processExactTime(timeInfo: any): Promise<ZodiacAnalysisResult> {
+  private async processExactTime(timeInfo: any, context?: any): Promise<ZodiacAnalysisResult> {
+    context && context.log && context.log('info', '🔍 计算确切生肖', { year: timeInfo.year });
+    
     const zodiac = this.zodiacService.getZodiacByYear(timeInfo.year);
+    
+    if (!zodiac) {
+      context && context.log && context.log('error', '❌ 生肖计算失败', { year: timeInfo.year });
+      throw new Error(`无法计算 ${timeInfo.year} 年的生肖`);
+    }
+    
+    context && context.log && context.log('info', '🐲 生肖确定', { year: timeInfo.year, zodiac });
+    
     const zodiacInfo = this.zodiacService.getZodiacInfo(zodiac);
+    
+    context && context.log && context.log('info', '📋 获取生肖详细信息', {
+      zodiac,
+      element: zodiacInfo.element,
+      traits: zodiacInfo.traits.length,
+      favorableRadicals: zodiacInfo.favorable.radicals.length,
+      unfavorableRadicals: zodiacInfo.unfavorable.radicals.length
+    });
     
     return {
       primaryZodiac: zodiac,
@@ -158,13 +214,38 @@ export class ZodiacPlugin implements NamingPlugin {
   /**
    * 处理预产期模式
    */
-  private async processPredueMode(timeInfo: any, timeResult: any): Promise<ZodiacAnalysisResult> {
+  private async processPredueMode(timeInfo: any, timeResult: any, context?: any): Promise<ZodiacAnalysisResult> {
     const { year } = timeInfo;
-    const possibleZodiacs = timeResult.possibleZodiacs || [this.zodiacService.getZodiacByYear(year)];
+    context && context.log && context.log('info', '📅 预产期生肖分析', { year });
+    
+    // 计算可能的生肖
+    let possibleZodiacs = timeResult.possibleZodiacs;
+    if (!possibleZodiacs || possibleZodiacs.length === 0) {
+      context && context.log && context.log('info', '🔄 计算预产期生肖', { year });
+      const calculatedZodiac = this.zodiacService.getZodiacByYear(year);
+      context && context.log && context.log('info', '✅ 预产期生肖计算完成', { year, zodiac: calculatedZodiac });
+      possibleZodiacs = [calculatedZodiac];
+    }
+    
+    // 过滤掉null值
+    possibleZodiacs = possibleZodiacs.filter((zodiac: ZodiacAnimal | null): zodiac is ZodiacAnimal => zodiac !== null && zodiac !== undefined);
+    
+    context && context.log && context.log('info', '🔍 可能生肖过滤', { 
+      originalCount: timeResult.possibleZodiacs?.length || 0,
+      validCount: possibleZodiacs.length,
+      possibleZodiacs 
+    });
+    
+    if (possibleZodiacs.length === 0) {
+      context && context.log && context.log('error', '❌ 无有效生肖', { year });
+      throw new Error(`无法为 ${year} 年计算有效的生肖`);
+    }
     
     if (possibleZodiacs.length === 1) {
       // 单生肖情况
       const zodiac = possibleZodiacs[0];
+      context && context.log && context.log('info', '🎯 单生肖模式', { zodiac, confidence: 0.8 });
+      
       const zodiacInfo = this.zodiacService.getZodiacInfo(zodiac);
       
       return {
@@ -186,15 +267,29 @@ export class ZodiacPlugin implements NamingPlugin {
       // 双生肖情况（跨年）
       const primaryZodiac = possibleZodiacs[0];
       const fallbackZodiac = possibleZodiacs[1];
+      const crossesNewYear = timeResult.riskFactors?.crossesNewYear;
+      const confidence = crossesNewYear ? 0.6 : 0.7;
+      
+      context && context.log && context.log('info', '🔀 双生肖模式（跨年）', { 
+        primaryZodiac, 
+        fallbackZodiac, 
+        crossesNewYear,
+        confidence 
+      });
       
       const primaryInfo = this.zodiacService.getZodiacInfo(primaryZodiac);
       const fallbackInfo = this.zodiacService.getZodiacInfo(fallbackZodiac);
+      
+      context && context.log && context.log('info', '📊 双生肖信息整合', {
+        primary: { zodiac: primaryZodiac, element: primaryInfo.element },
+        fallback: { zodiac: fallbackZodiac, element: fallbackInfo.element }
+      });
       
       return {
         primaryZodiac,
         fallbackZodiac,
         strategy: 'dual-zodiac',
-        confidence: timeResult.riskFactors?.crossesNewYear ? 0.6 : 0.7,
+        confidence,
         zodiacInfo: {
           animal: primaryZodiac,
           element: primaryInfo.element,

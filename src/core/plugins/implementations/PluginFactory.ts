@@ -21,7 +21,8 @@ import {
   SancaiPlugin,
   YijingPlugin,
   DayanPlugin,
-  WuxingBalancePlugin
+  WuxingBalancePlugin,
+  NameGenerationPlugin
 } from './layer4/index';
 
 export type PluginType = 
@@ -40,7 +41,8 @@ export type PluginType =
   | 'sancai'
   | 'yijing'
   | 'dayan'
-  | 'wuxing-balance';
+  | 'wuxing-balance'
+  | 'name-generation';
 
 export class PluginFactory {
   private static pluginClasses: Record<PluginType, new () => NamingPlugin> = {
@@ -59,7 +61,8 @@ export class PluginFactory {
     'sancai': SancaiPlugin,
     'yijing': YijingPlugin,
     'dayan': DayanPlugin,
-    'wuxing-balance': WuxingBalancePlugin
+    'wuxing-balance': WuxingBalancePlugin,
+    'name-generation': NameGenerationPlugin
   };
 
   /**
@@ -70,7 +73,16 @@ export class PluginFactory {
     if (!PluginClass) {
       throw new Error(`Unknown plugin type: ${pluginType}`);
     }
-    return new PluginClass();
+    
+    try {
+      console.log(`🔧 创建插件实例: ${pluginType}`);
+      const instance = new PluginClass();
+      console.log(`✅ 插件实例创建成功: ${pluginType} (ID: ${instance.id})`);
+      return instance;
+    } catch (error) {
+      console.error(`❌ 创建插件实例失败: ${pluginType}`, error);
+      throw new Error(`Failed to create plugin ${pluginType}: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   /**
@@ -102,7 +114,7 @@ export class PluginFactory {
       1: ['surname', 'gender', 'birth-time', 'family-tradition'],
       2: ['bazi', 'zodiac', 'xiyongshen'],
       3: ['stroke', 'wuxing-char', 'zodiac-char', 'meaning', 'phonetic'],
-      4: ['sancai', 'yijing', 'dayan', 'wuxing-balance']
+      4: ['sancai', 'yijing', 'dayan', 'wuxing-balance', 'name-generation']
     };
 
     const pluginTypes = layerPlugins[layer] || [];
@@ -127,8 +139,8 @@ export class PluginFactory {
         description: '字符评估层 - 分析字符的笔画、五行、生肖适宜性、寓意、音韵等'
       },
       4: {
-        plugins: [],
-        description: '组合计算层 - 进行三才五格、周易卦象、综合评分等高级计算'
+        plugins: ['sancai', 'yijing', 'dayan', 'wuxing-balance', 'name-generation'],
+        description: '组合计算层 - 进行三才五格、周易卦象、综合评分和最终名字生成'
       }
     };
   }
@@ -142,23 +154,26 @@ export class PluginFactory {
         return [
           'surname', 'gender', 'birth-time',
           'bazi', 'zodiac', 'xiyongshen',
-          'stroke', 'wuxing-char', 'zodiac-char', 'meaning', 'phonetic'
+          'stroke', 'wuxing-char', 'zodiac-char', 'meaning', 'phonetic',
+          'name-generation'
         ];
       case 2: // 部分确定
         return [
           'surname', 'gender', 'birth-time',
           'zodiac', 'xiyongshen',
-          'stroke', 'wuxing-char', 'zodiac-char', 'meaning', 'phonetic'
+          'stroke', 'wuxing-char', 'zodiac-char', 'meaning', 'phonetic',
+          'name-generation'
         ];
       case 3: // 预估阶段
         return [
           'surname', 'gender', 'birth-time',
-          'zodiac', 'stroke', 'meaning', 'phonetic'
+          'zodiac', 'stroke', 'meaning', 'phonetic',
+          'name-generation'
         ];
       case 4: // 完全未知
-        return ['surname', 'gender', 'stroke', 'meaning', 'phonetic'];
+        return ['surname', 'gender', 'stroke', 'meaning', 'phonetic', 'name-generation'];
       default:
-        return ['surname', 'gender', 'stroke', 'meaning'];
+        return ['surname', 'gender', 'stroke', 'meaning', 'name-generation'];
     }
   }
 }

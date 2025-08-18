@@ -174,8 +174,8 @@ export class QimingNameGenerator {
     // mid_wuxing = 'shui'
     // last_wuxing = 'jin'
     return {
-      midWuxing: 'shui', // 水
-      lastWuxing: 'jin'  // 金
+      midWuxing: '水', // 水
+      lastWuxing: '金'  // 金
     };
   }
 

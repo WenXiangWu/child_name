@@ -104,8 +104,11 @@ import {
       const startTime = Date.now();
       
       const { characters } = input.data;
+      
+      // 判断是分析模式还是生成模式
       if (!characters || characters.length === 0) {
-        throw new Error('缺少字符数据');
+        // 生成模式：提供五行候选字符
+        return this.generateWuxingCandidates(input, startTime);
       }
   
       try {
@@ -206,7 +209,7 @@ import {
           message: '五行数据未加载',
           lastCheck: Date.now()
         };
-      } else if (dataCount < 500 || radicalCount < 50) {
+      } else if (dataCount < 20 || radicalCount < 10) {
         return {
           status: 'degraded' as const,
           message: `五行数据不完整 (${dataCount} 字符, ${radicalCount} 部首)`,
@@ -756,5 +759,167 @@ import {
       return (unicode >= 0x4e00 && unicode <= 0x9fff) || // 基本汉字
              (unicode >= 0x3400 && unicode <= 0x4dbf) || // 扩展A
              (unicode >= 0x20000 && unicode <= 0x2a6df);  // 扩展B
+    }
+
+    /**
+     * 生成五行候选字符（当没有具体字符时）
+     */
+    private async generateWuxingCandidates(input: StandardInput, startTime: number): Promise<PluginOutput> {
+      try {
+        // 获取性别信息
+        const genderResult = input.context.pluginResults.get('gender');
+        if (!genderResult?.results) {
+          throw new Error('缺少性别信息');
+        }
+        
+        const gender = genderResult.results.gender;
+        const commonChars = genderResult.results.commonChars || new Set();
+        
+        // 获取八字五行需求（如果有的话）
+        const baziResult = input.context.pluginResults.get('bazi');
+        const xiYongShenResult = input.context.pluginResults.get('xiyongshen');
+        
+        // 确定需要的五行元素
+        const requiredElements = this.determineRequiredElements(baziResult, xiYongShenResult);
+        
+        // 生成五行候选字符
+        const favorableChars = this.generateFavorableCharsByElement(requiredElements, gender, commonChars);
+        
+        // 生成需要避免的字符
+        const restrictedChars = this.generateRestrictedChars(requiredElements);
+        
+        return {
+          pluginId: this.id,
+          results: {
+            requiredElements,
+            favorableChars,
+            restrictedChars,
+            analysisType: 'candidate-generation',
+            candidateCount: Array.from(favorableChars.values()).reduce((sum, chars) => sum + chars.length, 0)
+          },
+          confidence: 0.85, // 相对高的置信度
+          metadata: {
+            processingTime: Date.now() - startTime,
+            analysisMode: 'generation',
+            version: this.version,
+            genderInfluence: gender,
+            commonCharsUsed: commonChars.size > 0
+          }
+        };
+        
+      } catch (error) {
+        throw new Error(`五行候选字符生成失败: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+
+    /**
+     * 确定需要的五行元素
+     */
+    private determineRequiredElements(baziResult?: any, xiYongShenResult?: any): string[] {
+      const elements = [];
+      
+      // 如果有喜用神信息，优先使用
+      if (xiYongShenResult?.results?.favorableElements) {
+        elements.push(...xiYongShenResult.results.favorableElements);
+      }
+      
+      // 如果有八字信息，分析五行缺失
+      if (baziResult?.results?.wuxingAnalysis) {
+        const analysis = baziResult.results.wuxingAnalysis;
+        if (analysis.deficiencies) {
+          elements.push(...analysis.deficiencies);
+        }
+      }
+      
+      // 如果没有明确信息，使用平衡的五行组合
+      if (elements.length === 0) {
+        elements.push('木', '火', '土'); // 默认的吉利组合
+      }
+      
+      return [...new Set(elements)]; // 去重
+    }
+
+    /**
+     * 按五行元素生成有利字符
+     */
+    private generateFavorableCharsByElement(requiredElements: string[], gender: string, commonChars: Set<string>): Map<string, string[]> {
+      const favorableChars = new Map<string, string[]>();
+      
+      for (const element of requiredElements) {
+        const chars = this.getCharactersByElement(element, gender, commonChars);
+        favorableChars.set(element, chars);
+      }
+      
+      return favorableChars;
+    }
+
+    /**
+     * 根据五行元素获取字符
+     */
+    private getCharactersByElement(element: string, gender: string, commonChars: Set<string>): string[] {
+      const elementChars: Record<string, string[]> = {
+        '木': ['林', '森', '杰', '松', '柏', '梓', '栋', '楠', '榕', '桂', '桃', '李', '朵', '花', '草', '芳', '芯', '茗', '茜', '莉', '菲', '萍', '蕾', '薇'],
+        '火': ['炎', '焱', '烁', '煜', '熠', '灿', '耀', '辉', '明', '晨', '曦', '旭', '昊', '昱', '晟', '晴', '暖', '阳', '光', '亮', '丹', '赤', '红'],
+        '土': ['坤', '埔', '城', '堡', '墨', '增', '壮', '壁', '均', '坚', '垒', '培', '基', '塘', '境', '墅', '岩', '峰', '峻', '崇', '嵩', '岱', '岭'],
+        '金': ['鑫', '钢', '铁', '银', '金', '铜', '钧', '钟', '铭', '锋', '锐', '镇', '锦', '键', '链', '钱', '铃', '锡', '钰', '铎', '锌', '锂', '钊'],
+        '水': ['江', '河', '海', '湖', '溪', '泉', '波', '浪', '涛', '润', '泽', '洁', '清', '澄', '淳', '沐', '沛', '汇', '池', '潭', '瀚', '渊', '洋', '滨']
+      };
+      
+      let chars = elementChars[element] || [];
+      
+      // 如果有常用字信息，优先使用常用字
+      if (commonChars.size > 0) {
+        const commonElementChars = chars.filter(char => commonChars.has(char));
+        if (commonElementChars.length > 0) {
+          chars = commonElementChars;
+        }
+      }
+      
+      // 根据性别进行调整
+      if (gender === 'female') {
+        // 女性偏好的字符
+        const femalePreferred = chars.filter(char => 
+          ['花', '芳', '芯', '茗', '茜', '莉', '菲', '萍', '蕾', '薇', '晴', '暖', '丹', '红', '洁', '清', '澄', '淳'].includes(char)
+        );
+        if (femalePreferred.length > 0) {
+          chars = [...femalePreferred, ...chars.filter(char => !femalePreferred.includes(char))];
+        }
+      } else {
+        // 男性偏好的字符
+        const malePreferred = chars.filter(char => 
+          ['杰', '松', '柏', '栋', '楠', '炎', '烁', '煜', '熠', '辉', '明', '昊', '坤', '城', '堡', '壮', '峰', '峻', '崇', '嵩', '鑫', '钢', '铁', '锋', '锐', '镇', '江', '河', '海', '瀚', '渊', '洋'].includes(char)
+        );
+        if (malePreferred.length > 0) {
+          chars = [...malePreferred, ...chars.filter(char => !malePreferred.includes(char))];
+        }
+      }
+      
+      return chars.slice(0, 15); // 限制数量
+    }
+
+    /**
+     * 生成需要避免的字符
+     */
+    private generateRestrictedChars(requiredElements: string[]): Set<string> {
+      const restrictedChars = new Set<string>();
+      
+      // 根据五行相克原理，避免相克的字符
+      const conflictMap: Record<string, string[]> = {
+        '木': ['金'], // 金克木
+        '火': ['水'], // 水克火
+        '土': ['木'], // 木克土
+        '金': ['火'], // 火克金
+        '水': ['土']  // 土克水
+      };
+      
+      for (const element of requiredElements) {
+        const conflictElements = conflictMap[element] || [];
+        for (const conflictElement of conflictElements) {
+          const conflictChars = this.getCharactersByElement(conflictElement, 'neutral', new Set());
+          conflictChars.forEach(char => restrictedChars.add(char));
+        }
+      }
+      
+      return restrictedChars;
     }
   }

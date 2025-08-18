@@ -79,7 +79,7 @@ export class UnifiedDataAdapter {
    * 适配 getWuxing 方法
    */
   async getWuxing(char: string): Promise<WuxingElement> {
-    return this.unifiedLoader.getCharacterWuxing(char) || 'jin';
+    return this.unifiedLoader.getCharacterWuxing(char) || '金';
   }
 
   /**

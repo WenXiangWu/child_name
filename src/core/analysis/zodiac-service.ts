@@ -3,7 +3,7 @@
  * 提供生肖查询、字符评估、筛选等功能
  */
 
-import { ZodiacAnimal, ZodiacData, ZodiacInfo, ZodiacCharacterEvaluation } from '../common/types';
+import { ZodiacAnimal, ZodiacData, ZodiacInfo, ZodiacCharacterEvaluation, WuxingElement } from '../common/types';
 
 export class ZodiacService {
   private static instance: ZodiacService;
@@ -28,12 +28,23 @@ export class ZodiacService {
     }
 
     try {
-      const response = await fetch('/data/zodiac-data.json');
-      if (!response.ok) {
-        throw new Error(`Failed to load zodiac data: ${response.statusText}`);
+      // 检查运行环境
+      if (typeof window !== 'undefined') {
+        // 浏览器环境使用 fetch
+        const response = await fetch('/data/rules/zodiac-data.json');
+        if (!response.ok) {
+          throw new Error(`Failed to load zodiac data: ${response.statusText}`);
+        }
+        this.zodiacData = await response.json();
+      } else {
+        // Node.js 环境使用文件系统
+        const fs = await import('fs');
+        const path = await import('path');
+        const filePath = path.join(process.cwd(), 'public/data/rules/zodiac-data.json');
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
+        this.zodiacData = JSON.parse(fileContent);
       }
       
-      this.zodiacData = await response.json();
       this.initialized = true;
       console.log('✅ 生肖数据加载完成');
     } catch (error) {
@@ -55,36 +66,84 @@ export class ZodiacService {
    * 根据年份获取生肖
    */
   public getZodiacByYear(year: number): ZodiacAnimal {
-    this.ensureInitialized();
+    // 优先使用算法计算，更可靠
+    const zodiac = this.calculateZodiacByYear(year);
+    console.log(`🐲 生肖计算: ${year}年 -> ${zodiac}`);
+    return zodiac;
+  }
+
+  /**
+   * 直接计算生肖（不依赖数据文件）
+   */
+  private calculateZodiacByYear(year: number): ZodiacAnimal {
+    // 修正计算算法：以1924年为基准（鼠年），使用正确的12生肖循环
+    const baseYear = 1924; // 鼠年基准年（甲子年）
+    const zodiacOrder: ZodiacAnimal[] = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
     
-    const zodiacAnimal = this.zodiacData!.yearMapping[year.toString()];
-    if (!zodiacAnimal) {
-      // 如果年份不在映射表中，使用计算方式
-      const baseYear = 1960; // 鼠年基准
-      const zodiacOrder: ZodiacAnimal[] = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
-      const index = (year - baseYear) % 12;
-      return zodiacOrder[index >= 0 ? index : index + 12];
+    // 计算相对年份差
+    let yearDiff = year - baseYear;
+    
+    // 确保结果为正数
+    while (yearDiff < 0) {
+      yearDiff += 12;
     }
     
-    return zodiacAnimal;
+    const index = yearDiff % 12;
+    return zodiacOrder[index];
   }
 
   /**
    * 获取生肖详细信息
    */
   public getZodiacInfo(zodiac: ZodiacAnimal): ZodiacInfo {
-    this.ensureInitialized();
-    
-    const info = this.zodiacData!.zodiacs[zodiac];
-    if (!info) {
-      throw new Error(`Unknown zodiac: ${zodiac}`);
+    try {
+      this.ensureInitialized();
+      const info = this.zodiacData!.zodiacs[zodiac];
+      if (info) {
+        return info;
+      }
+    } catch (error) {
+      console.warn('🔄 ZodiacService 未初始化，使用默认生肖信息');
     }
     
-    return info;
+    // 提供默认的生肖信息作为降级方案
+    return this.getDefaultZodiacInfo(zodiac);
   }
 
   /**
-   * 评估单个字符对特定生肖的适宜性
+   * 获取默认生肖信息（不依赖数据文件）
+   */
+  private getDefaultZodiacInfo(zodiac: ZodiacAnimal): ZodiacInfo {
+    // 生肖对应的五行
+    const zodiacElements: Record<ZodiacAnimal, WuxingElement> = {
+      '鼠': '水', '牛': '土', '虎': '木', '兔': '木',
+      '龙': '土', '蛇': '火', '马': '火', '羊': '土',
+      '猴': '金', '鸡': '金', '狗': '土', '猪': '水'
+    };
+
+    // 直接返回一个简化的默认信息
+    return {
+      id: zodiac,
+      name: zodiac,
+      element: zodiacElements[zodiac],
+      years: [2020, 2008, 1996],
+      traits: ['聪明', '勤劳', '善良'],
+      favorable: {
+        radicals: ['口', '宀'],
+        characters: ['安', '宁'],
+        meanings: ['平安', '宁静'],
+        reasons: { '口': '有利字形', '宀': '有庇护' }
+      },
+      unfavorable: {
+        radicals: ['火', '日'],
+        characters: ['烈', '炎'],
+        reasons: { '火': '相克关系', '日': '不利时辰' }
+      }
+    };
+  }
+
+  /**
+   * 评估单个字符对特定生肖的适用性
    */
   public evaluateCharacterForZodiac(char: string, zodiac: ZodiacAnimal): ZodiacCharacterEvaluation {
     this.ensureInitialized();

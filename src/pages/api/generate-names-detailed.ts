@@ -100,8 +100,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log(`[${new Date().toLocaleTimeString()}] 步骤3：开始确定五行要求`);
     const step3Time = Date.now();
     // 暂时使用默认五行要求，后续可以完善
-    const midWuxing: WuxingElement = 'mu';
-    const lastWuxing: WuxingElement = 'huo';
+    const midWuxing: WuxingElement = '木';
+    const lastWuxing: WuxingElement = '火';
     console.log(`[${new Date().toLocaleTimeString()}] 步骤3完成：中间字${midWuxing}行，最后字${lastWuxing}行，耗时：${Date.now() - step3Time}ms`);
     
     // 4. 获取常用字库

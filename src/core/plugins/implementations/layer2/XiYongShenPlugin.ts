@@ -80,28 +80,28 @@ export class XiYongShenPlugin implements NamingPlugin {
   // 五行相生相克关系
   private readonly wuxingRelations = {
     generate: {
-      'jin': 'shui',   // 金生水
-      'shui': 'mu',    // 水生木
-      'mu': 'huo',     // 木生火
-      'huo': 'tu',     // 火生土
-      'tu': 'jin'      // 土生金
+      '金': '水',   // 金生水
+      '水': '木',    // 水生木
+      '木': '火',     // 木生火
+      '火': '土',     // 火生土
+      '土': '金'      // 土生金
     },
     overcome: {
-      'jin': 'mu',     // 金克木
-      'mu': 'tu',      // 木克土
-      'tu': 'shui',    // 土克水
-      'shui': 'huo',   // 水克火
-      'huo': 'jin'     // 火克金
+      '金': '木',     // 金克木
+      '木': '土',      // 木克土
+      '土': '水',    // 土克水
+      '水': '火',   // 水克火
+      '火': '金'     // 火克金
     }
   };
 
   // 季节五行对应
   private readonly seasonalWuxing = {
-    spring: 'mu',     // 春属木
-    summer: 'huo',    // 夏属火
-    autumn: 'jin',    // 秋属金
-    winter: 'shui',   // 冬属水
-    lateS: 'tu'       // 长夏属土
+    spring: '木',     // 春属木
+    summer: '火',    // 夏属火
+    autumn: '金',    // 秋属金
+    winter: '水',   // 冬属水
+    lateS: '土'       // 长夏属土
   };
 
   /**
@@ -122,8 +122,20 @@ export class XiYongShenPlugin implements NamingPlugin {
     const timeResult = input.context.pluginResults.get('birth-time');
     const baziResult = input.context.pluginResults.get('bazi');
     
+    // 如果没有出生时间信息，使用通用五行平衡策略
     if (!timeResult) {
-      throw new Error('未找到出生时间插件的结果');
+      console.log('[xiyongshen] 没有出生时间信息，使用通用五行平衡策略');
+      const result = await this.processGenericBalance();
+      return {
+        pluginId: this.id,
+        results: result,
+        confidence: result.confidence,
+        metadata: {
+          processingTime: Date.now() - startTime,
+          strategy: result.strategy,
+          fallbackMode: true
+        }
+      };
     }
 
     let xiYongShenResult: XiYongShenResult;
@@ -251,12 +263,12 @@ export class XiYongShenPlugin implements NamingPlugin {
    */
   private async processGenericBalance(): Promise<XiYongShenResult> {
     // 使用传统的五行均衡理念
-    const balancedElements: WuxingElement[] = ['mu', 'huo', 'tu', 'jin', 'shui'];
+    const balancedElements: WuxingElement[] = ['木', '火', '土', '金', '水'];
     
     // 温和的五行建议
-    const preferredElements: WuxingElement[] = ['mu', 'shui']; // 木水为生发之源
-    const neutralElements: WuxingElement[] = ['tu', 'jin'];   // 土金为稳重之基
-    const cautiousElements: WuxingElement[] = ['huo'];        // 火需慎用，易过旺
+    const preferredElements: WuxingElement[] = ['木', '水']; // 木水为生发之源
+    const neutralElements: WuxingElement[] = ['土', '金'];   // 土金为稳重之基
+    const cautiousElements: WuxingElement[] = ['火'];        // 火需慎用，易过旺
     
     return {
       strategy: 'generic-balance',
@@ -287,25 +299,25 @@ export class XiYongShenPlugin implements NamingPlugin {
       namingGuidance: {
         preferredElements: [...preferredElements, ...neutralElements],
         avoidedElements: [],
-        priorityOrder: ['mu', 'shui', 'tu', 'jin', 'huo'],
+        priorityOrder: ['木', '水', '土', '金', '火'],
         flexibilityLevel: 'flexible'
       },
       alternativeStrategies: [
         {
           name: '文雅型',
-          elements: ['mu', 'shui'],
+          elements: ['木', '水'],
           description: '以木水为主，寓意智慧与成长',
           confidence: 0.8
         },
         {
           name: '稳重型',
-          elements: ['tu', 'jin'],
+          elements: ['土', '金'],
           description: '以土金为主，寓意踏实与坚毅',
           confidence: 0.8
         },
         {
           name: '均衡型',
-          elements: ['mu', 'huo', 'tu', 'jin', 'shui'],
+          elements: ['木', '火', '土', '金', '水'],
           description: '五行均衡，全面发展',
           confidence: 0.7
         }
@@ -318,11 +330,11 @@ export class XiYongShenPlugin implements NamingPlugin {
    */
   private convertToWuxingElements(elements: string[]): WuxingElement[] {
     const elementMap: Record<string, WuxingElement> = {
-      'jin': 'jin', '金': 'jin',
-      'mu': 'mu', '木': 'mu',
-      'shui': 'shui', '水': 'shui',
-      'huo': 'huo', '火': 'huo',
-      'tu': 'tu', '土': 'tu'
+      'jin': '金', '金': '金',
+      'mu': '木', '木': '木',
+      'shui': '水', '水': '水',
+      'huo': '火', '火': '火',
+      'tu': '土', '土': '土'
     };
     
     return elements.map(el => elementMap[el]).filter(Boolean) as WuxingElement[];
@@ -381,11 +393,11 @@ export class XiYongShenPlugin implements NamingPlugin {
   private getSeasonalXiYongShen(seasonalElement: WuxingElement): WuxingElement[] {
     // 根据季节调候的需要
     const seasonalNeeds: Record<WuxingElement, WuxingElement[]> = {
-      'mu': ['shui', 'tu'], // 春季木旺，需水润土培
-      'huo': ['mu', 'shui'], // 夏季火旺，需木助水润
-      'jin': ['tu', 'shui'], // 秋季金旺，需土生水润
-      'shui': ['jin', 'tu'], // 冬季水旺，需金生土堤
-      'tu': ['huo', 'jin']   // 土季需火暖金秀
+      '木': ['水', '土'], // 春季木旺，需水润土培
+      '火': ['木', '水'], // 夏季火旺，需木助水润
+      '金': ['土', '水'], // 秋季金旺，需土生水润
+      '水': ['金', '土'], // 冬季水旺，需金生土堤
+      '土': ['火', '金']   // 土季需火暖金秀
     };
     
     return seasonalNeeds[seasonalElement] || [];
@@ -405,7 +417,7 @@ export class XiYongShenPlugin implements NamingPlugin {
   private generateSeasonalBalance(seasonalElement: WuxingElement) {
     const strengthen = this.getSeasonalXiYongShen(seasonalElement);
     const weaken = [seasonalElement];
-    const maintain = (['mu', 'huo', 'tu', 'jin', 'shui'] as WuxingElement[])
+    const maintain = (['木', '火', '土', '金', '水'] as WuxingElement[])
       .filter(el => !strengthen.includes(el) && !weaken.includes(el));
     
     return { strengthen, weaken, maintain };
@@ -416,11 +428,11 @@ export class XiYongShenPlugin implements NamingPlugin {
    */
   private getGeneratingElements(element: WuxingElement): WuxingElement[] {
     const generators: Record<WuxingElement, WuxingElement> = {
-      'jin': 'tu',
-      'mu': 'shui', 
-      'shui': 'jin',
-      'huo': 'mu',
-      'tu': 'huo'
+      '金': '土',
+      '木': '水', 
+      '水': '金',
+      '火': '木',
+      '土': '火'
     };
     
     return [generators[element]].filter(Boolean);
@@ -431,11 +443,11 @@ export class XiYongShenPlugin implements NamingPlugin {
    */
   private getOvercomingElements(element: WuxingElement): WuxingElement[] {
     const overcomers: Record<WuxingElement, WuxingElement> = {
-      'jin': 'huo',
-      'mu': 'jin',
-      'shui': 'tu',
-      'huo': 'shui',
-      'tu': 'mu'
+      '金': '火',
+      '木': '金',
+      '水': '土',
+      '火': '水',
+      '土': '木'
     };
     
     return [overcomers[element]].filter(Boolean);

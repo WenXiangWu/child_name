@@ -151,13 +151,13 @@ export class PinyinAnalyzer {
    */
   private normalizeWuxing(wuxing: string): WuxingElement {
     const mapping: { [key: string]: WuxingElement } = {
-      '金': 'jin',
-      '木': 'mu', 
-      '水': 'shui',
-      '火': 'huo',
-      '土': 'tu'
+      '金': '金',
+      '木': '木', 
+      '水': '水',
+      '火': '火',
+      '土': '土'
     };
-    return mapping[wuxing] || 'tu';
+    return mapping[wuxing] || '土';
   }
 
   /**
@@ -413,11 +413,11 @@ export class PinyinAnalyzer {
   private inferWuxingFromChar(char: string): WuxingElement {
     // 简单的五行推断规则，基于常见的部首
     const wuxingRadicals = {
-      'jin': ['金', '钅', '刀', '刂', '斤', '戈', '匕', '刀', '钢', '铁', '银', '铜'],
-      'mu': ['木', '艹', '竹', '禾', '米', '林', '森', '枝', '叶', '草', '花', '树'],
-      'shui': ['水', '氵', '冫', '雨', '雪', '云', '海', '河', '江', '湖', '泪', '汗'],
-      'huo': ['火', '灬', '日', '阳', '光', '明', '亮', '热', '烈', '焰', '灯', '烧'],
-      'tu': ['土', '山', '石', '田', '地', '城', '墙', '坚', '固', '岩', '沙', '泥']
+      '金': ['金', '钅', '刀', '刂', '斤', '戈', '匕', '刀', '钢', '铁', '银', '铜'],
+      '木': ['木', '艹', '竹', '禾', '米', '林', '森', '枝', '叶', '草', '花', '树'],
+      '水': ['水', '氵', '冫', '雨', '雪', '云', '海', '河', '江', '湖', '泪', '汗'],
+      '火': ['火', '灬', '日', '阳', '光', '明', '亮', '热', '烈', '焰', '灯', '烧'],
+      '土': ['土', '山', '石', '田', '地', '城', '墙', '坚', '固', '岩', '沙', '泥']
     };
 
     for (const [element, radicals] of Object.entries(wuxingRadicals)) {
@@ -429,7 +429,7 @@ export class PinyinAnalyzer {
     }
 
     // 默认返回土
-    return 'tu';
+    return '土';
   }
 
   /**

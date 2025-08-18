@@ -164,13 +164,13 @@ export class PluginContainer implements IPluginContainer {
       const pluginConfig = config || this.getDefaultConfig();
       this.configs.set(pluginId, pluginConfig);
 
+      // 注册成功 - 先存储插件再初始化
+      this.plugins.set(pluginId, plugin);
+
       // 初始化插件
       if (this.config.autoInitialize) {
         await this.initializePlugin(pluginId);
       }
-
-      // 注册成功
-      this.plugins.set(pluginId, plugin);
       
       console.log(`✅ Plugin ${pluginId} registered successfully`);
 

@@ -153,11 +153,8 @@ export class SancaiWugeCalculator {
    */
   private getWuxingChinese(wuxing: WuxingElement): string {
     const map = {
-      jin: '金',
-      mu: '木',
-      shui: '水',
-      huo: '火',
-      tu: '土'
+      '金': '金', '木': '木', '水': '水', '火': '火', '土': '土',
+      jin: '金', mu: '木', shui: '水', huo: '火', tu: '土'
     };
     return map[wuxing] || '未知';
   }
@@ -250,9 +247,9 @@ export class SancaiWugeCalculator {
         isValid: false,
         grids: { tiange: 0, renge: 0, dige: 0, zongge: 0, waige: 0 },
         sancai: { 
-          heaven: 'jin', 
-          human: 'jin', 
-          earth: 'jin', 
+          heaven: '金', 
+          human: '金', 
+          earth: '金', 
           combination: '', 
           level: 'xiong', 
           description: '名字长度不正确' 

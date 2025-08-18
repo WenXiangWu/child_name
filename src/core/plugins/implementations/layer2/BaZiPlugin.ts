@@ -72,18 +72,18 @@ export class BaZiPlugin implements NamingPlugin {
   
   // 天干五行
   private readonly stemWuxing: Record<string, string> = {
-    '甲': 'mu', '乙': 'mu',
-    '丙': 'huo', '丁': 'huo',
-    '戊': 'tu', '己': 'tu',
-    '庚': 'jin', '辛': 'jin',
-    '壬': 'shui', '癸': 'shui'
+    '甲': '木', '乙': '木',
+    '丙': '火', '丁': '火',
+    '戊': '土', '己': '土',
+    '庚': '金', '辛': '金',
+    '壬': '水', '癸': '水'
   };
 
   // 地支五行
   private readonly branchWuxing: Record<string, string> = {
-    '子': 'shui', '丑': 'tu', '寅': 'mu', '卯': 'mu',
-    '辰': 'tu', '巳': 'huo', '午': 'huo', '未': 'tu',
-    '申': 'jin', '酉': 'jin', '戌': 'tu', '亥': 'shui'
+    '子': '水', '丑': '土', '寅': '木', '卯': '木',
+    '辰': '土', '巳': '火', '午': '火', '未': '土',
+    '申': '金', '酉': '金', '戌': '土', '亥': '水'
   };
 
   // 天干阴阳
@@ -459,7 +459,7 @@ export class BaZiPlugin implements NamingPlugin {
       usefulGods.push(...this.getSupportingElements(dayMasterWuxing));
       avoidGods.push(...this.getClashingElements(dayMasterWuxing));
     } else {
-      usefulGods.push('mu', 'huo', 'tu', 'jin', 'shui'); // 平衡时不特别偏向
+      usefulGods.push('木', '火', '土', '金', '水'); // 平衡时不特别偏向
     }
     
     return { usefulGods, avoidGods };
@@ -470,11 +470,11 @@ export class BaZiPlugin implements NamingPlugin {
    */
   private getClashingElements(wuxing: string): string[] {
     const clashMap: Record<string, string[]> = {
-      'jin': ['mu'],
-      'mu': ['tu'],
-      'shui': ['huo'],
-      'huo': ['jin'],
-      'tu': ['shui']
+      '金': ['木'],
+      '木': ['土'],
+      '水': ['火'],
+      '火': ['金'],
+      '土': ['水']
     };
     return clashMap[wuxing] || [];
   }
@@ -484,11 +484,11 @@ export class BaZiPlugin implements NamingPlugin {
    */
   private getSupportingElements(wuxing: string): string[] {
     const supportMap: Record<string, string[]> = {
-      'jin': ['tu'],
-      'mu': ['shui'],
-      'shui': ['jin'],
-      'huo': ['mu'],
-      'tu': ['huo']
+      '金': ['土'],
+      '木': ['水'],
+      '水': ['金'],
+      '火': ['木'],
+      '土': ['火']
     };
     return supportMap[wuxing] || [];
   }
@@ -498,11 +498,11 @@ export class BaZiPlugin implements NamingPlugin {
    */
   private getDrainingElements(wuxing: string): string[] {
     const drainMap: Record<string, string[]> = {
-      'jin': ['shui'],
-      'mu': ['huo'],
-      'shui': ['mu'],
-      'huo': ['tu'],
-      'tu': ['jin']
+      '金': ['水'],
+      '木': ['火'],
+      '水': ['木'],
+      '火': ['土'],
+      '土': ['金']
     };
     return drainMap[wuxing] || [];
   }

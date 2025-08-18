@@ -68,7 +68,8 @@ export class SurnamePlugin implements NamingPlugin {
     return {
       pluginId: this.id,
       results: {
-        surname: familyName,
+        familyName: familyName,
+        surname: familyName, // 保持向后兼容
         strokes: analysis.strokes,
         strokesTraditional: analysis.strokesTraditional,
         wuxing: analysis.wuxing,
@@ -176,11 +177,11 @@ export class SurnamePlugin implements NamingPlugin {
     
     // 常见的五行映射（简化版）
     const wuxingMap: Record<string, string[]> = {
-      'jin': ['刘', '金', '申', '李', '钟', '谢', '秦'],
-      'mu': ['林', '李', '杨', '朱', '柳', '梁', '杜'],
-      'shui': ['王', '江', '池', '汤', '汪', '潘', '洪'],
-      'huo': ['陈', '张', '赵', '许', '邓', '夏', '南'],
-      'tu': ['黄', '吴', '袁', '白', '石', '田', '王']
+      '金': ['刘', '金', '申', '李', '钟', '谢', '秦'],
+      '木': ['林', '李', '杨', '朱', '柳', '梁', '杜'],
+      '水': ['王', '江', '池', '汤', '汪', '潘', '洪'],
+      '火': ['陈', '张', '赵', '许', '邓', '夏', '南'],
+      '土': ['黄', '吴', '袁', '白', '石', '田', '王']
     };
     
     for (const [element, surnames] of Object.entries(wuxingMap)) {

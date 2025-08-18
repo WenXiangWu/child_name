@@ -93,6 +93,7 @@ export interface ProcessingContext {
   pluginResults: Map<string, any>;
   errors: PluginError[];
   warnings: string[];
+  log?: (level: 'info' | 'warn' | 'error', message: string, data?: any) => void;
 }
 
 export enum CertaintyLevel {

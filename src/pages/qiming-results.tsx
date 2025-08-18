@@ -13,6 +13,7 @@ import {
   NameValidationResult
 } from '../lib/qiming';
 import { QimingNameGenerator } from '../core/naming/name-generator';
+import PluginExecutionViewer from '../components/PluginExecutionViewer';
 
 const QimingResultsPage: React.FC = () => {
   const router = useRouter();
@@ -25,39 +26,127 @@ const QimingResultsPage: React.FC = () => {
   const [filterScore, setFilterScore] = useState(0);
   const [sortBy, setSortBy] = useState<'score' | 'name'>('score');
   const [exportFormat, setExportFormat] = useState<'html' | 'csv' | 'txt'>('html');
+  const [usePluginSystem, setUsePluginSystem] = useState(true); // 默认使用插件系统
+  const [generationMode, setGenerationMode] = useState<'traditional' | 'plugin'>('plugin');
+  const [executionLogs, setExecutionLogs] = useState<any[]>([]);
+  const [pluginMetadata, setPluginMetadata] = useState<any>(null);
+  const [showExecutionProcess, setShowExecutionProcess] = useState<boolean>(false);
 
   const namesPerPage = 20;
 
   useEffect(() => {
     // 从URL参数获取配置信息
-    const { familyName, gender, useTraditional, scoreThreshold } = router.query;
+    const { familyName, gender, useTraditional, scoreThreshold, usePlugin, birthDate, birthTime } = router.query;
     
     if (familyName && gender) {
+      // 处理出生日期和时间
+      let birthInfo: any = undefined;
+      if (birthDate && typeof birthDate === 'string') {
+        const dateParts = birthDate.split('-').map(Number); // [year, month, date]
+        const timeParts = birthTime && typeof birthTime === 'string' 
+          ? birthTime.split(':').map(Number) // [hour, minute]
+          : [0, 0]; // 默认00:00
+        
+        if (dateParts.length === 3) {
+          birthInfo = {
+            year: dateParts[0],
+            month: dateParts[1],
+            date: dateParts[2],
+            hour: timeParts[0] || 0,
+            minute: timeParts[1] || 0
+          };
+        }
+      }
+
       const generationConfig: NameGenerationConfig = {
         familyName: familyName as string,
         gender: gender as 'male' | 'female',
         useTraditional: useTraditional === 'true',
-        scoreThreshold: scoreThreshold ? parseInt(scoreThreshold as string) : 85
+        scoreThreshold: scoreThreshold ? parseInt(scoreThreshold as string) : 85,
+        birthInfo
       };
       
+      // 检查是否使用插件系统
+      const shouldUsePlugin = usePlugin !== 'false'; // 默认使用插件系统
+      setUsePluginSystem(shouldUsePlugin);
+      setGenerationMode(shouldUsePlugin ? 'plugin' : 'traditional');
+      
       setConfig(generationConfig);
-      generateNames(generationConfig);
+      generateNames(generationConfig, shouldUsePlugin);
     } else {
       setLoading(false);
     }
   }, [router.query]);
 
-  const generateNames = async (config: NameGenerationConfig) => {
+  const generateNames = async (config: NameGenerationConfig, usePlugin: boolean = usePluginSystem) => {
     try {
       setLoading(true);
+      console.log('🚀 开始生成名字:', { config, usePlugin });
+
+      if (usePlugin) {
+        // 使用插件系统API
+        const response = await fetch('/api/generate-names', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            familyName: config.familyName,
+            gender: config.gender,
+            birthDate: config.birthInfo ? `${config.birthInfo.year}-${String(config.birthInfo.month).padStart(2, '0')}-${String(config.birthInfo.date).padStart(2, '0')}` : undefined,
+            birthTime: config.birthInfo ? `${String(config.birthInfo.hour).padStart(2, '0')}:${String(config.birthInfo.minute).padStart(2, '0')}` : undefined,
+            useTraditional: config.useTraditional,
+            scoreThreshold: config.scoreThreshold,
+            limit: 20,
+            usePluginSystem: true,
+            enableDetailedLogs: true
+          }),
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          setGeneratedNames(result.data.names);
+          setGenerationMode('plugin');
+          setExecutionLogs(result.executionLogs || []);
+          setPluginMetadata(result.metadata || null);
+          console.log('✅ 插件系统生成成功:', result.data.names.length, '个名字');
+          console.log('📊 插件执行元数据:', result.metadata);
+        } else {
+          console.error('❌ 插件系统生成失败:', result.error);
+          // 降级到传统模式
+          await generateNamesTraditional(config);
+        }
+      } else {
+        // 使用传统模式
+        await generateNamesTraditional(config);
+      }
+    } catch (error) {
+      console.error('生成名字失败:', error);
+      // 降级到传统模式
+      if (usePlugin) {
+        console.log('🔄 插件系统失败，降级到传统模式');
+        await generateNamesTraditional(config);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateNamesTraditional = async (config: NameGenerationConfig) => {
+    try {
+      console.log('🏛️ 使用传统模式生成名字');
       const qiming = getQimingInstance();
       const nameGenerator = new QimingNameGenerator();
       const names = await nameGenerator.generateNames(config);
       setGeneratedNames(names);
+      setGenerationMode('traditional');
+      setExecutionLogs([]);
+      setPluginMetadata(null);
+      console.log('✅ 传统模式生成成功:', names.length, '个名字');
     } catch (error) {
-      console.error('生成名字失败:', error);
-    } finally {
-      setLoading(false);
+      console.error('传统模式生成失败:', error);
+      throw error;
     }
   };
 
@@ -329,6 +418,125 @@ ${index + 1}. ${name.fullName}
             </div>
             <div className="text-sm text-gray-600">笔画计算方式</div>
           </div>
+        </div>
+
+        {/* 🧩 新增：生成模式信息和切换 */}
+        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                  generationMode === 'plugin' 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-blue-100 text-blue-800'
+                }`}>
+                  {generationMode === 'plugin' ? (
+                    <>
+                      <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                      🧩 智能插件系统
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                      🏛️ 传统算法模式
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="text-sm text-gray-600">
+                {generationMode === 'plugin' ? (
+                  <div>
+                    🎯 综合生肖、五行、八字、音韵等传统命理要素 | 
+                    ✨ 个性化程度高 | 
+                    📊 多维度评分精准
+                  </div>
+                ) : (
+                  <div>
+                    ⚡ 基于预设优质名字库快速生成 | 
+                    📚 名字库丰富 | 
+                    🔄 算法稳定可靠
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => {
+                  setUsePluginSystem(!usePluginSystem);
+                  if (config) {
+                    generateNames(config, !usePluginSystem);
+                  }
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  usePluginSystem
+                    ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
+              >
+                {usePluginSystem ? '切换到传统模式' : '切换到插件模式'}
+              </button>
+              <button
+                onClick={() => config && generateNames(config, usePluginSystem)}
+                disabled={loading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? '生成中...' : '重新生成'}
+              </button>
+            </div>
+          </div>
+          
+          {/* 插件模式的额外信息 */}
+          {generationMode === 'plugin' && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              {/* 重要提示 */}
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-start">
+                  <span className="text-yellow-600 mr-2">⚠️</span>
+                  <div className="text-sm text-yellow-800">
+                    <strong>插件系统特别说明：</strong>
+                    当前使用智能插件系统生成名字。如遇到错误，系统将直接显示错误信息，
+                    <strong className="text-yellow-900">不会自动切换到传统模式</strong>，
+                    确保您明确知道使用的是哪种取名方式。
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                <div className="flex items-center">
+                  <span className="text-green-600 mr-2">✅</span>
+                  <span className="text-gray-700">多层级插件分析</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-green-600 mr-2">✅</span>
+                  <span className="text-gray-700">智能字符组合</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-green-600 mr-2">✅</span>
+                  <span className="text-gray-700">综合评分优化</span>
+                </div>
+                {pluginMetadata && (
+                  <div className="flex items-center">
+                    <span className="text-blue-600 mr-2">📊</span>
+                    <span className="text-gray-700">
+                      {pluginMetadata.pluginsExecuted}个插件 | {pluginMetadata.layersProcessed}层处理
+                    </span>
+                  </div>
+                )}
+              </div>
+              
+              {/* 插件执行过程查看器 - 仅在使用插件系统时显示 */}
+              {generationMode === 'plugin' && generatedNames.length > 0 && (
+                <div className="mt-4">
+                  <PluginExecutionViewer 
+                    executionLogs={executionLogs || []}
+                    generationMetadata={pluginMetadata}
+                    isOpen={showExecutionProcess}
+                    onToggle={() => setShowExecutionProcess(!showExecutionProcess)}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 控制面板 */}

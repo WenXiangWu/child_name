@@ -18,6 +18,7 @@ export class QimingDataLoader {
   private sancaiRules?: Map<string, any>;
   private commonNameWords?: Set<string>;
   private commonNameWordsCache: Map<string, Set<string>> = new Map();
+  private strokeData?: Map<string, { character: string; strokes: number; source: string }>;
   private wordLoader: WordDataLoader;
   private baijiaxingLoader: BaijiaxingLoader;
 
@@ -137,6 +138,62 @@ export class QimingDataLoader {
    */
   getXinhuaDict(): Map<string, CharacterInfo> | null {
     return this.xinchuaDict || null;
+  }
+
+  /**
+   * 获取已加载的笔画数据（同步）
+   * 直接返回预加载的数据，无需重复加载
+   */
+  getStrokeData(): Map<string, { character: string; strokes: number; source: string }> | null {
+    return this.strokeData || null;
+  }
+
+  /**
+   * 加载笔画数据
+   * 从real-stroke-data.json加载康熙字典笔画数据
+   */
+  async loadStrokeData(): Promise<Map<string, { character: string; strokes: number; source: string }>> {
+    if (this.strokeData) {
+      return this.strokeData;
+    }
+
+    this.strokeData = new Map();
+
+    try {
+      console.log('正在加载康熙字典笔画数据...');
+      const response = await fetch(getStaticUrl('characters/real-stroke-data.json'));
+      
+      if (!response.ok) {
+        throw new Error(`HTTP错误: ${response.status} ${response.statusText}`);
+      }
+      
+      const strokeDataJson = await response.json();
+      
+      // 验证数据结构
+      if (!strokeDataJson.data || typeof strokeDataJson.data !== 'object') {
+        throw new Error('笔画数据文件格式不正确');
+      }
+      
+      // 将JSON数据转换为Map
+      for (const [char, info] of Object.entries(strokeDataJson.data)) {
+        const strokeInfo = info as { unicodePoint: number; strokes: number };
+        this.strokeData.set(char, {
+          character: char,
+          strokes: strokeInfo.strokes,
+          source: 'kangxi'
+        });
+      }
+      
+      console.log(`✅ 康熙字典笔画数据加载完成: ${this.strokeData.size}条记录`);
+      console.log(`✅ 数据源: ${strokeDataJson.meta.source}, 总字符数: ${strokeDataJson.meta.totalCharacters}`);
+      
+      return this.strokeData;
+      
+    } catch (error) {
+      console.error('❌ 康熙字典笔画数据加载失败:', error);
+      console.error('❌ 请检查文件是否存在: characters/real-stroke-data.json');
+      return this.strokeData;
+    }
   }
 
   /**
@@ -384,15 +441,15 @@ export class QimingDataLoader {
     // 5. 最终回退：基于部首的简化推断
     const radicalWuxingMap: { [key: string]: WuxingElement } = {
       // 水
-      '氵': 'shui', '冫': 'shui', '水': 'shui', '雨': 'shui',
+      '氵': '水', '冫': '水', '水': '水', '雨': '水',
       // 木
-      '木': 'mu', '艹': 'mu', '竹': 'mu', '禾': 'mu',
+      '木': '木', '艹': '木', '竹': '木', '禾': '木',
       // 火
-      '火': 'huo', '日': 'huo', '光': 'huo', '灬': 'huo',
+      '火': '火', '日': '火', '光': '火', '灬': '火',
       // 土
-      '土': 'tu', '山': 'tu', '石': 'tu', '田': 'tu',
+      '土': '土', '山': '土', '石': '土', '田': '土',
       // 金
-      '金': 'jin', '钅': 'jin', '刀': 'jin', '刂': 'jin'
+      '金': '金', '钅': '金', '刀': '金', '刂': '金'
     };
 
     // 简单的部首匹配
@@ -404,7 +461,7 @@ export class QimingDataLoader {
 
     // 默认返回金
     console.warn(`无法确定"${char}"的五行属性，使用默认值：金`);
-    return 'jin';
+    return '金';
   }
 
 
@@ -575,6 +632,7 @@ export class QimingDataLoader {
       this.loadWuxingDataTraditional(), // 也预加载繁体五行数据
       this.loadPinyinData(),
       this.loadSancaiRules(),
+      this.loadStrokeData(), // 预加载康熙字典笔画数据
     ]);
 
     console.log('3. 加载性别相关常用字...');
@@ -589,6 +647,7 @@ export class QimingDataLoader {
     // 输出数据统计
     console.log('📊 数据加载统计:');
     console.log(`  • 新华字典: ${this.xinchuaDict?.size || 0} 条记录`);
+    console.log(`  • 康熙笔画: ${this.strokeData?.size || 0} 条记录`);
     console.log(`  • 五行字典: ${Object.keys(this.wuxingDataSimplified || {}).length} 个五行分类`);
     console.log(`  • 拼音数据: ${this.pinyinData?.size || 0} 条记录`);
     console.log(`  • 三才规则: ${this.sancaiRules?.size || 0} 条规则`);
@@ -602,6 +661,7 @@ export class QimingDataLoader {
     this.wuxingDataTraditional = undefined;
     this.xinchuaDict = undefined;
     this.pinyinData = undefined;
+    this.strokeData = undefined;
 
     this.sancaiRules = undefined;
     this.commonNameWords = undefined;
@@ -616,6 +676,7 @@ export class QimingDataLoader {
       wuxingDataTraditional: !!this.wuxingDataTraditional,
       xinhuaDict: !!this.xinchuaDict,
       pinyinData: !!this.pinyinData,
+      strokeData: !!this.strokeData,
 
       sancaiRules: !!this.sancaiRules,
       commonNameWords: !!this.commonNameWords

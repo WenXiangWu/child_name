@@ -7,6 +7,8 @@ export default function Home() {
   const router = useRouter();
   const [babyGender, setBabyGender] = useState<'male' | 'female' | ''>('');
   const [familyName, setFamilyName] = useState<string>('');
+  const [birthDate, setBirthDate] = useState<string>('');
+  const [birthTime, setBirthTime] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleStartNaming = () => {
@@ -22,19 +24,7 @@ export default function Home() {
     });
   };
 
-  const handleStartNamingDetailed = () => {
-    if (!babyGender) return;
 
-    setIsLoading(true);
-    const params = new URLSearchParams({
-      familyName: familyName || '王', // 默认姓氏
-      gender: babyGender,
-      useTraditional: 'false',
-      scoreThreshold: '85'
-    });
-
-    router.push(`/qiming-results?${params.toString()}`);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50">
@@ -351,13 +341,37 @@ export default function Home() {
                     </button>
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    出生日期 <span className="text-gray-500">(可选，用于八字分析)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={birthDate}
+                    onChange={(e) => setBirthDate(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    出生时间 <span className="text-gray-500">(可选，用于精准八字分析)</span>
+                  </label>
+                  <input
+                    type="time"
+                    value={birthTime}
+                    onChange={(e) => setBirthTime(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </div>
 
               {/* 操作按钮 */}
               <div className="flex flex-col justify-center space-y-4">
                 {/* 诗词取名 - 新增的特色功能 */}
                 <Link
-                  href={babyGender && familyName ? `/poetry-naming?gender=${babyGender}&familyName=${familyName}` : '#'}
+                  href={babyGender && familyName ? `/poetry-naming?gender=${babyGender}&familyName=${familyName}${birthDate ? `&birthDate=${birthDate}` : ''}${birthTime ? `&birthTime=${birthTime}` : ''}` : '#'}
                   className={`text-center px-8 py-4 rounded-lg font-medium transition-all ${babyGender && familyName
                       ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg transform hover:scale-105'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -372,10 +386,67 @@ export default function Home() {
                   ✨ 诗词取名 (特色推荐)
                 </Link>
 
+                {/* 智能插件系统取名 */}
+                <button
+                  onClick={() => {
+                    if (!babyGender) return;
+                    setIsLoading(true);
+                    const params = new URLSearchParams({
+                      familyName: familyName || '王',
+                      gender: babyGender,
+                      useTraditional: 'false',
+                      scoreThreshold: '85',
+                      usePlugin: 'true'
+                    });
+                    if (birthDate) params.set('birthDate', birthDate);
+                    if (birthTime) params.set('birthTime', birthTime);
+                    router.push(`/qiming-results?${params.toString()}`);
+                  }}
+                  disabled={!babyGender || isLoading}
+                  className={`px-8 py-3 rounded-lg font-medium border-2 transition-all ${babyGender && !isLoading
+                      ? 'border-green-600 text-green-600 hover:bg-green-50 bg-green-25'
+                      : 'border-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                >
+                  <div className="flex flex-col items-center">
+                    <span className="text-lg">🧩 智能插件系统</span>
+                    <span className="text-xs text-gray-500 mt-1">多维度分析 | 个性化推荐</span>
+                  </div>
+                </button>
+
+                {/* 传统模式取名 */}
+                <button
+                  onClick={() => {
+                    if (!babyGender) return;
+                    setIsLoading(true);
+                    const params = new URLSearchParams({
+                      familyName: familyName || '王',
+                      gender: babyGender,
+                      useTraditional: 'false',
+                      scoreThreshold: '85',
+                      usePlugin: 'false'
+                    });
+                    if (birthDate) params.set('birthDate', birthDate);
+                    if (birthTime) params.set('birthTime', birthTime);
+                    router.push(`/qiming-results?${params.toString()}`);
+                  }}
+                  disabled={!babyGender || isLoading}
+                  className={`px-8 py-3 rounded-lg font-medium border-2 transition-all ${babyGender && !isLoading
+                      ? 'border-blue-600 text-blue-600 hover:bg-blue-50 bg-blue-25'
+                      : 'border-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                >
+                  <div className="flex flex-col items-center">
+                    <span className="text-lg">🏛️ 传统算法</span>
+                    <span className="text-xs text-gray-500 mt-1">稳定可靠 | 速度快</span>
+                  </div>
+                </button>
+
+                {/* 专业取名入口 */}
                 <Link
-                  href="/naming"
-                  className={`text-center px-8 py-3 rounded-lg font-medium border-2 transition-all ${babyGender && familyName
-                      ? 'border-blue-600 text-blue-600 hover:bg-blue-50'
+                  href={babyGender && familyName ? `/naming?gender=${babyGender}&familyName=${familyName}${birthDate ? `&birthDate=${birthDate}` : ''}${birthTime ? `&birthTime=${birthTime}` : ''}` : '/naming'}
+                  className={`text-center px-6 py-2 rounded-lg font-medium border transition-all ${babyGender && familyName
+                      ? 'border-gray-400 text-gray-600 hover:bg-gray-50'
                       : 'border-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                   onClick={(e) => {
@@ -385,26 +456,49 @@ export default function Home() {
                     }
                   }}
                 >
-                  🚀 专业取名分析
+                  📊 专业详细分析
                 </Link>
 
-                <button
-                  onClick={handleStartNamingDetailed}
-                  disabled={!babyGender || isLoading}
-                  className={`px-8 py-3 rounded-lg font-medium border-2 transition-all ${babyGender && !isLoading
-                      ? 'border-gray-400 text-gray-600 hover:bg-gray-50'
-                      : 'border-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
-                >
-                  {isLoading ? '生成中...' : '📋 快速生成结果'}
-                </button>
-
-                <div className="text-center text-sm text-gray-500">
-                  <div className="flex items-center justify-center gap-2 mb-1">
-                    <span className="text-green-600">🏛️</span>
-                    <span className="text-green-700 font-medium">100%规范汉字保证</span>
+                {/* 取名方式说明 */}
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="text-center text-sm font-semibold text-gray-700 mb-3">取名方式对比</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div className="bg-green-50 p-3 rounded border border-green-200">
+                      <div className="flex items-center mb-2">
+                        <span className="text-green-600 mr-1">🧩</span>
+                        <span className="font-medium text-green-800">智能插件系统</span>
+                      </div>
+                      <ul className="text-green-700 space-y-1">
+                        <li>• 多层级插件分析（生肖、五行、八字等）</li>
+                        <li>• 支持出生日期时间，精准八字分析</li>
+                        <li>• 高度个性化，基于具体信息定制</li>
+                        <li>• 出错时不会自动降级，确保透明</li>
+                      </ul>
+                    </div>
+                    <div className="bg-blue-50 p-3 rounded border border-blue-200">
+                      <div className="flex items-center mb-2">
+                        <span className="text-blue-600 mr-1">🏛️</span>
+                        <span className="font-medium text-blue-800">传统算法</span>
+                      </div>
+                      <ul className="text-blue-700 space-y-1">
+                        <li>• 经典三才五格算法</li>
+                        <li>• 速度快，稳定可靠</li>
+                        <li>• 基于优质名字库，适合快速需求</li>
+                      </ul>
+                    </div>
                   </div>
-                  诗词取名：基于古典文学，文化内涵深厚
+                  <div className="text-center text-xs text-gray-500 mt-3">
+                    <div className="flex items-center justify-center gap-4">
+                      <span className="flex items-center gap-1">
+                        <span className="text-green-600">🏛️</span>
+                        <span>100%规范汉字保证</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="text-purple-600">📚</span>
+                        <span>诗词取名支持</span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -435,10 +529,10 @@ export default function Home() {
             
             <div className="text-center">
               <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🎯</span>
+                <span className="text-2xl">🧩</span>
               </div>
-              <h3 className="font-semibold text-gray-800 mb-2">算法透明</h3>
-              <p className="text-sm text-gray-600">完全公开评分逻辑，每个分数都有详细解释</p>
+              <h3 className="font-semibold text-gray-800 mb-2">智能插件</h3>
+              <p className="text-sm text-gray-600">多层级插件系统，智能分析生成个性化名字</p>
             </div>
             
             <div className="text-center">

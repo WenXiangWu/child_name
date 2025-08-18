@@ -188,11 +188,11 @@ const NameDetailPage: React.FC = () => {
   // 将五行拼音转换为中文
   const getWuxingChinese = (pinyin: string) => {
     const wuxingMap: { [key: string]: string } = {
-      'jin': '金',
-      'mu': '木', 
-      'shui': '水',
-      'huo': '火',
-      'tu': '土'
+      '金': '金',
+      '木': '木', 
+      '水': '水',
+      '火': '火',
+      '土': '土'
     };
     return wuxingMap[pinyin] || pinyin;
   };

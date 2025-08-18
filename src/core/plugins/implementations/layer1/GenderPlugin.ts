@@ -136,8 +136,8 @@ export class GenderPlugin implements NamingPlugin {
       
       // 五行偏好倾向
       wuxingTendency: isMale ?
-        ['jin', 'mu', 'huo'] : // 男性倾向金木火（阳刚之气）
-        ['shui', 'tu', 'mu']   // 女性倾向水土木（阴柔之美）
+        ['金', '木', '火'] : // 男性倾向金木火（阳刚之气）
+        ['水', '土', '木']   // 女性倾向水土木（阴柔之美）
     };
 
     const recommendations = {

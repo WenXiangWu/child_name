@@ -1,478 +1,405 @@
-import React, { useState, useEffect } from 'react';
-import Head from 'next/head';
+/**
+ * 插件系统演示页面 - 展示完整的插件执行过程
+ */
+
+import React, { useState } from 'react';
+import { NextPage } from 'next';
 import Layout from '../components/Layout';
-import SystemSelector, { SystemConfig, CertaintyLevel } from '../components/SystemSelector';
-import PluginExecutionViewer from '../components/PluginExecutionViewer';
 
-// 表单数据接口
-interface FormData {
-  familyName: string;
-  gender: 'male' | 'female';
-  birthDate: string;
-  birthTime: string;
-  scoreThreshold: number;
-  limit: number;
+interface PluginExecutionStep {
+  id: string;
+  layer: number;
+  pluginId: string;
+  name: string;
+  input: any;
+  output: any;
+  processingTime: number;
+  confidence: number;
+  description: string;
+  details: {
+    purpose: string;
+    algorithm: string;
+    dataSource: string;
+    keyMetrics: Record<string, any>;
+  };
 }
 
-// 生成结果接口
-interface GenerationResult {
-  mode: 'traditional' | 'plugin' | 'comparison';
-  success: boolean;
-  data: any;
-  error?: string;
+interface LayerInfo {
+  layer: number;
+  name: string;
+  description: string;
+  purpose: string;
+  plugins: string[];
 }
 
-const PluginSystemDemo: React.FC = () => {
-  // 表单状态
-  const [formData, setFormData] = useState<FormData>({
-    familyName: '吴',
-    gender: 'male',
-    birthDate: '2024-01-15',
-    birthTime: '14:30',
-    scoreThreshold: 85,
-    limit: 5
-  });
+const layerInfo: LayerInfo[] = [
+  {
+    layer: 1,
+    name: "基础信息层",
+    description: "处理用户输入的基本信息，为后续分析提供基础数据",
+    purpose: "数据预处理和标准化",
+    plugins: ["surname", "gender", "birth-time"]
+  },
+  {
+    layer: 2,
+    name: "命理基础层", 
+    description: "基于传统命理学进行基础分析",
+    purpose: "命理要素分析",
+    plugins: ["zodiac", "xiyongshen", "bazi"]
+  },
+  {
+    layer: 3,
+    name: "字符评估层",
+    description: "生成和评估候选字符",
+    purpose: "字符候选和筛选",
+    plugins: ["stroke", "wuxing-char", "meaning", "phonetic"]
+  },
+  {
+    layer: 4,
+    name: "组合计算层",
+    description: "智能组合字符生成最终名字",
+    purpose: "名字生成和评分",
+    plugins: ["name-generation"]
+  }
+];
 
-  // 系统配置状态
-  const [systemConfig, setSystemConfig] = useState<SystemConfig>({
-    usePluginSystem: false,
-    showComparison: false,
-    enableDetailedLogs: true,
-    enableParallel: false,
-    certaintyLevel: CertaintyLevel.PARTIALLY_DETERMINED
-  });
+const PluginSystemDemo: NextPage = () => {
+  const [familyName, setFamilyName] = useState('吴');
+  const [gender, setGender] = useState<'male' | 'female'>('male');
+  const [executionSteps, setExecutionSteps] = useState<PluginExecutionStep[]>([]);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [currentStep, setCurrentStep] = useState<number>(-1);
 
-  // 生成状态
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [result, setResult] = useState<GenerationResult | null>(null);
-  const [executionTime, setExecutionTime] = useState<number>(0);
-
-  // 解析出生信息
-  const birthInfo = React.useMemo(() => {
-    if (!formData.birthDate) return undefined;
-    
-    const date = new Date(formData.birthDate);
-    const result = {
-      year: date.getFullYear(),
-      month: date.getMonth() + 1,
-      day: date.getDate(),
-      hour: undefined as number | undefined
-    };
-    
-    if (formData.birthTime) {
-      const [hour, minute] = formData.birthTime.split(':').map(Number);
-      result.hour = hour;
-    }
-    
-    return result;
-  }, [formData.birthDate, formData.birthTime]);
-
-  // 处理表单提交
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.familyName.trim()) {
-      alert('请输入姓氏');
-      return;
-    }
-
-    setIsGenerating(true);
-    setResult(null);
-    
-    const startTime = Date.now();
+  const executePluginSystem = async () => {
+    setIsExecuting(true);
+    setCurrentStep(0);
+    setExecutionSteps([]);
 
     try {
-      // 构建请求数据
-      const requestData = {
-        familyName: formData.familyName,
-        gender: formData.gender,
-        birthDate: formData.birthDate,
-        birthTime: formData.birthTime,
-        scoreThreshold: formData.scoreThreshold,
-        limit: formData.limit,
-        // 系统配置
-        usePluginSystem: systemConfig.usePluginSystem,
-        showComparison: systemConfig.showComparison,
-        enableDetailedLogs: systemConfig.enableDetailedLogs,
-        enableParallel: systemConfig.enableParallel,
-        certaintyLevel: systemConfig.certaintyLevel
-      };
-
-      console.log('🚀 开始生成名字:', requestData);
-
-      // 调用混合API
-      const response = await fetch('/api/generate-names-hybrid', {
+      const response = await fetch('/api/generate-names', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify({
+          familyName,
+          gender,
+          usePluginSystem: true,
+          enableDetailedLogs: true,
+          limit: 3
+        }),
       });
 
-      const data = await response.json();
+      const result = await response.json();
       
-      const endTime = Date.now();
-      setExecutionTime(endTime - startTime);
-
-      if (data.success) {
-        setResult(data);
-        console.log('✅ 名字生成成功:', data);
-      } else {
-        setResult({
-          mode: 'traditional',
-          success: false,
-          data: null,
-          error: data.error || '生成失败'
-        });
-        console.error('❌ 名字生成失败:', data.error);
+      if (result.executionLogs) {
+        const steps = parseExecutionLogs(result.executionLogs);
+        setExecutionSteps(steps);
       }
-
     } catch (error) {
-      console.error('❌ 请求失败:', error);
-      setResult({
-        mode: 'traditional',
-        success: false,
-        data: null,
-        error: error instanceof Error ? error.message : '网络错误'
-      });
+      console.error('插件系统执行失败:', error);
     } finally {
-      setIsGenerating(false);
+      setIsExecuting(false);
+      setCurrentStep(-1);
     }
   };
 
-  // 重置表单
-  const handleReset = () => {
-    setFormData({
-      familyName: '',
-      gender: 'male',
-      birthDate: '',
-      birthTime: '',
-      scoreThreshold: 80,
-      limit: 5
+  const parseExecutionLogs = (logs: any[]): PluginExecutionStep[] => {
+    const steps: PluginExecutionStep[] = [];
+    const pluginResults: Record<string, any> = {};
+    
+    logs.forEach((log, index) => {
+      if (log.pluginId && log.message.includes('✅ 插件执行成功')) {
+        const layer = getPluginLayer(log.pluginId);
+        const pluginInfo = getPluginInfo(log.pluginId);
+        
+        steps.push({
+          id: `${log.pluginId}-${index}`,
+          layer,
+          pluginId: log.pluginId,
+          name: pluginInfo.name,
+          input: pluginResults[log.pluginId]?.input || { familyName, gender },
+          output: log.data || {},
+          processingTime: log.processingTime || 0,
+          confidence: log.data?.confidence || 0,
+          description: pluginInfo.description,
+          details: pluginInfo.details
+        });
+      }
     });
-    setResult(null);
-    setExecutionTime(0);
+
+    return steps;
+  };
+
+  const getPluginLayer = (pluginId: string): number => {
+    const layerMap: Record<string, number> = {
+      'surname': 1, 'gender': 1, 'birth-time': 1,
+      'zodiac': 2, 'xiyongshen': 2, 'bazi': 2,
+      'stroke': 3, 'wuxing-char': 3, 'meaning': 3, 'phonetic': 3,
+      'name-generation': 4
+    };
+    return layerMap[pluginId] || 0;
+  };
+
+  const getPluginInfo = (pluginId: string) => {
+    const pluginInfoMap: Record<string, any> = {
+      'surname': {
+        name: '姓氏分析插件',
+        description: '分析姓氏的笔画、五行属性和百家姓排名',
+        details: {
+          purpose: '为名字生成提供姓氏基础信息',
+          algorithm: '康熙字典笔画计算 + 五行推导',
+          dataSource: '百家姓数据库 + 汉字属性库',
+          keyMetrics: ['笔画数', '五行属性', '百家姓排名', '常用程度']
+        }
+      },
+      'gender': {
+        name: '性别常用字插件',
+        description: '根据性别提供常用字符集合',
+        details: {
+          purpose: '为不同性别提供合适的字符候选',
+          algorithm: '大数据统计分析 + 文化传统',
+          dataSource: '67万+真实姓名数据统计',
+          keyMetrics: ['男性常用字1683个', '女性常用字1372个', '使用频率', '文化适应性']
+        }
+      },
+      'stroke': {
+        name: '笔画组合生成插件',
+        description: '基于三才五格理论计算最佳笔画组合',
+        details: {
+          purpose: '生成符合传统命理的笔画组合',
+          algorithm: '三才五格算法 + 吉凶判断',
+          dataSource: '康熙字典 + 三才五格规则库',
+          keyMetrics: ['笔画组合数', '三才配置', '五格评分', '吉凶等级']
+        }
+      },
+      'wuxing-char': {
+        name: '五行字符分析插件', 
+        description: '根据五行需求生成候选字符',
+        details: {
+          purpose: '提供符合五行要求的字符候选',
+          algorithm: '五行相生相克理论 + 字符属性匹配',
+          dataSource: '汉字五行属性数据库',
+          keyMetrics: ['五行元素匹配', '相生相克关系', '平衡度', '适宜度']
+        }
+      },
+      'meaning': {
+        name: '寓意分析插件',
+        description: '分析字符寓意和文化内涵',
+        details: {
+          purpose: '确保名字具有积极正面的寓意',
+          algorithm: '语义分析 + 文化传统评估',
+          dataSource: '汉字寓意数据库 + 文化典籍',
+          keyMetrics: ['寓意分类', '文化深度', '现代适用性', '性别适应性']
+        }
+      },
+      'phonetic': {
+        name: '音韵美感插件',
+        description: '分析名字的音韵和谐度',
+        details: {
+          purpose: '确保名字读音优美和谐',
+          algorithm: '拼音分析 + 音韵规律',
+          dataSource: '汉字拼音数据库 + 音韵规则',
+          keyMetrics: ['声调搭配', '音韵和谐', '避免谐音', '朗朗上口']
+        }
+      },
+      'xiyongshen': {
+        name: '五行喜用神插件',
+        description: '分析八字五行需求和喜用神',
+        details: {
+          purpose: '确定五行补益方向',
+          algorithm: '八字分析 + 五行平衡理论',
+          dataSource: '传统命理规则',
+          keyMetrics: ['喜用神元素', '忌神元素', '五行平衡', '补益策略']
+        }
+      },
+      'name-generation': {
+        name: '智能名字生成插件',
+        description: '综合所有分析结果，智能生成最优名字',
+        details: {
+          purpose: '生成综合评分最高的名字组合',
+          algorithm: '多因子综合评分 + 智能筛选',
+          dataSource: '前层插件分析结果',
+          keyMetrics: ['综合评分', '各维度权重', '候选数量', '筛选标准']
+        }
+      }
+    };
+    return pluginInfoMap[pluginId] || { name: pluginId, description: '未知插件', details: {} };
   };
 
   return (
     <Layout>
-      <Head>
-        <title>插件系统演示 - 宝宝取名网</title>
-        <meta name="description" content="插件系统与传统系统对比演示" />
-      </Head>
-
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* 页面标题 */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            🧩 插件系统演示
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            插件化取名系统演示
           </h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            体验全新的模块化取名系统，对比传统系统与插件系统的差异，
-            深度了解名字生成的每一个步骤和分析过程。
+          <p className="text-gray-600 mb-6">
+            展示完整的插件执行过程，包括每一层级每个插件的功能、处理内容、输入输出和分析过程
           </p>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* 左侧：表单和系统配置 */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* 系统配置 */}
-            <SystemSelector
-              config={systemConfig}
-              onChange={setSystemConfig}
-              birthInfo={birthInfo}
-              disabled={isGenerating}
-            />
-
-            {/* 表单 */}
-            <div className="bg-white border rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">📝 取名信息</h3>
-              
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* 姓氏 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    姓氏 *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.familyName}
-                    onChange={(e) => setFormData({ ...formData, familyName: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="请输入姓氏"
-                    disabled={isGenerating}
-                    required
-                  />
-                </div>
-
-                {/* 性别 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    性别 *
-                  </label>
-                  <select
-                    value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'male' | 'female' })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    disabled={isGenerating}
-                  >
-                    <option value="male">男</option>
-                    <option value="female">女</option>
-                  </select>
-                </div>
-
-                {/* 出生日期 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    出生日期
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.birthDate}
-                    onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    disabled={isGenerating}
-                  />
-                </div>
-
-                {/* 出生时间 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    出生时间
-                  </label>
-                  <input
-                    type="time"
-                    value={formData.birthTime}
-                    onChange={(e) => setFormData({ ...formData, birthTime: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    disabled={isGenerating}
-                  />
-                </div>
-
-                {/* 评分阈值 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    评分阈值: {formData.scoreThreshold}
-                  </label>
-                  <input
-                    type="range"
-                    min="70"
-                    max="95"
-                    step="5"
-                    value={formData.scoreThreshold}
-                    onChange={(e) => setFormData({ ...formData, scoreThreshold: Number(e.target.value) })}
-                    className="w-full"
-                    disabled={isGenerating}
-                  />
-                </div>
-
-                {/* 生成数量 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    生成数量
-                  </label>
-                  <select
-                    value={formData.limit}
-                    onChange={(e) => setFormData({ ...formData, limit: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    disabled={isGenerating}
-                  >
-                    <option value={3}>3个</option>
-                    <option value={5}>5个</option>
-                    <option value={10}>10个</option>
-                  </select>
-                </div>
-
-                {/* 操作按钮 */}
-                <div className="flex space-x-3">
-                  <button
-                    type="submit"
-                    disabled={isGenerating}
-                    className={`flex-1 py-2 px-4 rounded-md font-medium ${
-                      isGenerating
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700'
-                    } text-white transition-colors`}
-                  >
-                    {isGenerating ? '🔄 生成中...' : '🚀 开始生成'}
-                  </button>
-                  
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    disabled={isGenerating}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    重置
-                  </button>
-                </div>
-              </form>
+          {/* 输入控制 */}
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <h3 className="text-lg font-semibold mb-4">输入参数</h3>
+            <div className="flex space-x-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  姓氏
+                </label>
+                <input
+                  type="text"
+                  value={familyName}
+                  onChange={(e) => setFamilyName(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  性别
+                </label>
+                <select
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value as 'male' | 'female')}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="male">男</option>
+                  <option value="female">女</option>
+                </select>
+              </div>
+              <div className="flex items-end">
+                <button
+                  onClick={executePluginSystem}
+                  disabled={isExecuting}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {isExecuting ? '执行中...' : '执行插件系统'}
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* 右侧：结果展示 */}
-          <div className="lg:col-span-2">
-            {/* 执行状态 */}
-            {(isGenerating || result) && (
-              <div className="mb-6">
-                <div className="bg-white border rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {isGenerating ? (
-                        <>
-                          <div className="animate-spin">🔄</div>
-                          <span className="font-medium">正在生成名字...</span>
-                        </>
-                      ) : result?.success ? (
-                        <>
-                          <span className="text-green-500">✅</span>
-                          <span className="font-medium">生成完成</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-red-500">❌</span>
-                          <span className="font-medium">生成失败</span>
-                        </>
-                      )}
-                    </div>
-                    
-                    {executionTime > 0 && (
-                      <div className="text-sm text-gray-600">
-                        耗时: {executionTime}ms
-                      </div>
-                    )}
-                  </div>
-
-                  {result?.error && (
-                    <div className="mt-3 text-sm text-red-600 bg-red-50 p-3 rounded">
-                      错误: {result.error}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* 结果展示 */}
-            {result?.success && (
-              <div className="space-y-6">
-                {/* 对比模式结果 */}
-                {result.mode === 'comparison' && result.data.comparison && (
-                  <div className="bg-white border rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-4">📊 系统对比报告</h3>
-                    
-                    {/* 对比摘要 */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                      <div className="text-center p-3 bg-blue-50 rounded">
-                        <div className="text-2xl font-bold text-blue-600">
-                          {result.data.comparison.summary.nameOverlap}
-                        </div>
-                        <div className="text-sm text-gray-600">名字重叠率</div>
-                      </div>
-                      
-                      <div className="text-center p-3 bg-green-50 rounded">
-                        <div className="text-2xl font-bold text-green-600">
-                          {result.data.comparison.summary.scoreConsistency}
-                        </div>
-                        <div className="text-sm text-gray-600">评分一致性</div>
-                      </div>
-                      
-                      <div className="text-center p-3 bg-purple-50 rounded">
-                        <div className="text-2xl font-bold text-purple-600">
-                          {result.data.comparison.summary.fasterSystem}
-                        </div>
-                        <div className="text-sm text-gray-600">更快系统</div>
-                      </div>
-                      
-                      <div className="text-center p-3 bg-orange-50 rounded">
-                        <div className="text-2xl font-bold text-orange-600">
-                          {result.data.comparison.summary.featureAdvantage}
-                        </div>
-                        <div className="text-sm text-gray-600">功能优势</div>
-                      </div>
-                    </div>
-
-                    {/* 结论和建议 */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="font-medium mb-2">📋 分析结论</h4>
-                        <ul className="text-sm text-gray-600 space-y-1">
-                          {result.data.comparison.conclusions.map((conclusion: string, index: number) => (
-                            <li key={index}>• {conclusion}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-medium mb-2">💡 使用建议</h4>
-                        <ul className="text-sm text-gray-600 space-y-1">
-                          {result.data.comparison.recommendations.map((recommendation: string, index: number) => (
-                            <li key={index}>• {recommendation}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 插件系统详细日志 */}
-                {(result.mode === 'plugin' || result.mode === 'comparison') && 
-                 result.data.pluginSystem?.detailedLogs && (
-                  <PluginExecutionViewer
-                    executionLogs={result.data.pluginSystem.detailedLogs}
-                    executionSummary={result.data.pluginSystem.executionSummary}
-                    isRunning={false}
-                  />
-                )}
-
-                {/* 生成的名字 */}
-                {result.data.names && (
-                  <div className="bg-white border rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-4">
-                      🎯 生成的名字 ({result.data.names.length}个)
-                    </h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {result.data.names.map((name: any, index: number) => (
-                        <div key={index} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-lg">{name.fullName}</h4>
-                            <div className="text-lg font-bold text-blue-600">
-                              {name.score}分
-                            </div>
-                          </div>
-                          
-                          <div className="text-sm text-gray-600 mb-2">
-                            {name.explanation}
-                          </div>
-                          
-                          <div className="text-xs text-gray-500">
-                            三才: {name.sancai?.combination} • 
-                            等级: {name.sancai?.level}
-                          </div>
+          {/* 层级概览 */}
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold mb-4">插件系统架构</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {layerInfo.map((layer) => (
+                <div
+                  key={layer.layer}
+                  className={`border rounded-lg p-4 ${
+                    layer.layer === 1 ? 'border-blue-200 bg-blue-50' :
+                    layer.layer === 2 ? 'border-orange-200 bg-orange-50' :
+                    layer.layer === 3 ? 'border-purple-200 bg-purple-50' :
+                    'border-green-200 bg-green-50'
+                  }`}
+                >
+                  <h4 className="font-semibold text-lg mb-2">
+                    Layer {layer.layer}: {layer.name}
+                  </h4>
+                  <p className="text-sm text-gray-600 mb-3">{layer.description}</p>
+                  <div className="text-xs">
+                    <div className="font-medium mb-1">包含插件:</div>
+                    <div className="space-y-1">
+                      {layer.plugins.map((plugin) => (
+                        <div key={plugin} className="bg-white px-2 py-1 rounded">
+                          {getPluginInfo(plugin).name}
                         </div>
                       ))}
                     </div>
                   </div>
-                )}
-              </div>
-            )}
-
-            {/* 空状态 */}
-            {!result && !isGenerating && (
-              <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <div className="text-4xl mb-4">🧩</div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  插件系统演示
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  配置左侧参数，点击"开始生成"体验插件系统的强大功能
-                </p>
-                <div className="text-sm text-gray-500">
-                  💡 建议先尝试对比模式，同时体验两套系统的差异
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
+
+          {/* 执行步骤详细展示 */}
+          {executionSteps.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold mb-4">详细执行过程</h3>
+              <div className="space-y-6">
+                {[1, 2, 3, 4].map((layerNum) => {
+                  const layerSteps = executionSteps.filter(step => step.layer === layerNum);
+                  if (layerSteps.length === 0) return null;
+
+                  return (
+                    <div key={layerNum} className="border rounded-lg p-6">
+                      <h4 className="text-lg font-semibold mb-4 flex items-center">
+                        <span className={`inline-block w-8 h-8 rounded-full text-white text-center leading-8 mr-3 ${
+                          layerNum === 1 ? 'bg-blue-500' :
+                          layerNum === 2 ? 'bg-orange-500' :
+                          layerNum === 3 ? 'bg-purple-500' :
+                          'bg-green-500'
+                        }`}>
+                          {layerNum}
+                        </span>
+                        Layer {layerNum}: {layerInfo[layerNum - 1].name}
+                      </h4>
+                      
+                      <div className="space-y-4">
+                        {layerSteps.map((step, stepIndex) => (
+                          <div key={step.id} className="bg-gray-50 rounded-lg p-4">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <h5 className="font-semibold text-lg">{step.name}</h5>
+                                <p className="text-gray-600 text-sm">{step.description}</p>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-sm text-gray-500">
+                                  置信度: {Math.round(step.confidence * 100)}%
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  耗时: {step.processingTime}ms
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                              {/* 插件详情 */}
+                              <div className="bg-white rounded p-3">
+                                <h6 className="font-medium mb-2">插件功能</h6>
+                                <div className="text-sm space-y-1">
+                                  <div><strong>目的:</strong> {step.details.purpose}</div>
+                                  <div><strong>算法:</strong> {step.details.algorithm}</div>
+                                  <div><strong>数据源:</strong> {step.details.dataSource}</div>
+                                </div>
+                              </div>
+
+                              {/* 输入数据 */}
+                              <div className="bg-white rounded p-3">
+                                <h6 className="font-medium mb-2">输入数据</h6>
+                                <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-32">
+                                  {JSON.stringify(step.input, null, 2)}
+                                </pre>
+                              </div>
+
+                              {/* 输出结果 */}
+                              <div className="bg-white rounded p-3">
+                                <h6 className="font-medium mb-2">输出结果</h6>
+                                <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-32">
+                                  {JSON.stringify(step.output, null, 2)}
+                                </pre>
+                              </div>
+                            </div>
+
+                            {/* 关键指标 */}
+                            <div className="mt-3 bg-white rounded p-3">
+                              <h6 className="font-medium mb-2">关键指标</h6>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                                {Object.entries(step.details.keyMetrics || {}).map(([key, value]) => (
+                                  <div key={key} className="bg-gray-100 px-2 py-1 rounded">
+                                    <strong>{key}:</strong> {value}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Layout>

@@ -354,7 +354,8 @@ export class WuxingBalancePlugin implements NamingPlugin {
    */
   private getWuxingKey(wuxing: string): keyof WuxingDistribution | null {
     const wuxingMap: Record<string, keyof WuxingDistribution> = {
-      '金': 'jin', '木': 'mu', '水': 'shui', '火': 'huo', '土': 'tu'
+      '金': 'jin', '木': 'mu', '水': 'shui', '火': 'huo', '土': 'tu',
+      'jin': 'jin', 'mu': 'mu', 'shui': 'shui', 'huo': 'huo', 'tu': 'tu'
     };
     return wuxingMap[wuxing] || null;
   }
@@ -364,7 +365,7 @@ export class WuxingBalancePlugin implements NamingPlugin {
    */
   private getWuxingName(key: string): string {
     const nameMap: Record<string, string> = {
-      'jin': '金', 'mu': '木', 'shui': '水', 'huo': '火', 'tu': '土'
+      '金': '金', '木': '木', '水': '水', '火': '火', '土': '土'
     };
     return nameMap[key] || key;
   }

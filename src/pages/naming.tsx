@@ -127,11 +127,11 @@ const NamingPage: React.FC = () => {
 
   // 五行元素选项
   const wuxingOptions = [
-    { value: 'jin', label: '金', color: 'bg-yellow-100 text-yellow-800' },
-    { value: 'mu', label: '木', color: 'bg-green-100 text-green-800' },
-    { value: 'shui', label: '水', color: 'bg-blue-100 text-blue-800' },
-    { value: 'huo', label: '火', color: 'bg-red-100 text-red-800' },
-    { value: 'tu', label: '土', color: 'bg-brown-100 text-brown-800' }
+    { value: '金', label: '金', color: 'bg-yellow-100 text-yellow-800' },
+    { value: '木', label: '木', color: 'bg-green-100 text-green-800' },
+    { value: '水', label: '水', color: 'bg-blue-100 text-blue-800' },
+    { value: '火', label: '火', color: 'bg-red-100 text-red-800' },
+    { value: '土', label: '土', color: 'bg-brown-100 text-brown-800' }
   ];
 
   // 权重调整处理

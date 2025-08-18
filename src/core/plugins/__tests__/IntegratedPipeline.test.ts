@@ -15,7 +15,7 @@ jest.mock('../../analysis/zodiac-service', () => ({
       getZodiacInfo: jest.fn().mockReturnValue({
         id: 'dragon',
         name: '龙',
-        element: 'tu',
+        element: '土',
         traits: ['智慧', '权威', '魅力'],
         favorable: {
           radicals: ['氵', '雨', '云'],

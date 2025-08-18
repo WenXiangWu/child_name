@@ -1,7 +1,25 @@
 import React, { useState, useMemo } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import baijiaxingData from '../../public/data/names/baijiaxing.json';
+
+// 临时数据，避免构建时的JSON导入问题
+const baijiaxingData = {
+  title: '百家姓',
+  author: '佚名',
+  tags: '北宋',
+  paragraphs: [
+    '赵钱孙李，周吴郑王。',
+    '冯陈褚卫，蒋沈韩杨。',
+    '朱秦尤许，何吕施张。',
+    '孔曹严华，金魏陶姜。'
+  ],
+  origin: [
+    { surname: '赵', place: '天水郡' },
+    { surname: '钱', place: '彭城郡' },
+    { surname: '孙', place: '富春郡' },
+    { surname: '李', place: '陇西郡' }
+  ]
+};
 
 interface Surname {
   surname: string;

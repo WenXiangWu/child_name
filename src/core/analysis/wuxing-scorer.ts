@@ -28,19 +28,19 @@ export interface WuxingScoreResult {
 const WUXING_RELATIONSHIPS = {
   // 相生关系：前者生后者
   sheng: [
-    ['mu', 'huo'],    // 木生火
-    ['huo', 'tu'],    // 火生土
-    ['tu', 'jin'],    // 土生金
-    ['jin', 'shui'],  // 金生水
-    ['shui', 'mu']    // 水生木
+    ['木', '火'],    // 木生火
+    ['火', '土'],    // 火生土
+    ['土', '金'],    // 土生金
+    ['金', '水'],  // 金生水
+    ['水', '木']    // 水生木
   ],
   // 相克关系：前者克后者
   ke: [
-    ['mu', 'tu'],     // 木克土
-    ['tu', 'shui'],   // 土克水
-    ['shui', 'huo'],  // 水克火
-    ['huo', 'jin'],   // 火克金
-    ['jin', 'mu']     // 金克木
+    ['木', '土'],     // 木克土
+    ['土', '水'],   // 土克水
+    ['水', '火'],  // 水克火
+    ['火', '金'],   // 火克金
+    ['金', '木']     // 金克木
   ]
 };
 
@@ -123,7 +123,7 @@ export class WuxingScorer {
       return this.normalizeWuxing(wuxing);
     } catch (error) {
       console.warn(`获取字符"${char}"的五行属性失败，使用默认值`, error);
-      return 'tu'; // 默认土属性
+      return '土'; // 默认土属性
     }
   }
 
@@ -132,13 +132,13 @@ export class WuxingScorer {
    */
   private normalizeWuxing(wuxing: string): WuxingElement {
     const mapping: { [key: string]: WuxingElement } = {
-      '金': 'jin', 'jin': 'jin',
-      '木': 'mu', 'mu': 'mu', 
-      '水': 'shui', 'shui': 'shui',
-      '火': 'huo', 'huo': 'huo',
-      '土': 'tu', 'tu': 'tu'
+      '金': '金', 'jin': '金',
+      '木': '木', 'mu': '木', 
+      '水': '水', 'shui': '水',
+      '火': '火', 'huo': '火',
+      '土': '土', 'tu': '土'
     };
-    return mapping[wuxing] || 'tu';
+    return mapping[wuxing] || '土';
   }
 
   /**
@@ -265,6 +265,7 @@ export class WuxingScorer {
     midLastRelation: string
   ): string {
     const wuxingNames = {
+      '金': '金', '木': '木', '水': '水', '火': '火', '土': '土',
       jin: '金', mu: '木', shui: '水', huo: '火', tu: '土'
     };
 
@@ -334,9 +335,10 @@ export class WuxingScorer {
    */
   getWuxingName(wuxing: WuxingElement): string {
     const names = {
+      '金': '金', '木': '木', '水': '水', '火': '火', '土': '土',
       jin: '金', mu: '木', shui: '水', huo: '火', tu: '土'
     };
-    return names[wuxing];
+    return names[wuxing] || wuxing;
   }
 
   /**

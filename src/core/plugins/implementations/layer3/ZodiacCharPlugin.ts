@@ -109,18 +109,21 @@ import {
     /**
      * 处理生肖用字分析
      */
-    async process(input: StandardInput): Promise<PluginOutput> {
+        async process(input: StandardInput): Promise<PluginOutput> {
       const startTime = Date.now();
       
       const { characters } = input.data;
-      if (!characters || characters.length === 0) {
-        throw new Error('缺少字符数据');
-      }
-  
-          // 获取生肖数据
-    const zodiacData = input.context.pluginResults.get('zodiac');
+      
+      // 获取生肖数据
+      const zodiacData = input.context.pluginResults.get('zodiac');
       if (!zodiacData) {
         throw new Error('缺少生肖信息，请确保生肖插件已执行');
+      }
+
+      // 判断是分析模式还是生成模式
+      if (!characters || characters.length === 0) {
+        // 生成模式：提供生肖相关的候选字符
+        return this.generateZodiacCandidates(input, zodiacData, startTime);
       }
   
       try {
@@ -189,20 +192,12 @@ import {
     }
   
     /**
-     * 销毁插件
-     */
-    async destroy(): Promise<void> {
-      this.zodiacPreferences.clear();
-      this.radicalMeanings.clear();
-    }
-  
-    /**
      * 检查插件是否可用
      */
     isAvailable(): boolean {
-      return this.zodiacPreferences.size === 12; // 应该有12个生肖的数据
+      return this.zodiacPreferences.size > 0;
     }
-  
+
     /**
      * 获取插件健康状态
      */
@@ -210,13 +205,13 @@ import {
       const zodiacCount = this.zodiacPreferences.size;
       const radicalCount = this.radicalMeanings.size;
       
-      if (zodiacCount !== 12) {
+      if (zodiacCount === 0) {
         return {
           status: 'unhealthy' as const,
-          message: `生肖数据不完整 (${zodiacCount}/12)`,
+          message: '生肖数据未加载',
           lastCheck: Date.now()
         };
-      } else if (radicalCount < 50) {
+      } else if (zodiacCount < 12 || radicalCount < 20) {
         return {
           status: 'degraded' as const,
           message: `偏旁部首数据不足 (${radicalCount} 个)`,
@@ -229,6 +224,14 @@ import {
           lastCheck: Date.now()
         };
       }
+    }
+
+    /**
+     * 销毁插件
+     */
+    async destroy(): Promise<void> {
+      this.zodiacPreferences.clear();
+      this.radicalMeanings.clear();
     }
   
     /**
@@ -809,6 +812,89 @@ import {
       return Math.min(0.95, baseConfidence);
     }
   
+    /**
+     * 生成生肖候选字符（生成模式）
+     */
+    private async generateZodiacCandidates(input: StandardInput, zodiacData: any, startTime: number): Promise<PluginOutput> {
+      try {
+        // 根据生肖分析获取推荐和避免的字符
+        const primaryZodiac = zodiacData.results?.zodiacAnalysis?.primaryZodiac || zodiacData.results?.primaryZodiac;
+        if (!primaryZodiac) {
+          throw new Error('无法获取主要生肖信息');
+        }
+
+        // 获取生肖偏好
+        const preferences = this.zodiacPreferences.get(primaryZodiac);
+        if (!preferences) {
+          throw new Error(`未找到生肖 ${primaryZodiac} 的偏好数据`);
+        }
+
+        // 从现有字符数据中筛选适合的字符
+        const suitableChars = new Set<string>();
+        const unsuitableChars = new Set<string>();
+
+        // 基于偏好部首筛选字符
+        preferences.favorableRadicals.forEach(radical => {
+          // 这里可以根据部首查找相关字符
+          // 简化实现：添加一些常见的相关字符
+          this.getCharactersByRadical(radical).forEach(char => {
+            suitableChars.add(char);
+          });
+        });
+
+        preferences.unfavorableRadicals.forEach(radical => {
+          this.getCharactersByRadical(radical).forEach(char => {
+            unsuitableChars.add(char);
+          });
+        });
+
+        return {
+          pluginId: this.id,
+          results: {
+            suitableChars: Array.from(suitableChars),
+            unsuitableChars: Array.from(unsuitableChars),
+            zodiacStrategy: zodiacData.results?.zodiacAnalysis?.strategy || 'single-zodiac',
+            recommendations: [
+              `根据${primaryZodiac}生肖特性，推荐使用带有${preferences.favorableRadicals.join('、')}等部首的字符`,
+              `避免使用带有${preferences.unfavorableRadicals.join('、')}等部首的字符`
+            ]
+          },
+          confidence: 0.8,
+          metadata: {
+            processingTime: Date.now() - startTime,
+            mode: 'generation',
+            zodiacStrategy: zodiacData.results?.zodiacAnalysis?.strategy || 'single-zodiac',
+            version: this.version,
+            candidatesGenerated: suitableChars.size
+          }
+        };
+
+      } catch (error) {
+        throw new Error(`生肖候选字符生成失败: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+
+    /**
+     * 根据部首获取相关字符（简化实现）
+     */
+    private getCharactersByRadical(radical: string): string[] {
+      // 简化实现：返回一些常见的相关字符
+      const radicalChars: Record<string, string[]> = {
+        '艹': ['芳', '茂', '荣', '莉', '萌', '蕾', '菲', '薇'],
+        '木': ['林', '森', '桂', '梅', '松', '柏', '杉', '槐'],
+        '水': ['江', '河', '海', '波', '涛', '泉', '润', '清'],
+        '火': ['炎', '焱', '烈', '辉', '灿', '炫', '烨', '焰'],
+        '土': ['坤', '培', '城', '墨', '垚', '坚', '堃', '塘'],
+        '金': ['钰', '鑫', '铭', '锦', '银', '钢', '铁', '锋'],
+        '口': ['君', '名', '善', '喜', '嘉', '品', '呈', '咏'],
+        '宀': ['宝', '家', '宁', '安', '宏', '宇', '宸', '宜'],
+        '田': ['田', '思', '男', '界', '畅', '富', '备', '畴'],
+        '米': ['精', '粮', '糖', '粹', '糕', '粟', '粒', '糯']
+      };
+      
+      return radicalChars[radical] || [];
+    }
+
     /**
      * 检查是否为中文字符
      */

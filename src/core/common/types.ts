@@ -4,7 +4,7 @@
  */
 
 // 五行元素类型
-export type WuxingElement = 'jin' | 'mu' | 'shui' | 'huo' | 'tu';
+export type WuxingElement = '金' | '木' | '水' | '火' | '土';
 
 // 预处理姓名语料库数据结构
 export interface NameCorpusProcessedData {

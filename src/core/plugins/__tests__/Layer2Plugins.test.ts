@@ -17,7 +17,7 @@ jest.mock('../../analysis/zodiac-service', () => ({
       getZodiacInfo: jest.fn().mockReturnValue({
         id: 'dragon',
         name: '龙',
-        element: 'tu',
+        element: '土',
         traits: ['智慧', '权威', '魅力'],
         favorable: {
           radicals: ['氵', '雨', '云'],
@@ -278,10 +278,10 @@ describe('Layer 2 Plugins', () => {
       };
       
       const baziResult = {
-        dayMasterWuxing: 'mu',
+        dayMasterWuxing: '木',
         strongWeak: 'weak',
-        usefulGods: ['shui', 'mu'],
-        avoidGods: ['jin', 'huo'],
+        usefulGods: ['水', '木'],
+        avoidGods: ['金', '火'],
         wuxingCount: { jin: 1, mu: 2, shui: 1, huo: 2, tu: 1 },
         confidence: 0.9
       };

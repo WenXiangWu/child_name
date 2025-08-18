@@ -101,20 +101,20 @@ export const BEST_NUM_SET = Array.from(GOOD_NUM_SET).filter(x => !BAD_NUM_SET.ha
 export const RESULT_UNKNOWN = '结果未知';
 
 // 五行相关常量
-export const WUXING_ELEMENTS = ['jin', 'mu', 'shui', 'huo', 'tu'] as const;
+export const WUXING_ELEMENTS = ['金', '木', '水', '火', '土'] as const;
 
 // 数字到五行的映射（取个位数）
 export const NUMBER_TO_WUXING: Record<number, string> = {
-  1: 'mu',    // 甲乙木
-  2: 'mu',
-  3: 'huo',   // 丙丁火
-  4: 'huo',
-  5: 'tu',    // 戊己土
-  6: 'tu',
-  7: 'jin',   // 庚辛金
-  8: 'jin',
-  9: 'shui',  // 壬癸水
-  0: 'shui'
+  1: '木',    // 甲乙木
+  2: '木',
+  3: '火',   // 丙丁火
+  4: '火',
+  5: '土',    // 戊己土
+  6: '土',
+  7: '金',   // 庚辛金
+  8: '金',
+  9: '水',  // 壬癸水
+  0: '水'
 };
 
 // qiming中的优美声调组合
