@@ -37,6 +37,10 @@ const Layout: React.FC<LayoutProps> = ({
             <Link href="/generate" className="text-gray-600 hover:text-primary-600">
               名字生成
             </Link>
+            <Link href="/plugin-execution-flow" className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+              <span>🔧</span>
+              插件执行流程
+            </Link>
             <Link href="/standard-characters" className="text-green-600 hover:text-green-700 font-medium flex items-center gap-1">
               <span>🏛️</span>
               规范汉字表
@@ -85,6 +89,14 @@ const Layout: React.FC<LayoutProps> = ({
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   名字生成
+                </Link>
+                <Link 
+                  href="/plugin-execution-flow" 
+                  className="text-blue-600 hover:text-blue-700 py-2 font-medium flex items-center gap-1"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <span>🔧</span>
+                  插件执行流程
                 </Link>
                 <Link 
                   href="/standard-characters" 

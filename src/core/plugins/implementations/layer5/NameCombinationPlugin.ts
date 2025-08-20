@@ -75,7 +75,7 @@ export class NameCombinationPlugin implements Layer5Plugin {
       const filterResult = await this.getCharacterFilterResult(context);
       
       // 生成所有可能的名字组合
-      const combinations = this.generateAllCombinations(filterResult, input);
+      const combinations = this.generateAllCombinations(filterResult, input, context);
       
       // 过滤和优化组合
       const optimizedCombinations = this.optimizeCombinations(combinations);
@@ -152,7 +152,7 @@ export class NameCombinationPlugin implements Layer5Plugin {
   /**
    * 生成所有可能的名字组合
    */
-  private generateAllCombinations(filterResult: any, input: StandardInput): NameCandidate[] {
+  private generateAllCombinations(filterResult: any, input: StandardInput, context: PluginContext): NameCandidate[] {
     const combinations: NameCandidate[] = [];
     const familyName = input.familyName;
     const { firstCharCandidates, secondCharCandidates } = filterResult.candidatePool;

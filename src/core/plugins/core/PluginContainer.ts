@@ -11,7 +11,7 @@ import {
 } from '../interfaces/NamingPlugin';
 import { DependencyGraph } from '../utils/DependencyGraph';
 import { PluginLifecycleManager, PluginStatus } from '../utils/PluginLifecycleManager';
-import { PluginFactory, PluginType } from '../implementations/PluginFactory';
+import { pluginFactory, PluginType } from '../implementations/PluginFactory';
 import { IPluginContainer } from './NamingPipeline';
 
 // 插件配置项
@@ -109,7 +109,7 @@ export class PluginContainer implements IPluginContainer {
   ): Promise<void> {
     try {
       // 创建插件实例
-      const plugin = PluginFactory.createPlugin(pluginType);
+      const plugin = pluginFactory.createPlugin(pluginType);
       const pluginId = plugin.id;
 
       // 检查是否已注册
@@ -175,7 +175,7 @@ export class PluginContainer implements IPluginContainer {
       console.log(`✅ Plugin ${pluginId} registered successfully`);
 
     } catch (error) {
-      const pluginId = PluginFactory.createPlugin(pluginType).id;
+      const pluginId = pluginFactory.createPlugin(pluginType).id;
       this.lifecycleManager.markInitializationFailed(
         pluginId, 
         error instanceof Error ? error.message : String(error)
@@ -470,8 +470,8 @@ export class PluginContainer implements IPluginContainer {
       errors.push('Plugin must have a version');
     }
     
-    if (typeof plugin.layer !== 'number' || plugin.layer < 1 || plugin.layer > 4) {
-      errors.push('Plugin must have a valid layer (1-4)');
+    if (typeof plugin.layer !== 'number' || plugin.layer < 1 || plugin.layer > 6) {
+      errors.push('Plugin must have a valid layer (1-6)');
     }
     
     if (!Array.isArray(plugin.dependencies)) {

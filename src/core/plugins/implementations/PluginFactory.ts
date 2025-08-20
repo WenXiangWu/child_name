@@ -25,6 +25,7 @@ import { CharacterFilterPlugin } from './layer4';
 
 // Layer 5 导入 (1个插件)
 import { NameCombinationPlugin } from './layer5';
+import { SimpleNamePlugin } from './layer5/SimpleNamePlugin';
 
 // Layer 6 导入 (5个插件)
 import { 
@@ -74,6 +75,7 @@ export class QimingPluginFactory implements PluginFactory {
 
     // Layer 5: 名字生成层 (1个插件)
     this.pluginConstructors.set('name-combination', NameCombinationPlugin);
+    this.pluginConstructors.set('simple-name', SimpleNamePlugin);
 
     // Layer 6: 名字评分层 (5个插件)
     this.pluginConstructors.set('sancai-scoring', SancaiScoringPlugin);
