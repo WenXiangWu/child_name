@@ -1,179 +1,176 @@
 /**
- * 插件工厂 - 负责创建和管理插件实例
+ * 统一插件工厂 - 6层架构版本
+ * 管理所有18个插件的创建和注册
  */
 
-import { NamingPlugin } from '../interfaces/NamingPlugin';
-import { SurnamePlugin } from './layer1/SurnamePlugin';
-import { GenderPlugin } from './layer1/GenderPlugin';
-import { BirthTimePlugin } from './layer1/BirthTimePlugin';
-import { FamilyTraditionPlugin } from '../examples/FamilyTraditionPlugin';
-import { BaZiPlugin } from './layer2/BaZiPlugin';
-import { ZodiacPlugin } from './layer2/ZodiacPlugin';
-import { XiYongShenPlugin } from './layer2/XiYongShenPlugin';
+import { NamingPlugin, PluginFactory, PluginConfig, CertaintyLevel } from '../interfaces/NamingPlugin';
+
+// Layer 1 导入 (3个插件)
+import { SurnamePlugin, GenderPlugin, BirthTimePlugin } from './layer1';
+
+// Layer 2 导入 (3个插件)  
+import { BaZiPlugin, XiYongShenPlugin, ZodiacPlugin } from './layer2';
+
+// Layer 3 导入 (5个插件)
 import { 
-  StrokePlugin, 
-  WuxingCharPlugin, 
-  ZodiacCharPlugin, 
-  MeaningPlugin, 
-  PhoneticPlugin 
-} from './layer3/index';
-import {
-  SancaiPlugin,
-  YijingPlugin,
-  DayanPlugin,
-  WuxingBalancePlugin,
-  NameGenerationPlugin
-} from './layer4/index';
+  WuxingSelectionPlugin, 
+  ZodiacSelectionPlugin, 
+  MeaningSelectionPlugin, 
+  StrokeSelectionPlugin, 
+  PhoneticSelectionPlugin 
+} from './layer3';
 
-export type PluginType = 
-  | 'surname'
-  | 'gender' 
-  | 'birth-time'
-  | 'family-tradition'
-  | 'bazi'
-  | 'zodiac'
-  | 'xiyongshen'
-  | 'stroke'
-  | 'wuxing-char'
-  | 'zodiac-char'
-  | 'meaning'
-  | 'phonetic'
-  | 'sancai'
-  | 'yijing'
-  | 'dayan'
-  | 'wuxing-balance'
-  | 'name-generation';
+// Layer 4 导入 (1个插件)
+import { CharacterFilterPlugin } from './layer4';
 
-export class PluginFactory {
-  private static pluginClasses: Record<PluginType, new () => NamingPlugin> = {
-    'surname': SurnamePlugin,
-    'gender': GenderPlugin,
-    'birth-time': BirthTimePlugin,
-    'family-tradition': FamilyTraditionPlugin,
-    'bazi': BaZiPlugin,
-    'zodiac': ZodiacPlugin,
-    'xiyongshen': XiYongShenPlugin,
-    'stroke': StrokePlugin,
-    'wuxing-char': WuxingCharPlugin,
-    'zodiac-char': ZodiacCharPlugin,
-    'meaning': MeaningPlugin,
-    'phonetic': PhoneticPlugin,
-    'sancai': SancaiPlugin,
-    'yijing': YijingPlugin,
-    'dayan': DayanPlugin,
-    'wuxing-balance': WuxingBalancePlugin,
-    'name-generation': NameGenerationPlugin
-  };
+// Layer 5 导入 (1个插件)
+import { NameCombinationPlugin } from './layer5';
+
+// Layer 6 导入 (5个插件)
+import { 
+  SancaiScoringPlugin, 
+  PhoneticScoringPlugin, 
+  WuxingBalanceScoringPlugin, 
+  DayanScoringPlugin, 
+  ComprehensiveScoringPlugin 
+} from './layer6';
+
+export class QimingPluginFactory implements PluginFactory {
+  private static instance: QimingPluginFactory;
+  private pluginConstructors: Map<string, new () => NamingPlugin>;
+
+  private constructor() {
+    this.pluginConstructors = new Map();
+    this.registerAllPlugins();
+  }
+
+  static getInstance(): QimingPluginFactory {
+    if (!QimingPluginFactory.instance) {
+      QimingPluginFactory.instance = new QimingPluginFactory();
+    }
+    return QimingPluginFactory.instance;
+  }
+
+  private registerAllPlugins(): void {
+    // Layer 1: 基础信息层 (3个插件)
+    this.pluginConstructors.set('surname', SurnamePlugin);
+    this.pluginConstructors.set('gender', GenderPlugin);
+    this.pluginConstructors.set('birth-time', BirthTimePlugin);
+
+    // Layer 2: 命理分析层 (3个插件)
+    this.pluginConstructors.set('bazi', BaZiPlugin);
+    this.pluginConstructors.set('xiyongshen', XiYongShenPlugin);
+    this.pluginConstructors.set('zodiac', ZodiacPlugin);
+
+    // Layer 3: 选字策略层 (5个插件)
+    this.pluginConstructors.set('wuxing-selection', WuxingSelectionPlugin);
+    this.pluginConstructors.set('zodiac-selection', ZodiacSelectionPlugin);
+    this.pluginConstructors.set('meaning-selection', MeaningSelectionPlugin);
+    this.pluginConstructors.set('stroke-selection', StrokeSelectionPlugin);
+    this.pluginConstructors.set('phonetic-selection', PhoneticSelectionPlugin);
+
+    // Layer 4: 字符筛选层 (1个插件)
+    this.pluginConstructors.set('character-filter', CharacterFilterPlugin);
+
+    // Layer 5: 名字生成层 (1个插件)
+    this.pluginConstructors.set('name-combination', NameCombinationPlugin);
+
+    // Layer 6: 名字评分层 (5个插件)
+    this.pluginConstructors.set('sancai-scoring', SancaiScoringPlugin);
+    this.pluginConstructors.set('phonetic-scoring', PhoneticScoringPlugin);
+    this.pluginConstructors.set('wuxing-balance-scoring', WuxingBalanceScoringPlugin);
+    this.pluginConstructors.set('dayan-scoring', DayanScoringPlugin);
+    this.pluginConstructors.set('comprehensive-scoring', ComprehensiveScoringPlugin);
+  }
+
+  createPlugin(id: string, config?: PluginConfig): NamingPlugin {
+    const PluginConstructor = this.pluginConstructors.get(id);
+    if (!PluginConstructor) {
+      throw new Error(`未知的插件ID: ${id}`);
+    }
+    return new PluginConstructor();
+  }
+
+  getAvailablePlugins(): string[] {
+    return Array.from(this.pluginConstructors.keys());
+  }
+
+  getPluginsByLayer(layer: number): string[] {
+    const plugins = Array.from(this.pluginConstructors.entries());
+    return plugins
+      .filter(([, PluginConstructor]) => {
+        const instance = new PluginConstructor();
+        return instance.layer === layer;
+      })
+      .map(([id]) => id);
+  }
 
   /**
-   * 创建插件实例
+   * 根据确定性等级获取应启用的插件列表
+   * 对应文档定义的确定性等级管理
    */
-  static createPlugin(pluginType: PluginType): NamingPlugin {
-    const PluginClass = this.pluginClasses[pluginType];
-    if (!PluginClass) {
-      throw new Error(`Unknown plugin type: ${pluginType}`);
+  getEnabledPluginsByCertaintyLevel(certaintyLevel: CertaintyLevel): string[] {
+    const layerPlugins = {
+      1: this.getPluginsByLayer(1), // 3个
+      2: this.getPluginsByLayer(2), // 3个
+      3: this.getPluginsByLayer(3), // 5个
+      4: this.getPluginsByLayer(4), // 1个
+      5: this.getPluginsByLayer(5), // 1个
+      6: this.getPluginsByLayer(6)  // 5个
+    };
+    
+    switch (certaintyLevel) {
+      case CertaintyLevel.FULLY_DETERMINED:
+        // Level 1: 启用全部18个插件
+        return [...layerPlugins[1], ...layerPlugins[2], ...layerPlugins[3], 
+                ...layerPlugins[4], ...layerPlugins[5], ...layerPlugins[6]];
+      
+      case CertaintyLevel.PARTIALLY_DETERMINED:
+        // Level 2: 启用13个插件 (跳过部分Layer 3可选插件)
+        return [...layerPlugins[1], ...layerPlugins[2], 
+                ...layerPlugins[3].slice(0, 3), // 只启用前3个策略插件
+                ...layerPlugins[4], ...layerPlugins[5], 
+                ...layerPlugins[6].slice(0, 3)]; // 只启用前3个评分插件
+      
+      case CertaintyLevel.ESTIMATED:
+        // Level 3: 启用9个插件 (保守模式)
+        return [...layerPlugins[1], ...layerPlugins[2].slice(0, 1), // 只用基础八字
+                ...layerPlugins[3].slice(0, 2), // 只用核心策略
+                ...layerPlugins[4], ...layerPlugins[5],
+                ...layerPlugins[6].slice(0, 1)]; // 只用综合评分
+      
+      case CertaintyLevel.UNKNOWN:
+        // Level 4: 启用6个插件 (基础模式)
+        return [...layerPlugins[1].slice(0, 2), // 姓氏+性别
+                ...layerPlugins[3].slice(0, 1), // 基础策略
+                ...layerPlugins[4], ...layerPlugins[5],
+                ...layerPlugins[6].slice(-1)]; // 综合评分
+      
+      default:
+        return this.getBasicPlugins();
+    }
+  }
+
+  private getBasicPlugins(): string[] {
+    return ['surname', 'gender', 'stroke-selection', 'character-filter', 'name-combination', 'comprehensive-scoring'];
+  }
+
+  /**
+   * 获取插件统计信息
+   */
+  getPluginStatistics() {
+    const stats = {
+      totalPlugins: this.pluginConstructors.size,
+      byLayer: {} as Record<number, number>
+    };
+    
+    for (let layer = 1; layer <= 6; layer++) {
+      stats.byLayer[layer] = this.getPluginsByLayer(layer).length;
     }
     
-    try {
-      console.log(`🔧 创建插件实例: ${pluginType}`);
-      const instance = new PluginClass();
-      console.log(`✅ 插件实例创建成功: ${pluginType} (ID: ${instance.id})`);
-      return instance;
-    } catch (error) {
-      console.error(`❌ 创建插件实例失败: ${pluginType}`, error);
-      throw new Error(`Failed to create plugin ${pluginType}: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-
-  /**
-   * 获取所有可用的插件类型
-   */
-  static getAvailablePlugins(): PluginType[] {
-    return Object.keys(this.pluginClasses) as PluginType[];
-  }
-
-  /**
-   * 检查插件类型是否存在
-   */
-  static hasPlugin(pluginType: string): pluginType is PluginType {
-    return pluginType in this.pluginClasses;
-  }
-
-  /**
-   * 批量创建插件
-   */
-  static createMultiplePlugins(pluginTypes: PluginType[]): NamingPlugin[] {
-    return pluginTypes.map(type => this.createPlugin(type));
-  }
-
-  /**
-   * 按层级创建插件
-   */
-  static createPluginsByLayer(layer: number): NamingPlugin[] {
-    const layerPlugins: Record<number, PluginType[]> = {
-      1: ['surname', 'gender', 'birth-time', 'family-tradition'],
-      2: ['bazi', 'zodiac', 'xiyongshen'],
-      3: ['stroke', 'wuxing-char', 'zodiac-char', 'meaning', 'phonetic'],
-      4: ['sancai', 'yijing', 'dayan', 'wuxing-balance', 'name-generation']
-    };
-
-    const pluginTypes = layerPlugins[layer] || [];
-    return this.createMultiplePlugins(pluginTypes);
-  }
-
-  /**
-   * 获取插件层级信息
-   */
-  static getLayerInfo(): Record<number, { plugins: PluginType[], description: string }> {
-    return {
-      1: {
-        plugins: ['surname', 'gender', 'birth-time', 'family-tradition'],
-        description: '基础信息层 - 处理姓氏、性别、出生时间等基础信息'
-      },
-      2: {
-        plugins: ['bazi', 'zodiac', 'xiyongshen'],
-        description: '命理基础层 - 处理八字、生肖、五行喜用神等传统命理要素'
-      },
-      3: {
-        plugins: ['stroke', 'wuxing-char', 'zodiac-char', 'meaning', 'phonetic'],
-        description: '字符评估层 - 分析字符的笔画、五行、生肖适宜性、寓意、音韵等'
-      },
-      4: {
-        plugins: ['sancai', 'yijing', 'dayan', 'wuxing-balance', 'name-generation'],
-        description: '组合计算层 - 进行三才五格、周易卦象、综合评分和最终名字生成'
-      }
-    };
-  }
-
-  /**
-   * 根据确定性等级获取推荐插件
-   */
-  static getRecommendedPlugins(certaintyLevel: number): PluginType[] {
-    switch (certaintyLevel) {
-      case 1: // 完全确定
-        return [
-          'surname', 'gender', 'birth-time',
-          'bazi', 'zodiac', 'xiyongshen',
-          'stroke', 'wuxing-char', 'zodiac-char', 'meaning', 'phonetic',
-          'name-generation'
-        ];
-      case 2: // 部分确定
-        return [
-          'surname', 'gender', 'birth-time',
-          'zodiac', 'xiyongshen',
-          'stroke', 'wuxing-char', 'zodiac-char', 'meaning', 'phonetic',
-          'name-generation'
-        ];
-      case 3: // 预估阶段
-        return [
-          'surname', 'gender', 'birth-time',
-          'zodiac', 'stroke', 'meaning', 'phonetic',
-          'name-generation'
-        ];
-      case 4: // 完全未知
-        return ['surname', 'gender', 'stroke', 'meaning', 'phonetic', 'name-generation'];
-      default:
-        return ['surname', 'gender', 'stroke', 'meaning', 'name-generation'];
-    }
+    return stats;
   }
 }
+
+// 导出单例实例
+export const pluginFactory = QimingPluginFactory.getInstance();

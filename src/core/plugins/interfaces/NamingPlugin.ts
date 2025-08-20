@@ -1,7 +1,15 @@
 /**
- * 取名系统核心插件接口
- * 所有插件必须实现此接口
+ * 统一插件接口标准 - 6层架构版本
+ * 严格按照文档《插件执行示例-吴姓男孩取名完整计算过程.md》定义
  */
+
+export interface PluginMetadata {
+  name: string;
+  description: string;
+  author: string;
+  category: 'input' | 'analysis' | 'strategy' | 'filtering' | 'generation' | 'scoring';
+  tags: string[];
+}
 
 export interface PluginDependency {
   pluginId: string;
@@ -9,141 +17,136 @@ export interface PluginDependency {
   version?: string;
 }
 
-export interface PluginMetadata {
-  name: string;
-  description: string;
-  author?: string;
-  category: 'input' | 'calculation' | 'evaluation' | 'output';
-  tags: string[];
-}
-
 export interface PluginConfig {
   enabled: boolean;
   priority: number;
   timeout: number;
   retryCount: number;
-  fallbackPlugin?: string;
   customSettings?: Record<string, any>;
 }
 
 export interface PluginContext {
-  requestId: string;
-  getPluginResult<T = any>(pluginId: string): T | null;
-  setPluginResult(pluginId: string, result: any): void;
-  getConfig(): PluginConfig;
-  log(level: 'info' | 'warn' | 'error', message: string, data?: any): void;
+  certaintyLevel: CertaintyLevel;
+  log?: (level: 'info' | 'warn' | 'error', message: string) => void;
+  metrics?: {
+    startTime: number;
+    pluginStats: Map<string, any>;
+  };
 }
 
 export interface ValidationResult {
   valid: boolean;
   errors: string[];
-  warnings: string[];
-}
-
-export interface PluginError {
-  code: string;
-  message: string;
-  details?: any;
-  timestamp: number;
+  warnings?: string[];
 }
 
 export interface PluginOutput {
-  pluginId: string;
-  results: any;
+  success: boolean;
+  data: any;
   confidence: number;
-  metadata: {
-    processingTime: number;
-    dataSource?: string;
-    version?: string;
-    [key: string]: any;
-  };
-  errors?: PluginError[];
+  executionTime: number;
+  metadata?: Record<string, any>;
+  errors?: string[];
 }
 
+// 确定性等级枚举 - 对应文档定义
+export enum CertaintyLevel {
+  FULLY_DETERMINED = 1,    // 完整出生时间 - 启用全部插件
+  PARTIALLY_DETERMINED = 2, // 缺少具体时辰 - 启用13个插件
+  ESTIMATED = 3,           // 仅预产期 - 启用9个插件
+  UNKNOWN = 4              // 基础信息 - 启用6个插件
+}
+
+// 标准输入接口
 export interface StandardInput {
-  readonly requestId: string;
-  readonly certaintyLevel: CertaintyLevel;
-  readonly data: InputData;
-  readonly context: ProcessingContext;
-}
-
-export interface InputData {
-  familyName?: string;
-  gender?: 'male' | 'female';
+  // Layer 1 基础信息
+  familyName: string;
+  gender: 'male' | 'female';
   birthInfo?: {
     year: number;
     month: number;
-    day?: number;
+    day: number;
     hour?: number;
     minute?: number;
   };
-  predueDate?: {
-    year: number;
-    month: number;
-    weekOffset?: number;
+  
+  // 用户偏好
+  preferences?: {
+    certaintyLevel?: CertaintyLevel;
+    parallelExecution?: boolean;
+    includeTraditionalAnalysis?: boolean;
+    skipOptionalFailures?: boolean;
   };
-  characters?: string[];
-  preferences?: Record<string, any>;
-}
-
-export interface ProcessingContext {
-  requestId: string;
-  startTime: number;
-  certaintyLevel: CertaintyLevel;
-  pluginResults: Map<string, any>;
-  errors: PluginError[];
-  warnings: string[];
-  log?: (level: 'info' | 'warn' | 'error', message: string, data?: any) => void;
-}
-
-export enum CertaintyLevel {
-  FULLY_DETERMINED = 1,    // 完全确定 - 所有15个插件
-  PARTIALLY_DETERMINED = 2, // 部分确定 - 12个插件
-  ESTIMATED = 3,           // 预估阶段 - 9个插件
-  UNKNOWN = 4              // 完全未知 - 6个插件
+  
+  // 其他配置
+  characters?: string[];  // 避忌字符
+  elements?: string[];   // 偏好五行
 }
 
 /**
- * 核心插件接口
+ * 核心插件接口 - 6层架构标准版本
  */
 export interface NamingPlugin {
+  // 插件基本信息 - 必须明确指定层级
   readonly id: string;
   readonly version: string;
-  readonly layer: 1 | 2 | 3 | 4;
+  readonly layer: 1 | 2 | 3 | 4 | 5 | 6;  // 明确的6层定义
   readonly dependencies: PluginDependency[];
   readonly metadata: PluginMetadata;
-  
-  /**
-   * 初始化插件
-   */
+
+  // 生命周期方法
   initialize(config: PluginConfig, context: PluginContext): Promise<void>;
-  
-  /**
-   * 处理输入数据
-   */
-  process(input: StandardInput): Promise<PluginOutput>;
-  
-  /**
-   * 验证输入数据
-   */
-  validate(input: StandardInput): ValidationResult;
-  
-  /**
-   * 销毁插件，清理资源
-   */
-  destroy(): Promise<void>;
-  
-  /**
-   * 检查插件是否可用
-   */
-  isAvailable(): boolean;
-  
-  /**
-   * 获取插件健康状态
-   */
-  getHealthStatus(): {
-    status: 'healthy' | 'degraded' | 'unhealthy';
-    message: string;
-    lastCheck: number;
-  };
+  validate(input: StandardInput): Promise<ValidationResult>;
+  process(input: StandardInput, context: PluginContext): Promise<PluginOutput>;
+  cleanup?(): Promise<void>;
+}
+
+/**
+ * 6层插件架构类型定义 - 对应文档层级
+ */
+
+// Layer 1: 基础信息层 - 3个插件
+export interface Layer1Plugin extends NamingPlugin {
+  readonly layer: 1;
+  readonly category: 'input';
+}
+
+// Layer 2: 命理分析层 - 3个插件
+export interface Layer2Plugin extends NamingPlugin {
+  readonly layer: 2;
+  readonly category: 'analysis';
+}
+
+// Layer 3: 选字策略层 - 5个插件
+export interface Layer3Plugin extends NamingPlugin {
+  readonly layer: 3;
+  readonly category: 'strategy';
+}
+
+// Layer 4: 字符筛选层 - 1个插件
+export interface Layer4Plugin extends NamingPlugin {
+  readonly layer: 4;
+  readonly category: 'filtering';
+}
+
+// Layer 5: 名字生成层 - 1个插件
+export interface Layer5Plugin extends NamingPlugin {
+  readonly layer: 5;
+  readonly category: 'generation';
+}
+
+// Layer 6: 名字评分层 - 5个插件
+export interface Layer6Plugin extends NamingPlugin {
+  readonly layer: 6;
+  readonly category: 'scoring';
+}
+
+/**
+ * 插件工厂接口
+ */
+export interface PluginFactory {
+  createPlugin(id: string, config?: PluginConfig): NamingPlugin;
+  getAvailablePlugins(): string[];
+  getPluginsByLayer(layer: number): string[];
+  getEnabledPluginsByCertaintyLevel(certaintyLevel: CertaintyLevel): string[];
 }

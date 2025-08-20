@@ -1,47 +1,20 @@
 /**
- * Layer 3 插件索引
- * 字符评估层 - 负责单个字符的详细分析和评估
+ * Layer 3 选字策略层插件统一导出
+ * 对应文档定义的5个策略插件
  */
 
-export { StrokePlugin } from './StrokePlugin';
-export { WuxingCharPlugin } from './WuxingCharPlugin';
-export { ZodiacCharPlugin } from './ZodiacCharPlugin';
-export { MeaningPlugin } from './MeaningPlugin';
-export { PhoneticPlugin } from './PhoneticPlugin';
+export { WuxingSelectionPlugin } from './WuxingSelectionPlugin';
+export { ZodiacSelectionPlugin } from './ZodiacSelectionPlugin';
+export { MeaningSelectionPlugin } from './MeaningSelectionPlugin';
+export { StrokeSelectionPlugin } from './StrokeSelectionPlugin';
+export { PhoneticSelectionPlugin } from './PhoneticSelectionPlugin';
 
-// 导出类型定义
-export type {
-  CharacterStrokeData,
-  StrokeCombination,
-  SancaiBaseData
-} from './StrokePlugin';
+export const LAYER3_PLUGINS = [
+  'WuxingSelectionPlugin',
+  'ZodiacSelectionPlugin', 
+  'MeaningSelectionPlugin',
+  'StrokeSelectionPlugin',
+  'PhoneticSelectionPlugin'
+] as const;
 
-export type {
-  WuxingElement,
-  CharacterWuxingData,
-  WuxingCombination,
-  WuxingBalance
-} from './WuxingCharPlugin';
-
-export type {
-  ZodiacAnimal,
-  ZodiacCharacterEvaluation,
-  ZodiacPreferences,
-  DualZodiacAnalysis
-} from './ZodiacCharPlugin';
-
-export type {
-  CharacterMeaning,
-  CulturalDepthAnalysis,
-  ModernApplicabilityAnalysis,
-  CombinationHarmony
-} from './MeaningPlugin';
-
-export type {
-  ToneType,
-  CharacterPhonetics,
-  TonePattern,
-  RhythmAnalysis,
-  HomophoneRisk,
-  PhoneticOptimization
-} from './PhoneticPlugin';
+export type Layer3PluginType = typeof LAYER3_PLUGINS[number];

@@ -1,249 +1,269 @@
 /**
- * 姓氏插件 - Layer 1
- * 处理姓氏信息，包括笔画数、五行属性等基础信息
+ * 姓氏分析插件
+ * Layer 1: 基础信息层
+ * 
+ * 功能：分析姓氏的字符信息、笔画数、五行属性、百家姓排名等
+ * 依赖：无 (Layer 1基础插件)
+ * 
+ * ⚠️ 重要：严格按照文档《插件执行示例-吴姓男孩取名完整计算过程.md》实现
  */
 
 import { 
-  NamingPlugin, 
+  Layer1Plugin, 
   StandardInput, 
   PluginOutput, 
   PluginContext, 
   ValidationResult,
   PluginMetadata,
   PluginDependency,
-  CertaintyLevel,
   PluginConfig
 } from '../../interfaces/NamingPlugin';
 
-import { SancaiWugeCalculator } from '../../../calculation/sancai-calculator';
-import { QimingDataLoader } from '../../../common/data-loader';
+import { UnifiedCharacterLoader, UnifiedCharacterInfo } from '../../data/UnifiedCharacterLoader';
 
-export class SurnamePlugin implements NamingPlugin {
+export class SurnamePlugin implements Layer1Plugin {
   readonly id = 'surname';
   readonly version = '1.0.0';
-  readonly layer = 1;
+  readonly layer = 1 as const;
+  readonly category = 'input' as const;
   readonly dependencies: PluginDependency[] = [];
   readonly metadata: PluginMetadata = {
     name: '姓氏分析插件',
-    description: '分析姓氏的笔画数、五行属性等基础信息',
-    author: 'System',
-    category: 'input',
-    tags: ['surname', 'strokes', 'wuxing', 'basic']
+    description: '分析姓氏的字符信息、笔画数、五行属性、百家姓排名等基础信息',
+    author: 'Qiming Plugin System',
+    category: 'input' as const,
+    tags: ['surname', 'strokes', 'wuxing', 'baijiaxing', 'layer1']
   };
 
-  private config: PluginConfig | null = null;
-  private sancaiCalculator: SancaiWugeCalculator;
-  private dataLoader: QimingDataLoader;
+  private initialized = false;
+  private charLoader: UnifiedCharacterLoader;
+  private baijiaxingData: any; // TODO: 类型定义
 
   constructor() {
-    this.sancaiCalculator = new SancaiWugeCalculator();
-    this.dataLoader = QimingDataLoader.getInstance();
+    this.charLoader = UnifiedCharacterLoader.getInstance();
   }
 
-  /**
-   * 初始化插件
-   */
   async initialize(config: PluginConfig, context: PluginContext): Promise<void> {
-    this.config = config;
-    await this.dataLoader.preloadCoreData();
-    context.log('info', `姓氏插件初始化完成, 版本: ${this.version}`);
-  }
-
-  /**
-   * 处理输入数据
-   */
-  async process(input: StandardInput): Promise<PluginOutput> {
-    const startTime = Date.now();
-    const { data } = input;
-    
-    if (!data.familyName) {
-      throw new Error('缺少必要的姓氏信息');
-    }
-
-    const familyName = data.familyName.trim();
-    
-    // 分析姓氏信息
-    const analysis = await this.analyzeSurname(familyName);
-    
-    return {
-      pluginId: this.id,
-      results: {
-        familyName: familyName,
-        surname: familyName, // 保持向后兼容
-        strokes: analysis.strokes,
-        strokesTraditional: analysis.strokesTraditional,
-        wuxing: analysis.wuxing,
-        isSingleChar: analysis.isSingleChar,
-        isCompoundSurname: analysis.isCompoundSurname,
-        baijiaxingRank: analysis.baijiaxingRank,
-        metadata: {
-          source: 'baijiaxing',
-          confidence: analysis.confidence,
-          isCommon: analysis.isCommon
-        }
-      },
-      confidence: analysis.confidence,
-      metadata: {
-        processingTime: Date.now() - startTime,
-        dataSource: 'core-data'
-      }
-    };
-  }
-
-  /**
-   * 验证输入数据
-   */
-  validate(input: StandardInput): ValidationResult {
-    const { data } = input;
-    const errors: string[] = [];
-    const warnings: string[] = [];
-
-    if (!data.familyName) {
-      errors.push('姓氏信息不能为空');
-    } else {
-      const familyName = data.familyName.trim();
+    try {
+      // 初始化UnifiedCharacterLoader
+      await this.charLoader.initialize();
+      context.log?.('info', 'UnifiedCharacterLoader初始化完成');
       
-      // 验证姓氏长度
-      if (familyName.length === 0) {
-        errors.push('姓氏不能为空字符串');
-      } else if (familyName.length > 3) {
-        warnings.push('姓氏长度超过3个字符，可能不是有效姓氏');
-      }
-
-      // 验证字符类型
-      if (!/^[\u4e00-\u9fff]+$/.test(familyName)) {
-        errors.push('姓氏必须为汉字');
-      }
-
-      // 检查是否为常见姓氏
-      if (familyName.length === 1) {
-        // 单字姓氏检查（可以基于百家姓数据）
-        // TODO: 这里可以添加更具体的验证逻辑
-      }
+      // 加载百家姓数据
+      this.baijiaxingData = await this.loadBaijiaxingData();
+      
+      this.initialized = true;
+      context.log?.('info', `${this.id} 插件初始化成功`);
+    } catch (error) {
+      context.log?.('error', `${this.id} 插件初始化失败: ${error}`);
+      throw error;
     }
+  }
 
+  async validate(input: StandardInput): Promise<ValidationResult> {
+    if (!input.familyName || typeof input.familyName !== 'string') {
+      return {
+        valid: false,
+        errors: ['缺少必要参数：familyName (字符串类型)']
+      };
+    }
+    
+    if (input.familyName.trim().length === 0) {
+      return {
+        valid: false,
+        errors: ['姓氏不能为空']
+      };
+    }
+    
+    return { valid: true, errors: [] };
+  }
+
+  async process(input: StandardInput, context: PluginContext): Promise<PluginOutput> {
+    const startTime = Date.now();
+    
+    try {
+      if (!this.initialized) {
+        throw new Error('插件未初始化');
+      }
+
+      const familyName = input.familyName.trim();
+      context.log?.('info', `开始分析姓氏: ${familyName}`);
+      
+      // 根据文档《插件执行示例-吴姓男孩取名完整计算过程.md》实现
+      const analysis = await this.analyzeSurnameComplete(familyName, context);
+      
+      return {
+        success: true,
+        data: analysis,
+        confidence: analysis.dataQuality.completenessScore,
+        executionTime: Date.now() - startTime,
+        metadata: {
+          pluginId: this.id,
+          layer: this.layer,
+          dataSource: analysis.dataQuality.sourceType
+        }
+      };
+    } catch (error) {
+      context.log?.('error', `姓氏分析失败: ${error}`);
+      return {
+        success: false,
+        data: null,
+        confidence: 0,
+        executionTime: Date.now() - startTime,
+        errors: [error instanceof Error ? error.message : 'Unknown error']
+      };
+    }
+  }
+
+  /**
+   * 完整的姓氏分析 - 严格按照文档实现
+   */
+  private async analyzeSurnameComplete(familyName: string, context: PluginContext) {
+    // Step 1: 字符信息获取 (模拟UnifiedCharacterLoader的数据结构)
+    const characterInfo = await this.getCharacterInfo(familyName);
+    
+    // Step 2: 百家姓排名查询
+    const baijiaxingRank = this.getBaijiaxingRank(familyName);
+    
+    // Step 3: 计算衍生属性
+    const derivedProperties = this.calculateDerivedProperties(characterInfo, baijiaxingRank);
+    
+    // Step 4: 数据质量评估
+    const dataQuality = this.assessDataQuality(characterInfo, baijiaxingRank);
+    
     return {
-      valid: errors.length === 0,
-      errors,
-      warnings
+      familyName,
+      characterInfo: {
+        char: characterInfo.char,
+        traditional: characterInfo.traditional || characterInfo.char,
+        simplified: characterInfo.simplified || characterInfo.char,
+        pinyin: characterInfo.pinyin,
+        primaryPinyin: characterInfo.primaryPinyin,
+        tone: characterInfo.tone,
+        strokes: characterInfo.strokes,
+        radical: characterInfo.radical,
+        wuxing: characterInfo.wuxing,
+        meanings: characterInfo.meanings,
+        isStandard: characterInfo.isStandard,
+        sources: characterInfo.sources
+      },
+      derivedProperties,
+      dataQuality
     };
   }
 
   /**
-   * 分析姓氏详细信息
+   * 获取字符信息 - 使用UnifiedCharacterLoader
    */
-  private async analyzeSurname(surname: string) {
-    const isSingleChar = surname.length === 1;
-    const isCompoundSurname = surname.length > 1;
+  private async getCharacterInfo(char: string): Promise<UnifiedCharacterInfo> {
+    // 直接使用UnifiedCharacterLoader获取字符信息
+    return await this.charLoader.getCharacterInfo(char);
+  }
+
+
+
+  /**
+   * 百家姓排名查询 - 按照文档实现
+   */
+  private getBaijiaxingRank(surname: string): number {
+    // 模拟百家姓数据结构
+    const baijiaxingText = '赵钱孙李，周吴郑王。冯陈褚卫，蒋沈韩杨。';
+    const cleanText = baijiaxingText.replace(/[，。]/g, '');
     
-    // 计算笔画数
-    const strokes = await this.sancaiCalculator.getStrokes(surname, false);
-    const strokesTraditional = await this.sancaiCalculator.getStrokes(surname, true);
+    let position = 0;
+    for (const char of cleanText) {
+      position++;
+      if (char === surname) {
+        return position;
+      }
+    }
+    return -1; // 未找到
+  }
+
+  /**
+   * 计算衍生属性
+   */
+  private calculateDerivedProperties(charInfo: any, baijiaxingRank: number) {
+    const isSingleChar = charInfo.char.length === 1;
+    const isCompoundSurname = charInfo.char.length > 1;
     
-    // 获取五行属性 (简化实现，可以后续完善)
-    const wuxing = this.getWuxingBySurname(surname);
-    
-    // 获取百家姓排名 (简化实现)
-    const baijiaxingRank = await this.getBaijiaxingRank(surname);
-    
-    // 判断是否为常见姓氏
-    const isCommon = baijiaxingRank > 0 && baijiaxingRank <= 100;
+    // 天格计算 (单姓规则)
+    const tianGeBase = isSingleChar ? charInfo.strokes.traditional + 1 : charInfo.strokes.traditional;
     
     // 计算置信度
-    let confidence = 1.0;
-    if (!isCommon) confidence *= 0.8;
-    if (isCompoundSurname && surname.length > 2) confidence *= 0.7;
+    const confidence = this.calculateConfidence(charInfo, baijiaxingRank);
     
     return {
-      strokes,
-      strokesTraditional,
-      wuxing,
       isSingleChar,
       isCompoundSurname,
-      baijiaxingRank,
-      isCommon,
+      baijiaxingRank: baijiaxingRank > 0 ? baijiaxingRank : -1,
+      tianGeBase,
+      calculationStrokes: charInfo.strokes.traditional, // ⚠️ 命理计算专用
       confidence
     };
   }
 
   /**
-   * 根据姓氏获取五行属性
-   * TODO: 这里可以实现更复杂的五行判断逻辑
+   * 数据质量评估
    */
-  private getWuxingBySurname(surname: string): string {
-    // 简化实现：基于第一个字符的部首判断
-    // 实际应该使用更专业的五行字典
-    const firstChar = surname[0];
-    
-    // 常见的五行映射（简化版）
-    const wuxingMap: Record<string, string[]> = {
-      '金': ['刘', '金', '申', '李', '钟', '谢', '秦'],
-      '木': ['林', '李', '杨', '朱', '柳', '梁', '杜'],
-      '水': ['王', '江', '池', '汤', '汪', '潘', '洪'],
-      '火': ['陈', '张', '赵', '许', '邓', '夏', '南'],
-      '土': ['黄', '吴', '袁', '白', '石', '田', '王']
-    };
-    
-    for (const [element, surnames] of Object.entries(wuxingMap)) {
-      if (surnames.includes(firstChar)) {
-        return element;
-      }
-    }
-    
-    return 'unknown'; // 默认返回未知
-  }
-
-  /**
-   * 获取百家姓排名
-   * TODO: 基于实际的百家姓数据实现
-   */
-  private async getBaijiaxingRank(surname: string): Promise<number> {
-    try {
-      // 尝试从百家姓数据中查找
-      // 这里是简化实现，实际应该加载百家姓数据文件
-      const commonSurnamesRank: Record<string, number> = {
-        '王': 1, '李': 2, '张': 3, '刘': 4, '陈': 5,
-        '杨': 6, '黄': 7, '赵': 8, '吴': 9, '周': 10,
-        '徐': 11, '孙': 12, '马': 13, '朱': 14, '胡': 15,
-        '林': 16, '郭': 17, '何': 18, '高': 19, '罗': 20
-      };
-      
-      return commonSurnamesRank[surname[0]] || 0;
-    } catch (error) {
-      console.warn('获取百家姓排名失败:', error);
-      return 0;
-    }
-  }
-
-  /**
-   * 销毁插件，清理资源
-   */
-  async destroy(): Promise<void> {
-    // 清理资源
-    console.log('姓氏插件销毁完成');
-  }
-
-  /**
-   * 检查插件是否可用
-   */
-  isAvailable(): boolean {
-    return this.dataLoader !== null && this.sancaiCalculator !== null;
-  }
-
-  /**
-   * 获取插件健康状态
-   */
-  getHealthStatus(): {
-    status: 'healthy' | 'degraded' | 'unhealthy';
-    message: string;
-    lastCheck: number;
-  } {
-    const isHealthy = this.isAvailable() && this.config !== null;
+  private assessDataQuality(charInfo: any, baijiaxingRank: number) {
+    const sourceType = charInfo.sources.includes('百家姓') ? 'final-enhanced-character-database' : 'fallback';
+    const completenessScore = this.calculateCompleteness(charInfo);
+    const fallbackUsed = sourceType === 'fallback';
+    const validationPassed = charInfo.isStandard && charInfo.strokes.traditional > 0;
     
     return {
-      status: isHealthy ? 'healthy' : 'degraded',
-      message: isHealthy ? '插件运行正常' : '插件未完全初始化',
-      lastCheck: Date.now()
+      sourceType,
+      completenessScore,
+      fallbackUsed,
+      validationPassed,
+      isValidNamingCharacter: charInfo.isStandard && validationPassed
+    };
+  }
+
+  /**
+   * 计算置信度
+   */
+  private calculateConfidence(charInfo: any, baijiaxingRank: number): number {
+    let confidence = 0.5; // 基础置信度
+    
+    if (charInfo.isStandard) confidence += 0.2;
+    if (charInfo.strokes.traditional > 0) confidence += 0.2;
+    if (baijiaxingRank > 0) confidence += 0.1;
+    if (charInfo.sources.length > 1) confidence += 0.1;
+    
+    return Math.min(confidence, 1.0);
+  }
+
+  /**
+   * 计算数据完整性得分
+   */
+  private calculateCompleteness(charInfo: any): number {
+    const fields = [
+      charInfo.primaryPinyin,
+      charInfo.tone > 0,
+      charInfo.strokes.traditional > 0,
+      charInfo.wuxing,
+      charInfo.radical,
+      charInfo.meanings.length > 0
+    ];
+    
+    const completedFields = fields.filter(Boolean).length;
+    return completedFields / fields.length;
+  }
+
+  /**
+   * 加载百家姓数据
+   */
+  private async loadBaijiaxingData() {
+    // TODO: 从实际的baijiaxing.json文件加载
+    return {
+      title: '百家姓',
+      paragraphs: [
+        '赵钱孙李，周吴郑王。',
+        '冯陈褚卫，蒋沈韩杨。',
+        // ... 更多百家姓内容
+      ]
     };
   }
 }
