@@ -117,8 +117,8 @@ export class TruePluginEngine {
       'character-filter',
       // Layer 5: 名字生成层
       'name-combination',
-      // Layer 6: 名字评分层
-      'comprehensive-scoring'
+      // Layer 6: 名字评分层 (完整的5个评分插件)
+      'sancai-scoring', 'phonetic-scoring', 'wuxing-balance-scoring', 'dayan-scoring', 'comprehensive-scoring'
     ];
 
     this.log('info', '🔄 开始注册插件', undefined, undefined, {
@@ -129,7 +129,6 @@ export class TruePluginEngine {
     for (const pluginType of pluginTypes) {
       try {
         await this.container.registerPlugin(pluginType);
-        this.log('info', `✅ 插件注册成功: ${pluginType}`);
       } catch (error) {
         this.log('warn', `⚠️ 插件注册失败: ${pluginType}`, undefined, undefined, { 
           error: error instanceof Error ? error.message : String(error),
@@ -272,7 +271,7 @@ export class TruePluginEngine {
    */
   private async executePipeline(input: StandardInput): Promise<any> {
     const pluginResults = new Map();
-    const certaintyLevel = input.certaintyLevel;
+    const certaintyLevel = input.preferences?.certaintyLevel || CertaintyLevel.FULLY_DETERMINED;
     
     this.log('info', '📊 开始分层执行插件', undefined, undefined, {
       certaintyLevel: this.getCertaintyLevelName(certaintyLevel),
@@ -350,10 +349,7 @@ export class TruePluginEngine {
         
         // 详细的结果日志
         this.logPluginResult(pluginId, 1, result);
-        
-        this.log('info', `✅ 插件执行成功: ${pluginId}`, pluginId, 1, {
-          confidence: result.confidence
-        });
+
         
       } catch (error) {
         this.log('error', `❌ 插件执行失败: ${pluginId}`, pluginId, 1, { error });
@@ -394,10 +390,7 @@ export class TruePluginEngine {
         
         // 详细的结果日志
         this.logPluginResult(pluginId, 2, result);
-        
-        this.log('info', `✅ 插件执行成功: ${pluginId}`, pluginId, 2, {
-          confidence: result.confidence
-        });
+
         
       } catch (error) {
         this.log('error', `❌ 插件执行失败: ${pluginId}`, pluginId, 2, { error });
@@ -438,10 +431,7 @@ export class TruePluginEngine {
         
         // 详细的结果日志
         this.logPluginResult(pluginId, 3, result);
-        
-        this.log('info', `✅ 插件执行成功: ${pluginId}`, pluginId, 3, {
-          confidence: result.confidence
-        });
+
         
       } catch (error) {
         this.log('error', `❌ 插件执行失败: ${pluginId}`, pluginId, 3, { error });
@@ -477,11 +467,7 @@ export class TruePluginEngine {
         
         // 详细的结果日志
         this.logPluginResult(pluginId, 4, result);
-        
-        this.log('info', `✅ 插件执行成功: ${pluginId}`, pluginId, 4, {
-          confidence: result.confidence,
-          namesGenerated: result.results?.names?.length || 0
-        });
+
         
       } catch (error) {
         this.log('error', `❌ 插件执行失败: ${pluginId}`, pluginId, 4, { error });
@@ -517,11 +503,7 @@ export class TruePluginEngine {
         
         // 详细的结果日志
         this.logPluginResult(pluginId, 5, result);
-        
-        this.log('info', `✅ 插件执行成功: ${pluginId}`, pluginId, 5, {
-          confidence: result.confidence,
-          namesGenerated: result.data?.nameCandidates?.length || 0
-        });
+
         
       } catch (error) {
         this.log('error', `❌ 插件执行失败: ${pluginId}`, pluginId, 5, { error });
@@ -635,75 +617,76 @@ export class TruePluginEngine {
    * 格式化插件结果摘要
    */
   private formatPluginResultSummary(pluginId: string, result: any): any {
-    const { results } = result;
+    // 修复：统一使用 data 字段而不是 results
+    const data = result?.data;
     
     switch (pluginId) {
       case 'surname':
         return {
-          familyName: results?.familyName,
-          strokes: results?.strokes,
-          wuxing: results?.wuxing,
-          pronunciation: results?.pronunciation
+          familyName: data?.familyName,
+          strokes: data?.characterInfo?.strokes?.traditional,
+          wuxing: data?.characterInfo?.wuxing,
+          pronunciation: data?.characterInfo?.primaryPinyin
         };
 
       case 'gender':
         return {
-          gender: results?.gender,
-          preferredCharacteristics: results?.preferredCharacteristics?.slice(0, 3),
-          avoidedCharacteristics: results?.avoidedCharacteristics?.slice(0, 3)
+          gender: data?.gender,
+          preferredCharacteristics: data?.characterFilter,
+          avoidedCharacteristics: data?.literarySourcePreference?.discouraged
         };
 
       case 'birth-time':
         return {
-          birthInfo: results?.birthInfo,
-          lunarInfo: results?.lunarInfo,
-          seasonalInfo: results?.seasonalInfo
+          birthInfo: data?.birthInfo,
+          lunarInfo: data?.lunarInfo,
+          seasonalInfo: data?.seasonalInfo
         };
 
       case 'zodiac':
         return {
-          zodiac: results?.zodiac,
-          element: results?.element,
-          favorableCharacters: results?.favorableCharacters?.slice(0, 5),
-          unfavorableCharacters: results?.unfavorableCharacters?.slice(0, 5)
+          zodiac: data?.zodiacAnalysis?.zodiacInfo?.animal || data?.primaryZodiac,
+          element: data?.zodiacAnalysis?.zodiacInfo?.element,
+          favorableCharacters: data?.zodiacAnalysis?.zodiacInfo?.favorableCharacters?.slice(0, 5) || [],
+          unfavorableCharacters: data?.zodiacAnalysis?.zodiacInfo?.unfavorableCharacters?.slice(0, 5) || []
         };
 
       case 'xiyongshen':
         return {
-          favoredElements: results?.favoredElements,
-          avoidedElements: results?.avoidedElements,
-          elementalBalance: results?.elementalBalance,
-          strengthAnalysis: results?.strengthAnalysis
+          favoredElements: data?.recommendations?.primaryElements || data?.analysis?.yongShen,
+          avoidedElements: data?.recommendations?.avoidElements || data?.analysis?.jiShen,
+          elementalBalance: data?.recommendations?.balanceStrategy,
+          strengthAnalysis: data?.analysis?.strongWeak
         };
 
       case 'stroke':
         return {
-          bestCombinations: results?.bestCombinations?.slice(0, 3),
-          familyNameStrokes: results?.familyNameStrokes,
-          analysisType: results?.analysisType,
-          totalCombinations: results?.totalCombinations
+          bestCombinations: data?.bestCombinations?.slice(0, 3),
+          familyNameStrokes: data?.familyNameStrokes,
+          analysisType: data?.analysisType,
+          totalCombinations: data?.totalCombinations
         };
 
       case 'wuxing-char':
         return {
-          candidateCount: results?.candidatesByElement ? Object.values(results.candidatesByElement).reduce((sum: number, arr: any) => sum + (Array.isArray(arr) ? arr.length : 0), 0) : 0,
-          targetElements: results?.targetElements,
-          elementDistribution: results?.elementDistribution
+          candidateCount: data?.candidatesByElement ? Object.values(data.candidatesByElement).reduce((sum: number, arr: any) => sum + (Array.isArray(arr) ? arr.length : 0), 0) : 0,
+          targetElements: data?.targetElements,
+          elementDistribution: data?.elementDistribution
         };
 
       case 'zodiac-char':
         return {
-          suitableCharacters: results?.suitableCharacters?.length || 0,
-          unsuitable: results?.unsuitable?.length || 0,
-          zodiacCompatibility: results?.zodiacCompatibility,
-          recommendations: results?.recommendations
+          suitableCharacters: data?.suitableCharacters?.length || 0,
+          unsuitable: data?.unsuitable?.length || 0,
+          zodiacCompatibility: data?.zodiacCompatibility,
+          recommendations: data?.recommendations
         };
 
       case 'meaning':
         return {
-          analyzedCharacters: results?.characterAnalysis?.length || 0,
-          averageScore: results?.averageScore,
-          topMeanings: results?.characterAnalysis?.slice(0, 3)?.map((c: any) => ({
+          analyzedCharacters: data?.characterAnalysis?.length || 0,
+          averageScore: data?.averageScore,
+          topMeanings: data?.characterAnalysis?.slice(0, 3)?.map((c: any) => ({
             char: c.character,
             score: c.totalScore,
             meanings: c.meanings?.slice(0, 2)
@@ -712,26 +695,63 @@ export class TruePluginEngine {
 
       case 'phonetic':
         return {
-          harmonyScore: results?.harmonyAnalysis?.overallScore,
-          tonePattern: results?.harmonyAnalysis?.tonePattern,
-          recommendations: results?.recommendations?.slice(0, 3)
+          harmonyScore: data?.harmonyAnalysis?.overallScore,
+          tonePattern: data?.harmonyAnalysis?.tonePattern,
+          recommendations: data?.recommendations?.slice(0, 3)
         };
 
       case 'name-generation':
         return {
-          namesGenerated: results?.names?.length || 0,
-          averageScore: results?.averageScore,
-          topNames: results?.names?.slice(0, 3)?.map((name: any) => ({
+          namesGenerated: data?.names?.length || 0,
+          averageScore: data?.averageScore,
+          topNames: data?.names?.slice(0, 3)?.map((name: any) => ({
             name: name.name,
             score: name.totalScore,
             reasoning: name.reasoning?.slice(0, 2)
           }))
         };
 
+      case 'wuxing-selection':
+        return {
+          primaryElements: data?.baseStrategy?.primaryElements,
+          avoidElements: data?.baseStrategy?.avoidElements,
+          targetCombination: data?.baseStrategy?.targetCombination,
+          strategicPrinciple: data?.baseStrategy?.strategicPrinciple
+        };
+
+      case 'zodiac-selection':
+        return {
+          approachType: data?.selectionStrategy?.approachType,
+          highlyRecommended: data?.characterCriteria?.highlyRecommended?.characters?.slice(0, 3),
+          discouraged: data?.characterCriteria?.discouraged?.characters?.slice(0, 3),
+          forbidden: data?.characterCriteria?.forbidden?.characters?.slice(0, 3)
+        };
+
+      case 'meaning-selection':
+        return {
+          culturalDepth: data?.selectionStrategy?.culturalDepth,
+          preferredCategories: data?.semanticCriteria?.preferredSemantics?.map((s: any) => s.category)?.slice(0, 2),
+          literarySources: data?.culturalCriteria?.literarySources?.slice(0, 3)
+        };
+
+      case 'stroke-selection':
+        return {
+          recommendedType: data?.nameTypeSettings?.recommendedType,
+          bestCombinations: data?.recommendations?.doubleCharBest?.slice(0, 2),
+          familyNameStrokes: data?.surnameInfo?.familyNameStrokes
+        };
+
+      case 'phonetic-selection':
+        return {
+          surnameInfo: `${data?.phoneticAnalysis?.surnameInfo?.pinyin}(${data?.phoneticAnalysis?.surnameInfo?.tone}声)`,
+          preferredPatterns: data?.phoneticCriteria?.preferredTonePatterns?.slice(0, 3),
+          harmonyThreshold: data?.phoneticCriteria?.harmonyThreshold
+        };
+
       default:
         return {
-          hasResults: !!results,
-          keyFields: results ? Object.keys(results).slice(0, 5) : []
+          hasResults: !!data,
+          keyFields: data ? Object.keys(data).slice(0, 5) : []
         };
     }
   }
@@ -740,7 +760,7 @@ export class TruePluginEngine {
    * 提取分析数据
    */
   private extractAnalysisData(pluginId: string, result: any): any {
-    const { results, metadata } = result;
+    const { data, metadata } = result;
     
     const analysisData: any = {
       processingTime: metadata?.processingTime,
@@ -750,15 +770,15 @@ export class TruePluginEngine {
 
     switch (pluginId) {
       case 'stroke':
-        if (results?.strokeData) {
-          analysisData.strokeDetails = results.strokeData.map((item: any) => ({
+        if (data?.strokeData) {
+          analysisData.strokeDetails = data.strokeData.map((item: any) => ({
             char: item.character,
             strokes: item.strokes,
             source: item.source
           }));
         }
-        if (results?.combinations) {
-          analysisData.combinations = results.combinations.map((combo: any) => ({
+        if (data?.combinations) {
+          analysisData.combinations = data.combinations.map((combo: any) => ({
             pattern: combo.combination.join('+'),
             suitability: combo.suitability,
             notes: combo.notes
@@ -767,30 +787,30 @@ export class TruePluginEngine {
         break;
 
       case 'xiyongshen':
-        if (results?.bazi) {
+        if (data?.bazi) {
           analysisData.baziAnalysis = {
-            heavenlyStems: results.bazi.heavenlyStems,
-            earthlyBranches: results.bazi.earthlyBranches,
-            elementCount: results.bazi.elementCount
+            heavenlyStems: data.bazi.heavenlyStems,
+            earthlyBranches: data.bazi.earthlyBranches,
+            elementCount: data.bazi.elementCount
           };
         }
         break;
 
       case 'wuxing-char':
-        if (results?.candidatesByElement) {
+        if (data?.candidatesByElement) {
           analysisData.elementCandidates = {};
-          for (const [element, chars] of Object.entries(results.candidatesByElement)) {
+          for (const [element, chars] of Object.entries(data.candidatesByElement)) {
             analysisData.elementCandidates[element] = Array.isArray(chars) ? chars.length : 0;
           }
         }
         break;
 
       case 'name-generation':
-        if (results?.names && results.names.length > 0) {
+        if (data?.names && data.names.length > 0) {
           analysisData.scoreDistribution = {
-            highest: Math.max(...results.names.map((n: any) => n.totalScore || 0)),
-            lowest: Math.min(...results.names.map((n: any) => n.totalScore || 0)),
-            average: results.names.reduce((sum: number, n: any) => sum + (n.totalScore || 0), 0) / results.names.length
+            highest: Math.max(...data.names.map((n: any) => n.totalScore || 0)),
+            lowest: Math.min(...data.names.map((n: any) => n.totalScore || 0)),
+            average: data.names.reduce((sum: number, n: any) => sum + (n.totalScore || 0), 0) / data.names.length
           };
         }
         break;
@@ -804,52 +824,52 @@ export class TruePluginEngine {
    */
   private extractDecisionBasis(pluginId: string, result: any): string[] {
     const decisions: string[] = [];
-    const { results } = result;
+    const { data } = result;
 
     switch (pluginId) {
       case 'surname':
-        if (results?.strokes) {
-          decisions.push(`姓氏笔画数: ${results.strokes}`);
+        if (data?.strokes) {
+          decisions.push(`姓氏笔画数: ${data.strokes}`);
         }
-        if (results?.wuxing) {
-          decisions.push(`姓氏五行: ${results.wuxing}`);
+        if (data?.wuxing) {
+          decisions.push(`姓氏五行: ${data.wuxing}`);
         }
         break;
 
       case 'xiyongshen':
-        if (results?.favoredElements) {
-          decisions.push(`喜用神: ${results.favoredElements.join('、')}`);
+        if (data?.favoredElements) {
+          decisions.push(`喜用神: ${data.favoredElements.join('、')}`);
         }
-        if (results?.avoidedElements) {
-          decisions.push(`忌用神: ${results.avoidedElements.join('、')}`);
+        if (data?.avoidedElements) {
+          decisions.push(`忌用神: ${data.avoidedElements.join('、')}`);
         }
         break;
 
       case 'stroke':
-        if (results?.bestCombinations && results.bestCombinations.length > 0) {
-          const best = results.bestCombinations[0];
+        if (data?.bestCombinations && data.bestCombinations.length > 0) {
+          const best = data.bestCombinations[0];
           decisions.push(`最佳笔画组合: ${best.mid}+${best.last} (总分:${best.score})`);
           decisions.push(`三才类型: ${best.sancaiType}`);
         }
         break;
 
       case 'wuxing-char':
-        if (results?.targetElements) {
-          decisions.push(`目标五行: ${results.targetElements.join('、')}`);
+        if (data?.targetElements) {
+          decisions.push(`目标五行: ${data.targetElements.join('、')}`);
         }
         break;
 
       case 'zodiac-char':
-        if (results?.zodiacCompatibility) {
-          decisions.push(`生肖: ${results.zodiacCompatibility.zodiac}`);
-          decisions.push(`生肖五行: ${results.zodiacCompatibility.element}`);
+        if (data?.zodiacCompatibility) {
+          decisions.push(`生肖: ${data.zodiacCompatibility.zodiac}`);
+          decisions.push(`生肖五行: ${data.zodiacCompatibility.element}`);
         }
         break;
 
       case 'name-generation':
-        if (results?.names && results.names.length > 0) {
-          decisions.push(`生成名字数量: ${results.names.length}`);
-          decisions.push(`最高分名字: ${results.names[0]?.name} (${results.names[0]?.totalScore}分)`);
+        if (data?.names && data.names.length > 0) {
+          decisions.push(`生成名字数量: ${data.names.length}`);
+          decisions.push(`最高分名字: ${data.names[0]?.name} (${data.names[0]?.totalScore}分)`);
         }
         break;
     }
@@ -863,31 +883,32 @@ export class TruePluginEngine {
   private getEnabledPluginsForLevel(certaintyLevel: CertaintyLevel): string[] {
     switch (certaintyLevel) {
       case CertaintyLevel.FULLY_DETERMINED:
-        // Level 1: 完全确定 - 所有15个插件
+        // Level 1: 完全确定 - 所有18个插件
         return [
           'surname', 'gender', 'birth-time',
           'bazi', 'zodiac', 'xiyongshen',
           'wuxing-selection', 'zodiac-selection', 'meaning-selection', 'stroke-selection', 'phonetic-selection',
           'character-filter', 'name-combination',
-          'comprehensive-scoring'
+          'sancai-scoring', 'phonetic-scoring', 'wuxing-balance-scoring', 'dayan-scoring', 'comprehensive-scoring'
         ];
       
       case CertaintyLevel.PARTIALLY_DETERMINED:
-        // Level 2: 部分确定 - 13个插件（去掉精确时辰相关）
+        // Level 2: 部分确定 - 15个插件（去掉八字精确分析）
         return [
           'surname', 'gender', 'birth-time',
           'zodiac', 'xiyongshen',
           'wuxing-selection', 'zodiac-selection', 'meaning-selection', 'stroke-selection', 'phonetic-selection',
           'character-filter', 'name-combination',
-          'comprehensive-scoring'
+          'sancai-scoring', 'phonetic-scoring', 'comprehensive-scoring'
         ];
       
       case CertaintyLevel.ESTIMATED:
-        // Level 3: 预估阶段 - 9个核心插件
+        // Level 3: 预估阶段 - 10个核心插件
         return [
           'surname', 'gender', 'birth-time',
-          'zodiac', 'meaning-selection',
-          'name-combination', 'comprehensive-scoring'
+          'zodiac', 'wuxing-selection', 'meaning-selection',
+          'character-filter', 'name-combination', 
+          'sancai-scoring', 'comprehensive-scoring'
         ];
       
       case CertaintyLevel.UNKNOWN:
@@ -962,9 +983,12 @@ export class TruePluginEngine {
         // 详细的结果日志
         this.logPluginResult(pluginId, layer, result);
         
-        this.log('info', `✅ 插件执行成功: ${pluginId}`, pluginId, layer, {
-          confidence: result.confidence
-        });
+        // 检查插件是否真正成功 - 如果data为null或undefined，认为是失败
+        if (!result.success || result.data === null || result.data === undefined) {
+          throw new Error(`插件 ${pluginId} 执行失败: 返回数据为空或无效`);
+        }
+
+
         
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
@@ -976,11 +1000,14 @@ export class TruePluginEngine {
           errorType: error?.constructor?.name || 'Unknown'
         });
         
-        // 根据确定性等级决定是否继续执行
-        if (input.certaintyLevel === CertaintyLevel.FULLY_DETERMINED && this.isCriticalPlugin(pluginId)) {
-          throw error; // 在完全确定模式下，关键插件失败应该停止执行
+        // 修复：任何插件失败都应该停止执行，除非明确标记为可选
+        if (this.isCriticalPlugin(pluginId) || input.certaintyLevel === CertaintyLevel.FULLY_DETERMINED) {
+          this.log('error', `🛑 关键插件 ${pluginId} 失败，停止执行后续插件`, pluginId, layer);
+          throw error; // 关键插件失败或完全确定模式下，停止执行
         }
-        // 其他情况继续执行
+        
+        // 可选插件失败时继续执行，但记录警告
+        this.log('warn', `⚠️ 可选插件 ${pluginId} 失败，继续执行后续插件`, pluginId, layer);
       }
     }
   }
@@ -995,11 +1022,21 @@ export class TruePluginEngine {
       3: ['wuxing-selection', 'zodiac-selection', 'meaning-selection', 'stroke-selection', 'phonetic-selection'],
       4: ['character-filter'],
       5: ['name-combination'],
-      6: ['comprehensive-scoring']
+      6: ['sancai-scoring', 'phonetic-scoring', 'wuxing-balance-scoring', 'dayan-scoring', 'comprehensive-scoring']
     };
 
     const layerPlugins = layerPluginMap[layer] || [];
-    return layerPlugins.filter(plugin => enabledPlugins.includes(plugin));
+    const filteredPlugins = layerPlugins.filter(plugin => enabledPlugins.includes(plugin));
+    
+    // 调试日志
+    this.log('debug', `🔍 Layer ${layer} 插件过滤调试`, undefined, undefined, {
+      layerPlugins,
+      enabledPlugins: enabledPlugins.slice(0, 10), // 只显示前10个避免日志过长
+      filteredPlugins,
+      totalEnabledCount: enabledPlugins.length
+    });
+    
+    return filteredPlugins;
   }
 
   /**

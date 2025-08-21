@@ -48,7 +48,6 @@ export class NameCombinationPlugin implements Layer5Plugin {
 
   async initialize(config: PluginConfig, context: PluginContext): Promise<void> {
     this.initialized = true;
-    context.log?.('info', `${this.id} 插件初始化成功`);
   }
 
   async validate(input: StandardInput): Promise<ValidationResult> {
@@ -114,37 +113,147 @@ export class NameCombinationPlugin implements Layer5Plugin {
   }
 
   /**
-   * 获取字符筛选结果 - 模拟从插件上下文获取
-   * TODO: 从实际的插件执行上下文获取
+   * 获取字符筛选结果 - 从Layer 4插件上下文获取真实数据
    */
   private async getCharacterFilterResult(context: PluginContext) {
-    // 模拟字符筛选结果 - 基于文档示例
+    // 从插件上下文获取Layer 4的真实字符筛选结果
+    const characterFilterResult = context.getPluginResult?.('character-filter');
+    
+    context.log?.('info', `🔍 获取Layer4字符筛选结果: ${characterFilterResult ? '✅' : '❌'}`);
+    
+    if (!characterFilterResult?.success || !characterFilterResult?.data?.candidatePool) {
+      context.log?.('warn', '未获取到Layer4字符筛选结果，使用默认候选字符');
+      
+      // fallback到基本字符集
+      const fallbackChars = ['钦', '宣', '润', '锦', '浩', '铭', '峰', '磊', '森', '林'];
+      
+      return {
+        candidatePool: {
+          firstCharCandidates: fallbackChars.slice(0, 5).map(char => ({
+            character: char,
+            scores: { wuxing: 85, zodiac: 80, meaning: 85, stroke: 85, overall: 83.75 },
+            metadata: { strokes: 10, wuxing: 'jin', meaning: '默认含义', culturalLevel: 80 }
+          })),
+          secondCharCandidates: fallbackChars.slice(5, 10).map(char => ({
+            character: char,
+            scores: { wuxing: 85, zodiac: 80, meaning: 85, stroke: 85, overall: 83.75 },
+            metadata: { strokes: 12, wuxing: 'shui', meaning: '默认含义', culturalLevel: 80 }
+          }))
+        }
+      };
+    }
+    
+    // 使用Layer 4的真实数据
+    const layer4Data = characterFilterResult.data;
+    
+    context.log?.('info', `🔍 Layer4返回数据结构调试: ${JSON.stringify(layer4Data, null, 2).slice(0, 500)}...`);
+    
+    const candidatePool = layer4Data?.candidatePool || layer4Data?.phoneticFiltered || [];
+    
+    context.log?.('info', `📊 Layer4候选字符池大小: ${candidatePool.length}`);
+    
+    // Layer 4已经完成了所有筛选，包括笔画筛选
+    // Layer 5只需要格式转换和分组，不需要重复筛选
+    context.log?.('info', `✅ Layer4已完成筛选，直接使用筛选结果，不进行重复筛选`);
+    
+    // 将Layer 4的字符数据转换为Layer 5需要的格式
+    const convertedCandidates = candidatePool.map((char: any) => ({
+      character: char.character || char.char,
+      scores: char.scores || { 
+        wuxing: char.wuxingScore || 85, 
+        zodiac: char.zodiacScore || 80, 
+        meaning: char.meaningScore || 85, 
+        stroke: char.strokeScore || 85,
+        overall: ((char.wuxingScore || 85) + (char.zodiacScore || 80) + (char.meaningScore || 85) + (char.strokeScore || 85)) / 4
+      },
+      metadata: char.metadata || { 
+        strokes: char.strokes, 
+        wuxing: char.wuxing, 
+        meaning: char.meaning || '暂无含义', 
+        culturalLevel: char.culturalLevel || 80 
+      }
+    }));
+    
+    // 直接分组，不再按笔画筛选（Layer 4已经筛选过了）
+    const midIndex = Math.ceil(convertedCandidates.length / 2);
+    const result = {
+      candidatePool: {
+        firstCharCandidates: convertedCandidates.slice(0, midIndex),
+        secondCharCandidates: convertedCandidates.slice(midIndex)
+      }
+    };
+    
+    context.log?.('info', `🔤 直接分组结果 - 第一字候选: ${result.candidatePool.firstCharCandidates.length}个, 第二字候选: ${result.candidatePool.secondCharCandidates.length}个`);
+    
+    return result;
+  }
+
+  /**
+   * 获取笔画策略要求
+   */
+  private getStrokeRequirements(context: PluginContext) {
+    const strokeSelectionResult = context.getPluginResult?.('stroke-selection');
+    
+    if (!strokeSelectionResult?.success || !strokeSelectionResult?.data) {
+      context.log?.('warn', '未获取到笔画策略结果，使用默认笔画组合');
+      // 默认笔画组合
+      return {
+        doubleCharCombinations: [
+          { firstCharStrokes: 9, secondCharStrokes: 16, pattern: '7-9-16' },
+          { firstCharStrokes: 11, secondCharStrokes: 14, pattern: '7-11-14' }
+        ]
+      };
+    }
+    
+    const strokeData = strokeSelectionResult.data;
+    
+    // 从不同可能的数据结构中提取笔画组合
+    const strokeCombinations = strokeData.strokeCombinations || strokeData;
+    
+    return {
+      doubleCharCombinations: strokeCombinations.doubleCharCombinations || [],
+      singleCharCombinations: strokeCombinations.singleCharCombinations || []
+    };
+  }
+
+  /**
+   * 根据笔画要求筛选字符
+   */
+  private filterCharactersByStrokeRequirements(candidates: any[], strokeRequirements: any, context: PluginContext) {
+    const { doubleCharCombinations = [] } = strokeRequirements;
+    
+    if (doubleCharCombinations.length === 0) {
+      context.log?.('warn', '没有双字笔画组合要求，按平均分配');
+      const midIndex = Math.ceil(candidates.length / 2);
+      return {
+        candidatePool: {
+          firstCharCandidates: candidates.slice(0, midIndex),
+          secondCharCandidates: candidates.slice(midIndex)
+        }
+      };
+    }
+    
+    // 提取所有要求的第一字和第二字笔画数
+    const requiredFirstStrokes = [...new Set(doubleCharCombinations.map((combo: any) => combo.firstCharStrokes))];
+    const requiredSecondStrokes = [...new Set(doubleCharCombinations.map((combo: any) => combo.secondCharStrokes))];
+    
+    context.log?.('info', `📏 要求的第一字笔画: [${requiredFirstStrokes.join(',')}], 第二字笔画: [${requiredSecondStrokes.join(',')}]`);
+    
+    // 按笔画要求筛选字符
+    const firstCharCandidates = candidates.filter(char => 
+      requiredFirstStrokes.includes(char.metadata.strokes)
+    );
+    
+    const secondCharCandidates = candidates.filter(char => 
+      requiredSecondStrokes.includes(char.metadata.strokes)
+    );
+    
+    context.log?.('info', `🔍 笔画筛选结果: 第一字符合${firstCharCandidates.length}个, 第二字符合${secondCharCandidates.length}个`);
+    
     return {
       candidatePool: {
-        firstCharCandidates: [
-          {
-            character: '钦',
-            scores: { wuxing: 95, zodiac: 75, meaning: 85, stroke: 95, overall: 87.5 },
-            metadata: { strokes: 12, wuxing: '金', meaning: '恭敬钦佩', culturalLevel: 85 }
-          },
-          {
-            character: '宣',
-            scores: { wuxing: 85, zodiac: 95, meaning: 80, stroke: 95, overall: 88.75 },
-            metadata: { strokes: 9, wuxing: '金', meaning: '宣扬传播', culturalLevel: 80 }
-          }
-        ],
-        secondCharCandidates: [
-          {
-            character: '润',
-            scores: { wuxing: 95, zodiac: 80, meaning: 88, stroke: 95, overall: 89.5 },
-            metadata: { strokes: 16, wuxing: '水', meaning: '润泽滋润', culturalLevel: 85 }
-          },
-          {
-            character: '锦',
-            scores: { wuxing: 90, zodiac: 75, meaning: 90, stroke: 95, overall: 87.5 },
-            metadata: { strokes: 16, wuxing: '金', meaning: '锦绣前程', culturalLevel: 88 }
-          }
-        ]
+        firstCharCandidates,
+        secondCharCandidates
       }
     };
   }

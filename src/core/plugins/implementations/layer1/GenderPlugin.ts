@@ -41,7 +41,6 @@ export class GenderPlugin implements Layer1Plugin {
 
   async initialize(config: PluginConfig, context: PluginContext): Promise<void> {
     this.initialized = true;
-    context.log?.('info', `${this.id} 插件初始化成功`);
   }
 
   async validate(input: StandardInput): Promise<ValidationResult> {
@@ -71,7 +70,18 @@ export class GenderPlugin implements Layer1Plugin {
       
       return {
         success: true,
-        data: analysis,
+        data: {
+          gender: gender,
+          preferredCharacteristics: {
+            preferMasculine: analysis.characterFilter.preferMasculine,
+            avoidFeminine: analysis.characterFilter.avoidFeminine,
+            culturalDepth: analysis.characterFilter.culturalDepth
+          },
+          avoidedCharacteristics: analysis.literarySourcePreference.discouraged,
+          literarySourcePreference: analysis.literarySourcePreference,
+          characterFilter: analysis.characterFilter,
+          confidence: analysis.confidence
+        },
         confidence: 1.0, // 性别信息确定性高
         executionTime: Date.now() - startTime,
         metadata: {
@@ -113,13 +123,14 @@ export class GenderPlugin implements Layer1Plugin {
   /**
    * 获取典籍来源偏好
    * 对应文档中的 literarySourcePreference 使用场景
+   * 修复：男楚辞女诗经，但不是绝对排斥
    */
   private getLiterarySourcePreference(gender: 'male' | 'female') {
     if (gender === 'male') {
       return {
         preferred: ['楚辞'],           // 首选：男楚辞
-        secondary: ['论语', '易经'],    // 次选：儒家经典、哲学典籍
-        discouraged: ['诗经']          // 不推荐：女诗经
+        secondary: ['论语', '易经', '诗经'],  // 次选：诗经也可以作为男孩的次选
+        discouraged: []               // 修复：不应该排斥诗经
       };
     } else {
       return {

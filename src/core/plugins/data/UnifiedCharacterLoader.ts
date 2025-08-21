@@ -100,8 +100,6 @@ export class UnifiedCharacterLoader {
   }
 
   private async performInitialization(): Promise<void> {
-    console.log('🔄 初始化UnifiedCharacterLoader...');
-    
     try {
       // 1. 加载主数据库 - final-enhanced-character-database.json
       await this.loadFinalEnhancedDatabase();
@@ -113,173 +111,174 @@ export class UnifiedCharacterLoader {
       await this.loadPinyinDatabase();
       
       this.isInitialized = true;
-      console.log('✅ UnifiedCharacterLoader初始化完成');
-      console.log(`📊 数据库状态: 主库${this.databases.final_enhanced.size}字符, fallback库${this.databases.real_stroke.size}字符, 拼音库${this.databases.pinyin_processed.size}字符`);
       
     } catch (error) {
-      console.error('❌ UnifiedCharacterLoader初始化失败:', error);
       throw error;
     }
   }
 
   /**
-   * 加载主要字符数据库
-   * TODO: 实际项目中应该从真实的JSON文件加载
+   * 加载主要字符数据库 - 从文件系统读取JSON文件
    */
   private async loadFinalEnhancedDatabase(): Promise<void> {
-    // 模拟数据 - 基于文档示例的"吴"字数据
-    const mockData = new Map([
-      ['吴', {
-        char: '吴',
-        traditional: '吳',
-        simplified: '吴',
-        pinyin: ['wú'],
-        primaryPinyin: 'wú',
-        tone: 2,
-        strokes: {
-          simplified: 7,
-          traditional: 7,  // ⚠️ 命理计算专用
-          kangxi: 7
-        },
-        radical: '口',
-        structure: '上下结构',
-        wuxing: 'mu',
-        wuxingSource: 'direct',
-        meanings: ['象头的动作。合起来表示晃着头大声说话。本义:大声说话,喧哗'],
-        etymology: '会意字。从口，从夨(zè)。夨，倾头。',
-        isStandard: true,
-        isNamingRecommended: true,
-        culturalLevel: 85,
-        sources: ['百家姓', '康熙字典', '现代汉语常用字表'],
-        completeness: 1.0
-      }],
-      ['宣', {
-        char: '宣',
-        traditional: '宣',
-        simplified: '宣',
-        pinyin: ['xuān'],
-        primaryPinyin: 'xuān',
-        tone: 1,
-        strokes: {
-          simplified: 9,
-          traditional: 9,
-          kangxi: 9
-        },
-        radical: '宀',
-        structure: '上下结构',
-        wuxing: 'jin',
-        wuxingSource: 'direct',
-        meanings: ['宣布', '宣扬', '传播'],
-        etymology: '形声字。从宀，亘声。',
-        isStandard: true,
-        isNamingRecommended: true,
-        culturalLevel: 88,
-        sources: ['康熙字典', '说文解字'],
-        completeness: 0.95
-      }],
-      ['润', {
-        char: '润',
-        traditional: '潤',
-        simplified: '润',
-        pinyin: ['rùn'],
-        primaryPinyin: 'rùn',
-        tone: 4,
-        strokes: {
-          simplified: 10,
-          traditional: 16,  // ⚠️ 命理计算专用
-          kangxi: 16
-        },
-        radical: '氵',
-        structure: '左右结构',
-        wuxing: 'shui',
-        wuxingSource: 'direct',
-        meanings: ['润泽', '滋润', '利润'],
-        etymology: '形声字。从水，闰声。',
-        isStandard: true,
-        isNamingRecommended: true,
-        culturalLevel: 90,
-        sources: ['康熙字典', '说文解字'],
-        completeness: 1.0
-      }]
-    ]);
+    try {
+      // 使用动态import而不是require
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      
+      // 构建绝对路径
+      const filePath = path.join(process.cwd(), 'public', 'data', 'characters', 'final-enhanced-character-database.json');
+      
+      // 检查文件是否存在
+      try {
+        await fs.access(filePath);
+      } catch {
+        throw new Error(`数据文件不存在: ${filePath}`);
+      }
+      
+      // 读取并解析JSON文件
+      const fileContent = await fs.readFile(filePath, 'utf-8');
+      const jsonData = JSON.parse(fileContent);
+      // 检查数据结构 - 如果有data属性则使用，否则直接使用根对象
+      const data = jsonData.data || jsonData;
+      this.databases.final_enhanced = new Map(Object.entries(data));
 
-    this.databases.final_enhanced = mockData;
-    console.log(`📚 主数据库加载完成: ${mockData.size} 个字符`);
+    } catch (error) {
+      throw new Error(`无法加载字符数据库: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
-   * 加载笔画fallback数据库
-   * TODO: 实际项目中应该从real-stroke-data.json加载
+   * 加载笔画fallback数据库 - 从文件系统读取JSON文件
    */
   private async loadRealStrokeDatabase(): Promise<void> {
-    const mockStrokeData = new Map([
-      ['钦', {
-        char: '钦',
-        strokes: {
-          simplified: 9,
-          traditional: 12,
-          kangxi: 12
-        },
-        radical: '钅',
-        source: 'real-stroke-data'
-      }],
-      ['锦', {
-        char: '锦',
-        strokes: {
-          simplified: 13,
-          traditional: 16,
-          kangxi: 16
-        },
-        radical: '钅',
-        source: 'real-stroke-data'
-      }],
-      ['浩', {
-        char: '浩',
-        strokes: {
-          simplified: 10,
-          traditional: 10,
-          kangxi: 10
-        },
-        radical: '氵',
-        source: 'real-stroke-data'
-      }]
-    ]);
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      
+      const filePath = path.join(process.cwd(), 'public', 'data', 'characters', 'real-stroke-data.json');
+      
+      try {
+        await fs.access(filePath);
+      } catch {
+        throw new Error(`笔画数据文件不存在: ${filePath}`);
+      }
+      
+      const fileContent = await fs.readFile(filePath, 'utf-8');
+      const jsonData = JSON.parse(fileContent);
+      // 检查数据结构 - 如果有data属性则使用，否则直接使用根对象
+      const data = jsonData.data || jsonData;
+      this.databases.real_stroke = new Map(Object.entries(data));
 
-    this.databases.real_stroke = mockStrokeData;
-    console.log(`📚 笔画数据库加载完成: ${mockStrokeData.size} 个字符`);
+    } catch (error) {
+      throw new Error(`无法加载笔画数据库: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
-   * 加载拼音fallback数据库
-   * TODO: 实际项目中应该从pinyin-processed.json加载
+   * 加载拼音fallback数据库 - 从文件系统读取JSON文件
    */
   private async loadPinyinDatabase(): Promise<void> {
-    const mockPinyinData = new Map([
-      ['钦', {
-        char: '钦',
-        pinyin: ['qīn'],
-        primaryPinyin: 'qīn',
-        tone: 1,
-        source: 'pinyin-processed'
-      }],
-      ['锦', {
-        char: '锦',
-        pinyin: ['jǐn'],
-        primaryPinyin: 'jǐn',
-        tone: 3,
-        source: 'pinyin-processed'
-      }],
-      ['浩', {
-        char: '浩',
-        pinyin: ['hào'],
-        primaryPinyin: 'hào',
-        tone: 4,
-        source: 'pinyin-processed'
-      }]
-    ]);
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      
+      const filePath = path.join(process.cwd(), 'public', 'data', 'configs', 'processed', 'pinyin-processed.json');
+      
+      try {
+        await fs.access(filePath);
+      } catch {
+        throw new Error(`拼音数据文件不存在: ${filePath}`);
+      }
+      
+      const fileContent = await fs.readFile(filePath, 'utf-8');
+      const jsonData = JSON.parse(fileContent);
+      // 检查数据结构 - 如果有data属性则使用，否则直接使用根对象
+      const data = jsonData.data || jsonData;
+      this.databases.pinyin_processed = new Map(Object.entries(data));
 
-    this.databases.pinyin_processed = mockPinyinData;
-    console.log(`📚 拼音数据库加载完成: ${mockPinyinData.size} 个字符`);
+    } catch (error) {
+      throw new Error(`无法加载拼音数据库: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * 获取所有适合起名的字符
+   * 从完整数据库中筛选出isStandard && isNamingRecommended的字符
+   */
+  async getAllNamingCharacters(): Promise<UnifiedCharacterInfo[]> {
+    if (!this.isInitialized) {
+      await this.initialize();
+    }
+    
+    const namingCharacters: UnifiedCharacterInfo[] = [];
+    let totalChars = 0;
+    let standardChars = 0;
+    let namingRecommendedChars = 0;
+    let bothQualifiedChars = 0;
+    let dataCompleteChars = 0;
+    let fallbackSuccessChars = 0;
+    
+    try {
+      console.log(`🔍 开始扫描字符数据库，主数据库大小: ${this.databases.final_enhanced.size}`);
+      
+      // 遍历主数据库中的所有字符
+      for (const [char, data] of this.databases.final_enhanced) {
+        totalChars++;
+        
+        try {
+          // 统计标准字符
+          if (data.isStandard) {
+            standardChars++;
+          }
+          
+          // 统计推荐起名字符 (使用实际存在的标准来判断)
+          const isNamingRecommended = this.isCharacterSuitableForNaming(data);
+          if (isNamingRecommended) {
+            namingRecommendedChars++;
+          }
+          
+          // 检查是否适合起名
+          if (data.isStandard && isNamingRecommended) {
+            bothQualifiedChars++;
+            
+            if (this.isDataComplete(data)) {
+              // 数据完整，直接添加
+              dataCompleteChars++;
+              namingCharacters.push(this.formatCharacterInfo(data, [], 1.0));
+            } else {
+              // 数据不完整，尝试fallback合并
+              const mergedData = await this.mergeWithFallback(char, data);
+              const confidence = this.calculateConfidence(mergedData);
+              
+              // 只有合并后数据质量足够好才添加
+              if (confidence >= 0.7) {
+                fallbackSuccessChars++;
+                namingCharacters.push(this.formatCharacterInfo(mergedData.data, mergedData.fallbackUsed, confidence));
+              }
+            }
+          }
+        } catch (error) {
+          // 单个字符处理失败，跳过但不影响整体
+          console.warn(`处理字符 ${char} 时出错:`, error);
+        }
+      }
+      
+      console.log(`📊 字符数据库统计:
+        - 总字符数: ${totalChars}
+        - 标准字符数: ${standardChars}  
+        - 推荐起名字符数: ${namingRecommendedChars}
+        - 同时满足两个条件的字符数: ${bothQualifiedChars}
+        - 数据完整字符数: ${dataCompleteChars}
+        - Fallback成功字符数: ${fallbackSuccessChars}
+        - 最终适合起名字符数: ${namingCharacters.length}`);
+      
+      return namingCharacters;
+      
+    } catch (error) {
+      console.error('获取起名字符列表失败:', error);
+      throw new Error(`获取起名字符列表失败: ${error}`);
+    }
   }
 
   /**
@@ -291,24 +290,51 @@ export class UnifiedCharacterLoader {
       await this.initialize();
     }
 
-    console.log(`🔍 查询字符: ${char}`);
-
     // Step 1: 优先从主数据库获取
     const primaryData = this.databases.final_enhanced.get(char);
     
     if (primaryData && this.isDataComplete(primaryData)) {
       // 主数据库数据完整，直接返回
-      console.log(`✅ 主数据库命中: ${char}`);
       return this.formatCharacterInfo(primaryData, [], 1.0);
     }
 
     // Step 2: 主数据库数据不完整或不存在，启用fallback机制
-    console.log(`⚠️ 主数据库数据不完整或缺失，启用fallback: ${char}`);
     
     const mergedData = await this.mergeWithFallback(char, primaryData);
     const confidence = this.calculateConfidence(mergedData);
     
     return this.formatCharacterInfo(mergedData.data, mergedData.fallbackUsed, confidence);
+  }
+
+  /**
+   * 判断字符是否适合起名
+   * 基于实际字符特征进行判断
+   */
+  private isCharacterSuitableForNaming(data: any): boolean {
+    // 1. 必须是标准字符
+    if (!data.isStandard) return false;
+    
+    // 2. 必须有基本的字符信息
+    if (!data.char || !data.pinyin || !data.wuxing) return false;
+    
+    // 3. 排除一些不适合起名的字符
+    const unsuitableChars = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '○', '〇'];
+    if (unsuitableChars.includes(data.char)) return false;
+    
+    // 4. 排除单一笔画太少的字符（通常不适合起名）
+    if (data.strokes?.traditional && data.strokes.traditional < 2) return false;
+    
+    // 5. 排除笔画过多的字符（实用性差）
+    if (data.strokes?.traditional && data.strokes.traditional > 25) return false;
+    
+    // 6. 必须有含义
+    if (!data.meanings || data.meanings.length === 0) return false;
+    
+    // 7. 排除一些特殊字符和标点
+    const charCode = data.char.charCodeAt(0);
+    if (charCode < 0x4E00 || charCode > 0x9FFF) return false; // 基本汉字范围
+    
+    return true;
   }
 
   /**
@@ -321,7 +347,7 @@ export class UnifiedCharacterLoader {
       'pinyin',              // 发音信息必需
       'isStandard'           // 起名适用性必需
     ];
-
+    
     return requiredFields.every(field => {
       const value = this.getNestedProperty(data, field);
       return value !== undefined && value !== null && value !== '';
@@ -349,7 +375,6 @@ export class UnifiedCharacterLoader {
         mergedData.strokes = strokeData.strokes;
         mergedData.radical = strokeData.radical;
         fallbackUsed.push('real-stroke-data');
-        console.log(`📊 笔画fallback命中: ${char}`);
       }
     }
 
@@ -361,7 +386,6 @@ export class UnifiedCharacterLoader {
         mergedData.primaryPinyin = pinyinData.primaryPinyin;
         mergedData.tone = pinyinData.tone;
         fallbackUsed.push('pinyin-processed');
-        console.log(`🔤 拼音fallback命中: ${char}`);
       }
     }
 
@@ -489,7 +513,7 @@ export class UnifiedCharacterLoader {
         const info = await this.getCharacterInfo(char);
         results.set(char, info);
       } catch (error) {
-        console.error(`获取字符${char}信息失败:`, error);
+        // 静默失败，继续处理其他字符
       }
     }
     

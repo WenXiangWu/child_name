@@ -2,6 +2,8 @@
  * 插件生命周期管理器 - 管理插件的状态和生命周期
  */
 
+import { PluginDependency } from '../interfaces/NamingPlugin';
+
 export enum PluginStatus {
   REGISTERED = 'registered',      // 已注册
   INITIALIZING = 'initializing',  // 初始化中
@@ -24,7 +26,7 @@ export interface PluginState {
   metadata: {
     version: string;
     layer: number;
-    dependencies: string[];
+    dependencies: PluginDependency[];
   };
 }
 
@@ -57,7 +59,7 @@ export class PluginLifecycleManager {
     pluginId: string, 
     version: string, 
     layer: number, 
-    dependencies: string[]
+    dependencies: PluginDependency[]
   ): void {
     const state: PluginState = {
       id: pluginId,
@@ -266,13 +268,37 @@ export class PluginLifecycleManager {
   /**
    * 检查所有依赖是否准备就绪
    */
-  areDependenciesReady(pluginId: string): boolean {
+    areDependenciesReady(pluginId: string): boolean {
     const state = this.pluginStates.get(pluginId);
-    if (!state) return false;
+    if (!state) {
+      console.warn(`Plugin ${pluginId} not found in lifecycle manager`);
+      return false;
+    }
 
-    return state.metadata.dependencies.every(depId => 
-      this.isPluginReady(depId)
-    );
+    // 只检查required的依赖是否准备就绪
+    for (const dep of state.metadata.dependencies) {
+      const depState = this.pluginStates.get(dep.pluginId);
+      
+      if (dep.required) {
+        // 必需依赖必须存在且处于ACTIVE状态
+        if (!depState) {
+          console.warn(`Required dependency ${dep.pluginId} not found for plugin ${pluginId}`);
+          return false;
+        }
+        if (depState.status !== PluginStatus.ACTIVE) {
+          console.warn(`Required dependency ${dep.pluginId} not active for plugin ${pluginId}, current status: ${depState.status}`);
+          return false;
+        }
+      } else {
+        // 可选依赖可以失败或不存在，不影响当前插件初始化
+        if (depState && depState.status !== PluginStatus.ACTIVE) {
+          console.info(`Optional dependency ${dep.pluginId} not active for plugin ${pluginId}, but will continue`);
+        }
+        continue;
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -422,20 +448,60 @@ export class PluginLifecycleManager {
    */
   getStartupOrder(): string[][] {
     const states = Array.from(this.pluginStates.values());
-    const layers = new Map<number, string[]>();
+    const layerGroups = new Map<number, string[]>();
 
     // 按层级分组
     states.forEach(state => {
       const layer = state.metadata.layer;
-      if (!layers.has(layer)) {
-        layers.set(layer, []);
+      if (!layerGroups.has(layer)) {
+        layerGroups.set(layer, []);
       }
-      layers.get(layer)!.push(state.id);
+      layerGroups.get(layer)!.push(state.id);
     });
 
-    // 按层级顺序返回
-    const sortedLayers = Array.from(layers.keys()).sort((a, b) => a - b);
-    return sortedLayers.map(layer => layers.get(layer)!);
+    // 按层级顺序返回，并在每层内部按依赖关系排序
+    const sortedLayers = Array.from(layerGroups.keys()).sort((a, b) => a - b);
+    return sortedLayers.map(layer => {
+      const pluginsInLayer = layerGroups.get(layer)!;
+      // 在同一层内按依赖关系排序
+      return this.sortPluginsByDependencies(pluginsInLayer);
+    });
+  }
+
+  /**
+   * 在同一层内按依赖关系排序插件
+   */
+  private sortPluginsByDependencies(pluginIds: string[]): string[] {
+    const sorted: string[] = [];
+    const visited = new Set<string>();
+    const visiting = new Set<string>();
+
+    const visit = (pluginId: string) => {
+      if (visited.has(pluginId)) return;
+      if (visiting.has(pluginId)) {
+        // 循环依赖，按原顺序添加
+        return;
+      }
+
+      visiting.add(pluginId);
+      
+      const state = this.pluginStates.get(pluginId);
+      if (state) {
+        // 先处理同层的依赖
+        state.metadata.dependencies.forEach(dep => {
+          if (pluginIds.includes(dep.pluginId) && !visited.has(dep.pluginId)) {
+            visit(dep.pluginId);
+          }
+        });
+      }
+
+      visiting.delete(pluginId);
+      visited.add(pluginId);
+      sorted.push(pluginId);
+    };
+
+    pluginIds.forEach(pluginId => visit(pluginId));
+    return sorted;
   }
 
   /**

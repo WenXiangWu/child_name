@@ -44,7 +44,6 @@ export class XiYongShenPlugin implements Layer2Plugin {
 
   async initialize(config: PluginConfig, context: PluginContext): Promise<void> {
     this.initialized = true;
-    context.log?.('info', `${this.id} 插件初始化成功`);
   }
 
   async validate(input: StandardInput): Promise<ValidationResult> {

@@ -109,9 +109,13 @@ export class ZodiacPlugin implements NamingPlugin {
       confidence: timeResult.confidence 
     });
 
-    const timeInfo = timeResult.results?.timeInfo;
+    const timeInfo = timeResult.data?.timeInfo;
     if (!timeInfo) {
-      context.log && context.log('error', '❌ 出生时间结果格式错误');
+      context.log && context.log('error', '❌ 出生时间结果格式错误', {
+        hasData: !!timeResult.data,
+        dataKeys: timeResult.data ? Object.keys(timeResult.data) : [],
+        fullResult: timeResult
+      });
       throw new Error('出生时间插件结果中缺少timeInfo字段');
     }
 
@@ -151,8 +155,9 @@ export class ZodiacPlugin implements NamingPlugin {
     });
 
     return {
-      pluginId: this.id,
-      results: {
+      success: true,
+      data: {
+        pluginId: this.id,
         zodiacAnalysis,
         primaryZodiac: zodiacAnalysis.primaryZodiac,
         strategy: zodiacAnalysis.strategy,
@@ -161,6 +166,7 @@ export class ZodiacPlugin implements NamingPlugin {
         namingPrinciples: zodiacAnalysis.recommendations.namingPrinciples
       },
       confidence: zodiacAnalysis.confidence,
+      executionTime: Date.now() - startTime,
       metadata: {
         processingTime: Date.now() - startTime,
         dataSource: 'zodiac-service',

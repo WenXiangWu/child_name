@@ -25,7 +25,7 @@ export class MeaningSelectionPlugin implements Layer3Plugin {
   };
 
   async initialize(config: PluginConfig, context: PluginContext): Promise<void> {
-    context.log?.('info', `${this.id} 插件初始化成功`);
+    // 初始化完成
   }
 
   async validate(input: StandardInput): Promise<ValidationResult> {
@@ -81,7 +81,13 @@ export class MeaningSelectionPlugin implements Layer3Plugin {
         success: true,
         data: result,
         confidence: 0.85,
-        executionTime: Date.now() - startTime
+        executionTime: Date.now() - startTime,
+        metadata: {
+          pluginId: this.id,
+          layer: this.layer,
+          processingTime: Date.now() - startTime,
+          dataSource: 'semantic-analysis'
+        }
       };
     } catch (error) {
       return {

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
+import { ZodiacAnimal, zodiacService } from '../lib/qiming';
 
 export default function Home() {
   const router = useRouter();
@@ -9,7 +10,60 @@ export default function Home() {
   const [familyName, setFamilyName] = useState<string>('');
   const [birthDate, setBirthDate] = useState<string>('');
   const [birthTime, setBirthTime] = useState<string>('');
+  const [zodiac, setZodiac] = useState<ZodiacAnimal | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // 监听出生日期变化，自动计算生肖
+  useEffect(() => {
+    const calculateZodiac = async () => {
+      if (birthDate) {
+        try {
+          const year = new Date(birthDate).getFullYear();
+          await zodiacService.initialize();
+          const calculatedZodiac = zodiacService.getZodiacByYear(year);
+          setZodiac(calculatedZodiac);
+          console.log(`出生年份 ${year} 对应生肖: ${calculatedZodiac}`);
+        } catch (error) {
+          console.error('计算生肖失败:', error);
+        }
+      } else {
+        setZodiac(null);
+      }
+    };
+
+    calculateZodiac();
+  }, [birthDate]);
+
+  // 时间描述函数 - 更精确的十二时辰划分
+  const getTimeDescription = (time: string): string => {
+    if (!time) return '';
+    
+    const [hours, minutes] = time.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes;
+    
+    // 传统十二时辰对照 (每个时辰2小时，共24小时)
+    const timeRanges = [
+      { start: 1380, end: 1440, name: '子时', desc: '夜半', period: '23:00-01:00' }, // 23:00-24:00
+      { start: 0, end: 60, name: '子时', desc: '夜半', period: '23:00-01:00' },     // 00:00-01:00
+      { start: 60, end: 180, name: '丑时', desc: '鸡鸣', period: '01:00-03:00' },
+      { start: 180, end: 300, name: '寅时', desc: '平旦', period: '03:00-05:00' },
+      { start: 300, end: 420, name: '卯时', desc: '日出', period: '05:00-07:00' },
+      { start: 420, end: 540, name: '辰时', desc: '食时', period: '07:00-09:00' },
+      { start: 540, end: 660, name: '巳时', desc: '隅中', period: '09:00-11:00' },
+      { start: 660, end: 780, name: '午时', desc: '日中', period: '11:00-13:00' },
+      { start: 780, end: 900, name: '未时', desc: '日昳', period: '13:00-15:00' },
+      { start: 900, end: 1020, name: '申时', desc: '晡时', period: '15:00-17:00' },
+      { start: 1020, end: 1140, name: '酉时', desc: '日入', period: '17:00-19:00' },
+      { start: 1140, end: 1260, name: '戌时', desc: '黄昏', period: '19:00-21:00' },
+      { start: 1260, end: 1380, name: '亥时', desc: '人定', period: '21:00-23:00' }
+    ];
+    
+    const timeRange = timeRanges.find(range => 
+      totalMinutes >= range.start && totalMinutes < range.end
+    );
+    
+    return timeRange ? `${timeRange.name} (${timeRange.desc}) ${timeRange.period}` : '';
+  };
 
   const handleStartNaming = () => {
     if (!babyGender) return;
@@ -344,26 +398,173 @@ export default function Home() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    出生日期 <span className="text-gray-500">(可选，用于八字分析)</span>
+                    出生日期 <span className="text-gray-400">(可选)</span>
                   </label>
-                  <input
-                    type="date"
-                    value={birthDate}
-                    onChange={(e) => setBirthDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={birthDate}
+                        onChange={(e) => setBirthDate(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        max={new Date().toISOString().split('T')[0]}
+                      />
+                      <div className="absolute right-3 top-3 text-gray-400 pointer-events-none">
+                        📅
+                      </div>
+                    </div>
+                    
+                    {/* 快速日期选择 */}
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      {(() => {
+                        const today = new Date();
+                        const yesterday = new Date(today);
+                        yesterday.setDate(today.getDate() - 1);
+                        const weekAgo = new Date(today);
+                        weekAgo.setDate(today.getDate() - 7);
+                        const monthAgo = new Date(today);
+                        monthAgo.setMonth(today.getMonth() - 1);
+                        
+                        return [
+                          { date: today.toISOString().split('T')[0], label: '今天' },
+                          { date: yesterday.toISOString().split('T')[0], label: '昨天' },
+                          { date: weekAgo.toISOString().split('T')[0], label: '一周前' },
+                          { date: monthAgo.toISOString().split('T')[0], label: '一月前' },
+                          { date: '2024-01-01', label: '2024年初' },
+                          { date: '2023-12-31', label: '2023年末' }
+                        ];
+                      })().map((preset) => (
+                        <button
+                          key={preset.date}
+                          onClick={() => setBirthDate(preset.date)}
+                          className={`px-2 py-1 rounded border text-center transition-all ${
+                            birthDate === preset.date
+                              ? 'bg-green-100 border-green-300 text-green-700'
+                              : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                          }`}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {birthDate && (
+                    <div className="mt-2 p-3 bg-green-50 rounded-lg">
+                      <p className="text-xs text-green-700 font-medium">
+                        选择的日期：{new Date(birthDate).toLocaleDateString('zh-CN', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          weekday: 'long'
+                        })}
+                      </p>
+                      {zodiac && (
+                        <p className="text-xs text-green-600 mt-1">
+                          🐾 生肖：{zodiac}年
+                        </p>
+                      )}
+                      <p className="text-xs text-green-600">
+                        生辰八字计算将基于此日期时间
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    出生时间 <span className="text-gray-500">(可选，用于精准八字分析)</span>
+                    出生时间 <span className="text-gray-400">(可选)</span>
                   </label>
-                  <input
-                    type="time"
-                    value={birthTime}
-                    onChange={(e) => setBirthTime(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <input
+                        type="time"
+                        value={birthTime}
+                        onChange={(e) => setBirthTime(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        step="900"
+                      />
+                      <div className="absolute right-3 top-3 text-gray-400 pointer-events-none">
+                        🕐
+                      </div>
+                    </div>
+                    
+                    {/* 快速时间选择 - 完整十二时辰 */}
+                    <div className="space-y-2">
+                      <div className="text-xs text-gray-600 font-medium mb-2">传统十二时辰快速选择：</div>
+                      <div className="grid grid-cols-4 gap-2 text-xs">
+                        {[
+                          { time: '00:00', label: '子时', desc: '夜半' },
+                          { time: '01:00', label: '丑时', desc: '鸡鸣' },
+                          { time: '03:00', label: '寅时', desc: '平旦' },
+                          { time: '05:00', label: '卯时', desc: '日出' },
+                          { time: '07:00', label: '辰时', desc: '食时' },
+                          { time: '09:00', label: '巳时', desc: '隅中' },
+                          { time: '11:00', label: '午时', desc: '日中' },
+                          { time: '13:00', label: '未时', desc: '日昳' },
+                          { time: '15:00', label: '申时', desc: '晡时' },
+                          { time: '17:00', label: '酉时', desc: '日入' },
+                          { time: '19:00', label: '戌时', desc: '黄昏' },
+                          { time: '21:00', label: '亥时', desc: '人定' }
+                        ].map((preset) => (
+                          <button
+                            key={preset.time}
+                            onClick={() => setBirthTime(preset.time)}
+                            className={`px-2 py-2 rounded border text-center transition-all hover:shadow-sm ${
+                              birthTime === preset.time
+                                ? 'bg-blue-100 border-blue-300 text-blue-700 shadow-sm'
+                                : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                            }`}
+                            title={`${preset.label} (${preset.desc}) - ${preset.time}`}
+                          >
+                            <div className="font-medium">{preset.label}</div>
+                            <div className="text-xs opacity-75">{preset.time}</div>
+                          </button>
+                        ))}
+                      </div>
+                      
+                      {/* 现代时间快速选择 */}
+                      <div className="pt-2 border-t border-gray-200">
+                        <div className="text-xs text-gray-600 font-medium mb-2">现代时间快速选择：</div>
+                        <div className="grid grid-cols-6 gap-2 text-xs">
+                          {[
+                            { time: '06:00', label: '早晨', icon: '🌅' },
+                            { time: '08:00', label: '上班', icon: '💼' },
+                            { time: '12:00', label: '中午', icon: '☀️' },
+                            { time: '14:00', label: '午后', icon: '🌤️' },
+                            { time: '18:00', label: '傍晚', icon: '🌆' },
+                            { time: '22:00', label: '夜晚', icon: '🌙' }
+                          ].map((preset) => (
+                            <button
+                              key={preset.time}
+                              onClick={() => setBirthTime(preset.time)}
+                              className={`px-2 py-2 rounded border text-center transition-all ${
+                                birthTime === preset.time
+                                  ? 'bg-green-100 border-green-300 text-green-700'
+                                  : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                              }`}
+                              title={`${preset.label} - ${preset.time}`}
+                            >
+                              <div className="text-lg mb-1">{preset.icon}</div>
+                              <div className="font-medium">{preset.label}</div>
+                              <div className="text-xs opacity-75">{preset.time}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {birthTime && (
+                    <div className="mt-2 p-3 bg-blue-50 rounded-lg">
+                      <p className="text-xs text-blue-700 font-medium">
+                        选择的时间：{birthTime}
+                      </p>
+                      <p className="text-xs text-blue-600">
+                        对应时辰：{getTimeDescription(birthTime)}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

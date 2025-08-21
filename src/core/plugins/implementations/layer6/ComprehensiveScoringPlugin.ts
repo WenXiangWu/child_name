@@ -28,7 +28,6 @@ export class ComprehensiveScoringPlugin implements Layer6Plugin {
 
   async initialize(config: PluginConfig, context: PluginContext): Promise<void> {
     this.initialized = true;
-    context.log?.('info', `${this.id} 插件初始化成功`);
   }
 
   async validate(input: StandardInput): Promise<ValidationResult> {
@@ -51,8 +50,8 @@ export class ComprehensiveScoringPlugin implements Layer6Plugin {
 
       context.log?.('info', '开始综合评分分析');
       
-      // 模拟从Layer 5获取名字候选
-      const nameCandidates = this.getMockNameCandidates(input.familyName);
+      // 从Layer 5获取真实的名字候选
+      const nameCandidates = this.getNameCandidatesFromPreviousLayer(context);
       
       // 执行综合评分
       const scoredCandidates = await this.performComprehensiveScoring(nameCandidates, input, context);
@@ -89,80 +88,132 @@ export class ComprehensiveScoringPlugin implements Layer6Plugin {
   }
 
   /**
-   * 获取模拟名字候选 - 模拟Layer 5输出
+   * 从前一层（Layer 5）获取真实的名字候选
    */
-  private getMockNameCandidates(familyName: string) {
-    return [
-      {
-        fullName: `${familyName}宣润`,
-        firstName: '宣',
-        secondName: '润',
-        components: {
-          surname: { char: familyName, strokes: 7, wuxing: '木' },
-          first: { char: '宣', strokes: 9, wuxing: '金' },
-          second: { char: '润', strokes: 16, wuxing: '水' }
-        }
-      },
-      {
-        fullName: `${familyName}钦润`,
-        firstName: '钦',
-        secondName: '润',
-        components: {
-          surname: { char: familyName, strokes: 7, wuxing: '木' },
-          first: { char: '钦', strokes: 12, wuxing: '金' },
-          second: { char: '润', strokes: 16, wuxing: '水' }
-        }
-      },
-      {
-        fullName: `${familyName}浩锦`,
-        firstName: '浩',
-        secondName: '锦',
-        components: {
-          surname: { char: familyName, strokes: 7, wuxing: '木' },
-          first: { char: '浩', strokes: 11, wuxing: '水' },
-          second: { char: '锦', strokes: 16, wuxing: '金' }
-        }
-      }
-    ];
+  private getNameCandidatesFromPreviousLayer(context: PluginContext) {
+    // 使用正确的API从name-combination插件获取结果
+    const nameCombinationResult = context.getPluginResult?.('name-combination');
+    
+    context.log?.('info', `🔍 获取Layer5结果: ${nameCombinationResult ? '✅' : '❌'}`);
+    
+    if (nameCombinationResult?.success && nameCombinationResult?.data?.nameCandidates) {
+      const candidates = nameCombinationResult.data.nameCandidates;
+      context.log?.('info', `📊 获取到 ${candidates.length} 个名字候选`);
+      return candidates;
+    }
+    
+    // 调试信息
+    context.log?.('error', `❌ Layer5数据获取失败: ${JSON.stringify(nameCombinationResult, null, 2).slice(0, 300)}...`);
+    
+    // 如果没有前置结果，抛出错误而不是使用mock数据
+    throw new Error('无法获取Layer 5的名字候选结果，请确保name-combination插件正常执行');
   }
 
   /**
    * 执行综合评分
    */
   private async performComprehensiveScoring(candidates: any[], input: StandardInput, context: PluginContext) {
-    return candidates.map(candidate => {
-      // 各维度评分
+    context.log?.('info', `🎯 开始对 ${candidates.length} 个名字候选进行综合评分`);
+    
+    return candidates.map((candidate, index) => {
+      context.log?.('info', `📊 评分第${index + 1}个名字: ${candidate.fullName}`);
+      
+      // 各维度评分（带详细计算过程）
+      const sancaiDetail = this.calculateSancaiScoreWithDetail(candidate);
+      const wuxingDetail = this.calculateWuxingScoreWithDetail(candidate);
+      
+      // 其他维度使用现有方法并包装为详细格式
+      const phoneticScore = this.calculatePhoneticScore(candidate);
+      const phoneticDetail = {
+        score: phoneticScore,
+        reason: `音韵组合评分${phoneticScore}分`,
+        calculation: { method: '声调和谐度分析', result: phoneticScore }
+      };
+      
+      const meaningScore = this.calculateMeaningScore(candidate);
+      const meaningDetail = {
+        score: meaningScore,
+        reason: `寓意内涵评分${meaningScore}分`,
+        calculation: { method: '字义分析', result: meaningScore }
+      };
+      
+      const culturalScore = this.calculateCulturalScore(candidate);
+      const culturalDetail = {
+        score: culturalScore,
+        reason: `文化底蕴评分${culturalScore}分`,
+        calculation: { method: '文化内涵分析', result: culturalScore }
+      };
+      
+      const zodiacScore = this.calculateZodiacScore(candidate);
+      const zodiacDetail = {
+        score: zodiacScore,
+        reason: `生肖契合评分${zodiacScore}分`,
+        calculation: { method: '生肖适配分析', result: zodiacScore }
+      };
+      
+      const scoringDetails = {
+        sancai: sancaiDetail,
+        wuxing: wuxingDetail,
+        phonetic: phoneticDetail,
+        meaning: meaningDetail,
+        cultural: culturalDetail,
+        zodiac: zodiacDetail
+      };
+      
+      // 提取分数
       const scores = {
-        sancai: this.calculateSancaiScore(candidate),
-        wuxing: this.calculateWuxingScore(candidate),
-        phonetic: this.calculatePhoneticScore(candidate),
-        meaning: this.calculateMeaningScore(candidate),
-        cultural: this.calculateCulturalScore(candidate),
-        zodiac: this.calculateZodiacScore(candidate)
+        sancai: sancaiDetail.score,
+        wuxing: wuxingDetail.score,
+        phonetic: phoneticDetail.score,
+        meaning: meaningDetail.score,
+        cultural: culturalDetail.score,
+        zodiac: zodiacDetail.score
       };
 
-      // 计算综合分数
-      const comprehensiveScore = this.calculateComprehensiveScore(scores);
+      // 计算综合分数（带权重说明）
+      const weights = { sancai: 0.25, wuxing: 0.25, phonetic: 0.15, meaning: 0.15, cultural: 0.1, zodiac: 0.1 };
+      const weightedScore = Object.entries(scores).reduce((sum, [key, score]) => {
+        return sum + score * (weights[key as keyof typeof weights] || 0);
+      }, 0);
+      const comprehensiveDetail = {
+        score: Math.round(weightedScore),
+        calculation: `${Object.entries(scores).map(([key, score]) => 
+          `${key}:${score}×${weights[key as keyof typeof weights] || 0}`
+        ).join(' + ')} = ${Math.round(weightedScore)}`
+      };
+
+      // 记录详细评分
+      context.log?.('info', `🔍 ${candidate.fullName} 详细评分:`);
+      context.log?.('info', `  三才五格: ${scores.sancai}分 (${sancaiDetail.reason})`);
+      context.log?.('info', `  五行平衡: ${scores.wuxing}分 (${wuxingDetail.reason})`);
+      context.log?.('info', `  音韵美感: ${scores.phonetic}分 (${phoneticDetail.reason})`);
+      context.log?.('info', `  寓意内涵: ${scores.meaning}分 (${meaningDetail.reason})`);
+      context.log?.('info', `  文化底蕴: ${scores.cultural}分 (${culturalDetail.reason})`);
+      context.log?.('info', `  生肖契合: ${scores.zodiac}分 (${zodiacDetail.reason})`);
+      context.log?.('info', `  综合评分: ${comprehensiveDetail.score}分 (${comprehensiveDetail.calculation})`);
 
       return {
         ...candidate,
         scores,
-        comprehensiveScore,
-        grade: this.getGrade(comprehensiveScore),
-        recommendation: this.generateRecommendation(scores, comprehensiveScore)
+        scoringDetails, // 详细的评分计算过程
+        comprehensiveScore: comprehensiveDetail.score,
+        comprehensiveCalculation: comprehensiveDetail.calculation,
+        grade: this.getGrade(comprehensiveDetail.score),
+        recommendation: this.generateRecommendation(scores, comprehensiveDetail.score)
       };
     });
   }
 
   /**
-   * 三才评分
+   * 三才评分（带详细计算过程）
    */
-  private calculateSancaiScore(candidate: any): number {
-    // 模拟三才评分逻辑
+  private calculateSancaiScoreWithDetail(candidate: any) {
     const { surname, first, second } = candidate.components;
     const tianGe = surname.strokes + 1;
     const renGe = surname.strokes + first.strokes;
     const diGe = first.strokes + second.strokes;
+    const waige = second.strokes + 1;
+    const zongGe = surname.strokes + first.strokes + second.strokes;
 
     // 简化的三才吉凶判断
     const sancaiCombination = `${tianGe % 10}-${renGe % 10}-${diGe % 10}`;
@@ -171,27 +222,76 @@ export class ComprehensiveScoringPlugin implements Layer6Plugin {
     const luckyPatterns = ['1-2-3', '2-3-4', '3-4-5', '6-7-8', '8-9-1'];
     const isLucky = luckyPatterns.includes(sancaiCombination);
     
-    return isLucky ? 95 : 75;
+    const score = isLucky ? 95 : 75;
+    const reason = `天格${tianGe}+人格${renGe}+地格${diGe}=${sancaiCombination}，${isLucky ? '三才配置吉' : '三才配置一般'}`;
+    
+    return {
+      score,
+      reason,
+      calculation: {
+        tianGe: `${surname.strokes}+1=${tianGe}`,
+        renGe: `${surname.strokes}+${first.strokes}=${renGe}`,
+        diGe: `${first.strokes}+${second.strokes}=${diGe}`,
+        waige: `${second.strokes}+1=${waige}`,
+        zongGe: `${surname.strokes}+${first.strokes}+${second.strokes}=${zongGe}`,
+        sancaiPattern: sancaiCombination,
+        isLucky
+      }
+    };
   }
 
   /**
-   * 五行评分
+   * 三才评分（兼容性方法）
    */
-  private calculateWuxingScore(candidate: any): number {
-    // 基于五行相生相克理论评分
+  private calculateSancaiScore(candidate: any): number {
+    return this.calculateSancaiScoreWithDetail(candidate).score;
+  }
+
+  /**
+   * 五行评分（带详细计算过程）
+   */
+  private calculateWuxingScoreWithDetail(candidate: any) {
     const { surname, first, second } = candidate.components;
     const elements = [surname.wuxing, first.wuxing, second.wuxing];
     
     // 检查五行和谐度
     let harmony = 80;
+    let reasons = [`基础分${harmony}分`];
     
     // 木生火，火生土，土生金，金生水，水生木
     const shengCycle = { '木': '火', '火': '土', '土': '金', '金': '水', '水': '木' };
     
-    if (shengCycle[elements[0]] === elements[1]) harmony += 10;
-    if (shengCycle[elements[1]] === elements[2]) harmony += 10;
+    if (shengCycle[elements[0]] === elements[1]) {
+      harmony += 10;
+      reasons.push(`${elements[0]}生${elements[1]}(+10分)`);
+    }
+    if (shengCycle[elements[1]] === elements[2]) {
+      harmony += 10;
+      reasons.push(`${elements[1]}生${elements[2]}(+10分)`);
+    }
     
-    return Math.min(harmony, 100);
+    const score = Math.min(harmony, 100);
+    const reason = `五行组合${elements.join('-')}，${reasons.join('，')}`;
+    
+    return {
+      score,
+      reason,
+      calculation: {
+        elements: elements,
+        shengRelations: [
+          `${elements[0]} → ${elements[1]}: ${shengCycle[elements[0]] === elements[1] ? '相生(+10)' : '无特殊关系'}`,
+          `${elements[1]} → ${elements[2]}: ${shengCycle[elements[1]] === elements[2] ? '相生(+10)' : '无特殊关系'}`
+        ],
+        finalScore: `${harmony} (最高100分)`
+      }
+    };
+  }
+
+  /**
+   * 五行评分（兼容性方法）
+   */
+  private calculateWuxingScore(candidate: any): number {
+    return this.calculateWuxingScoreWithDetail(candidate).score;
   }
 
   /**

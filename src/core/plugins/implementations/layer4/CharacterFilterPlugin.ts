@@ -43,7 +43,6 @@ export class CharacterFilterPlugin implements Layer4Plugin {
       context.log?.('info', 'UnifiedCharacterLoader初始化完成');
       
       this.initialized = true;
-      context.log?.('info', `${this.id} 插件初始化成功`);
     } catch (error) {
       context.log?.('error', `${this.id} 插件初始化失败: ${error}`);
       throw error;
@@ -118,37 +117,32 @@ export class CharacterFilterPlugin implements Layer4Plugin {
    * TODO: 从实际的插件上下文获取
    */
   private async getStrategyResults(context: PluginContext) {
-    // 模拟从Layer 3插件获取策略结果
+    // 从插件上下文获取Layer 3的真实策略结果
+    const wuxingSelection = context.getPluginResult?.('wuxing-selection');
+    const zodiacSelection = context.getPluginResult?.('zodiac-selection');
+    const meaningSelection = context.getPluginResult?.('meaning-selection');
+    const strokeSelection = context.getPluginResult?.('stroke-selection');
+    const phoneticSelection = context.getPluginResult?.('phonetic-selection');
+    
+    context.log?.('info', `🔍 获取Layer3策略结果:`);
+    context.log?.('info', `  - 五行策略: ${wuxingSelection ? '✅' : '❌'}`);
+    context.log?.('info', `  - 生肖策略: ${zodiacSelection ? '✅' : '❌'}`);
+    context.log?.('info', `  - 寓意策略: ${meaningSelection ? '✅' : '❌'}`);
+    context.log?.('info', `  - 笔画策略: ${strokeSelection ? '✅' : '❌'}`);
+    context.log?.('info', `  - 音韵策略: ${phoneticSelection ? '✅' : '❌'}`);
+    
     return {
-      wuxingStrategy: {
-        primaryElements: ['金'],
-        secondaryElements: ['水'], 
-        avoidElements: ['火', '土'],
-        priority: [
-          { element: '金', priority: 95, targetCount: 1 },
-          { element: '水', priority: 85, targetCount: 1 }
-        ]
-      },
-      zodiacStrategy: {
-        highlyRecommended: { characters: ['宸', '宏', '君', '哲', '启'], weight: 2.0 },
-        recommended: { characters: ['林', '森', '柏', '松'], weight: 1.0 },
-        discouraged: { characters: ['明', '昌', '晨', '阳'], penalty: -1.0 }
-      },
-      meaningStrategy: {
-        preferredSemantics: ['智慧才华', '品德修养'],
-        culturalDepth: 0.85,
-        genderSpecificity: 0.9
-      },
-      strokeStrategy: {
-        doubleCharBest: [[9, 16], [11, 14], [13, 12]],
-        singleCharBest: [9, 11, 13, 15],
-        recommendedType: 'doubleChar'
-      },
-      phoneticStrategy: {
-        preferredTonePatterns: ['2-1-4', '1-3-4', '4-2-1'],
-        avoidedTonePatterns: ['2-2-2', '4-4-4'],
-        harmonyThreshold: 80
-      }
+      wuxingSelection,
+      zodiacSelection,
+      meaningSelection,
+      strokeSelection,
+      phoneticSelection,
+      // 保持兼容性的旧格式
+      wuxingStrategy: wuxingSelection?.data,
+      zodiacStrategy: zodiacSelection?.data,
+      meaningStrategy: meaningSelection?.data,
+      strokeStrategy: strokeSelection?.data,
+      phoneticStrategy: phoneticSelection?.data
     };
   }
 
@@ -157,22 +151,41 @@ export class CharacterFilterPlugin implements Layer4Plugin {
    */
   private async executeLayeredFiltering(strategyResults: any, input: StandardInput, context: PluginContext) {
     // 初始字符池 - 从UnifiedCharacterLoader获取
-    const initialPool = await this.getInitialCharacterPool();
+    const initialPool = await this.getInitialCharacterPool(strategyResults, input, context);
+    context.log?.('info', `🎯 开始Layer4正式筛选流程，初始候选池: ${initialPool.length} 个字符`);
     
     // 1. 五行筛选
+    const beforeWuxing = initialPool.length;
     const wuxingFiltered = this.applyWuxingFilter(initialPool, strategyResults.wuxingStrategy);
+    context.log?.('info', `🔥 五行筛选: ${beforeWuxing} → ${wuxingFiltered.length} 个字符 (筛掉 ${beforeWuxing - wuxingFiltered.length} 个)`);
     
     // 2. 生肖筛选
+    const beforeZodiac = wuxingFiltered.length;
     const zodiacFiltered = this.applyZodiacFilter(wuxingFiltered, strategyResults.zodiacStrategy);
+    context.log?.('info', `🐯 生肖筛选: ${beforeZodiac} → ${zodiacFiltered.length} 个字符 (筛掉 ${beforeZodiac - zodiacFiltered.length} 个)`);
     
     // 3. 寓意筛选
+    const beforeMeaning = zodiacFiltered.length;
     const meaningFiltered = this.applyMeaningFilter(zodiacFiltered, strategyResults.meaningStrategy);
+    context.log?.('info', `💭 寓意筛选: ${beforeMeaning} → ${meaningFiltered.length} 个字符 (筛掉 ${beforeMeaning - meaningFiltered.length} 个)`);
     
     // 4. 笔画筛选
+    const beforeStroke = meaningFiltered.length;
     const strokeFiltered = this.applyStrokeFilter(meaningFiltered, strategyResults.strokeStrategy);
+    context.log?.('info', `✏️  笔画筛选: ${beforeStroke} → ${strokeFiltered.length} 个字符 (筛掉 ${beforeStroke - strokeFiltered.length} 个)`);
     
     // 5. 音韵筛选
+    const beforePhonetic = strokeFiltered.length;
     const phoneticFiltered = this.applyPhoneticFilter(strokeFiltered, strategyResults.phoneticStrategy, input.familyName);
+    context.log?.('info', `🎵 音韵筛选: ${beforePhonetic} → ${phoneticFiltered.length} 个字符 (筛掉 ${beforePhonetic - phoneticFiltered.length} 个)`);
+    
+    context.log?.('info', `✅ Layer4筛选完成！最终剩余 ${phoneticFiltered.length} 个候选字符`);
+    
+    // 展示最终字符示例
+    if (phoneticFiltered.length > 0) {
+      const finalSample = phoneticFiltered.slice(0, 15).map(c => c.char).join('、');
+      context.log?.('info', `🔤 最终字符示例: ${finalSample}${phoneticFiltered.length > 15 ? '...' : ''}`);
+    }
     
     return {
       initial: initialPool,
@@ -185,21 +198,56 @@ export class CharacterFilterPlugin implements Layer4Plugin {
   }
 
   /**
-   * 获取初始字符池 - 从UnifiedCharacterLoader获取
+   * 获取初始字符池 - 基于策略结果动态筛选
    */
-  private async getInitialCharacterPool() {
-    // 常用起名候选字符列表
-    const candidateChars = ['钦', '宣', '润', '锦', '浩', '铭', '峰', '磊', '森', '林'];
+  private async getInitialCharacterPool(strategyResults: any, input: StandardInput, context: PluginContext) {
+    context.log?.('info', '🚀 开始动态构建字符候选池');
     
-    const characterPool = [];
-    
-    for (const char of candidateChars) {
-      try {
-        const charInfo = await this.charLoader.getCharacterInfo(char);
-        
-        // 只选择适合起名的字符
-        if (charInfo.isStandard && charInfo.isNamingRecommended) {
-          characterPool.push({
+    try {
+      // 从UnifiedCharacterLoader获取所有适合起名的字符
+      const allCharacters = await this.charLoader.getAllNamingCharacters();
+      context.log?.('info', `📚 从字符数据库获取到 ${allCharacters.length} 个适合起名的字符`);
+      
+      if (allCharacters.length === 0) {
+        context.log?.('error', '❌ 字符数据库中没有适合起名的字符，检查数据库配置');
+        return [];
+      }
+      
+      // 基于Layer 3策略结果进行初步筛选
+      let candidatePool = [...allCharacters];
+      let stepCount = 1;
+      
+      context.log?.('info', `🔄 开始策略筛选流程，初始字符池: ${candidatePool.length} 个字符`);
+      
+      // 五行策略筛选
+      if (strategyResults.wuxingSelection) {
+        const beforeCount = candidatePool.length;
+        candidatePool = this.applyWuxingPreFilter(candidatePool, strategyResults.wuxingSelection, context);
+        context.log?.('info', `📝 步骤${stepCount++}: 五行预筛选 ${beforeCount} → ${candidatePool.length} 个字符 (筛掉 ${beforeCount - candidatePool.length} 个)`);
+      } else {
+        context.log?.('warn', `⚠️  步骤${stepCount++}: 跳过五行筛选（策略结果缺失）`);
+      }
+      
+      // 生肖策略筛选
+      if (strategyResults.zodiacSelection) {
+        const beforeCount = candidatePool.length;
+        candidatePool = this.applyZodiacPreFilter(candidatePool, strategyResults.zodiacSelection, context);
+        context.log?.('info', `🐯 步骤${stepCount++}: 生肖预筛选 ${beforeCount} → ${candidatePool.length} 个字符 (筛掉 ${beforeCount - candidatePool.length} 个)`);
+      } else {
+        context.log?.('warn', `⚠️  步骤${stepCount++}: 跳过生肖筛选（策略结果缺失）`);
+      }
+      
+      // 笔画策略筛选
+      if (strategyResults.strokeSelection) {
+        const beforeCount = candidatePool.length;
+        candidatePool = this.applyStrokePreFilter(candidatePool, strategyResults.strokeSelection, context);
+        context.log?.('info', `✏️  步骤${stepCount++}: 笔画预筛选 ${beforeCount} → ${candidatePool.length} 个字符 (筛掉 ${beforeCount - candidatePool.length} 个)`);
+      } else {
+        context.log?.('warn', `⚠️  步骤${stepCount++}: 跳过笔画筛选（策略结果缺失）`);
+      }
+      
+      // 格式化为标准结构
+      const characterPool = candidatePool.map(charInfo => ({
             char: charInfo.char,
             strokes: charInfo.strokes.traditional, // ⚠️ 使用传统笔画数
             wuxing: charInfo.wuxing,
@@ -207,31 +255,238 @@ export class CharacterFilterPlugin implements Layer4Plugin {
             tone: charInfo.tone,
             radical: charInfo.radical,
             culturalLevel: charInfo.culturalLevel,
-            confidence: charInfo.dataQuality.confidence
-          });
-        }
-      } catch (error) {
-        console.warn(`获取字符${char}信息失败:`, error);
+        confidence: charInfo.dataQuality.confidence,
+        isFromStrategy: true // 标记为策略筛选结果
+      }));
+      
+      context.log?.('info', `✅ 动态字符池构建完成！最终候选池包含 ${characterPool.length} 个字符`);
+      
+      // 展示前几个字符作为示例
+      if (characterPool.length > 0) {
+        const sampleChars = characterPool.slice(0, 10).map(c => c.char).join('、');
+        context.log?.('info', `🔤 字符示例: ${sampleChars}${characterPool.length > 10 ? '...' : ''}`);
+      }
+      
+      return characterPool;
+      
+    } catch (error) {
+      context.log?.('error', `❌ 动态构建字符池失败: ${error}`);
+      // fallback到空数组，让后续流程处理
+      return [];
+    }
+  }
+
+  /**
+   * 五行预筛选 - 在初始字符池构建阶段应用
+   */
+  private applyWuxingPreFilter(characters: UnifiedCharacterInfo[], wuxingStrategy: any, context: PluginContext): UnifiedCharacterInfo[] {
+    if (!wuxingStrategy?.baseStrategy?.primaryElements && !wuxingStrategy?.data?.baseStrategy?.primaryElements) {
+      context.log?.('warn', '五行策略缺少主要元素信息，跳过五行预筛选');
+      return characters;
+    }
+    
+    // 兼容不同的数据结构
+    const strategy = wuxingStrategy?.baseStrategy || wuxingStrategy?.data?.baseStrategy || wuxingStrategy;
+    const { primaryElements = [], secondaryElements = [], avoidElements = [] } = strategy;
+    
+    // 五行中文到拼音映射
+    const wuxingMap: { [key: string]: string } = {
+      '金': 'jin',
+      '木': 'mu', 
+      '水': 'shui',
+      '火': 'huo',
+      '土': 'tu'
+    };
+    
+    // 转换策略中的五行为拼音格式
+    const preferredElementsPinyin = [...primaryElements, ...secondaryElements]
+      .map(elem => wuxingMap[elem] || elem);
+    const avoidElementsPinyin = avoidElements
+      .map((elem: string) => wuxingMap[elem] || elem);
+    
+    context.log?.('info', `🔥 五行预筛选条件: 偏好[${preferredElementsPinyin.join(',')}] 避免[${avoidElementsPinyin.join(',')}]`);
+    
+    const filteredChars = characters.filter(char => {
+      const isPreferred = preferredElementsPinyin.length === 0 || preferredElementsPinyin.includes(char.wuxing);
+      const isAvoided = avoidElementsPinyin.includes(char.wuxing);
+      return isPreferred && !isAvoided;
+    });
+    
+    // 展示筛选样例
+    if (filteredChars.length > 0) {
+      const sampleChars = filteredChars.slice(0, 5).map(c => `${c.char}(${c.wuxing})`).join('、');
+      context.log?.('info', `🔥 五行筛选样例: ${sampleChars}...`);
+    }
+    
+    return filteredChars;
+  }
+
+  /**
+   * 生肖预筛选 - 基于生肖喜忌偏旁筛选
+   */
+  private applyZodiacPreFilter(characters: UnifiedCharacterInfo[], zodiacStrategy: any, context: PluginContext): UnifiedCharacterInfo[] {
+    // 兼容多种数据结构路径
+    const strategy = zodiacStrategy?.baseStrategy || 
+                    zodiacStrategy?.data?.baseStrategy || 
+                    zodiacStrategy?.data?.characterCriteria ||
+                    zodiacStrategy?.characterCriteria ||
+                    zodiacStrategy;
+    
+    // 从不同的数据结构中提取偏旁信息
+    let favorableRadicals: string[] = [];
+    let unfavorableRadicals: string[] = [];
+    
+    if (strategy?.favorableRadicals) {
+      favorableRadicals = strategy.favorableRadicals;
+    } else if (strategy?.highlyRecommended?.radicals && strategy?.recommended?.radicals) {
+      favorableRadicals = [...strategy.highlyRecommended.radicals, ...strategy.recommended.radicals];
+    } else if (strategy?.recommendedRadicals) {
+      favorableRadicals = strategy.recommendedRadicals;
+    }
+    
+    if (strategy?.unfavorableRadicals) {
+      unfavorableRadicals = strategy.unfavorableRadicals;
+    } else if (strategy?.discouraged?.radicals) {
+      unfavorableRadicals = strategy.discouraged.radicals || [];
+    } else if (strategy?.forbidden?.radicals) {
+      unfavorableRadicals = strategy.forbidden.radicals || [];
+    } else if (strategy?.avoidRadicals) {
+      unfavorableRadicals = strategy.avoidRadicals;
+    }
+    
+    context.log?.('info', `🐯 生肖策略数据结构调试: ${JSON.stringify(strategy, null, 2).slice(0, 200)}...`);
+    
+    if (favorableRadicals.length === 0 && unfavorableRadicals.length === 0) {
+      context.log?.('warn', '生肖策略缺少偏旁信息，跳过生肖预筛选');
+      return characters;
+    }
+    
+    context.log?.('info', `🐯 生肖预筛选条件: 喜用偏旁[${favorableRadicals.join(',')}] 忌用偏旁[${unfavorableRadicals.join(',')}]`);
+    
+    const filteredChars = characters.filter(char => {
+      const hasFavorable = favorableRadicals.length === 0 || favorableRadicals.some((radical: string) => char.radical?.includes(radical));
+      const hasUnfavorable = unfavorableRadicals.some((radical: string) => char.radical?.includes(radical));
+      return hasFavorable && !hasUnfavorable;
+    });
+    
+    // 展示筛选样例
+    if (filteredChars.length > 0) {
+      const sampleChars = filteredChars.slice(0, 5).map(c => `${c.char}(${c.radical})`).join('、');
+      context.log?.('info', `🐯 生肖筛选样例: ${sampleChars}...`);
+    }
+    
+    return filteredChars;
+  }
+
+  /**
+   * 笔画预筛选 - 基于笔画策略筛选
+   */
+  private applyStrokePreFilter(characters: UnifiedCharacterInfo[], strokeStrategy: any, context: PluginContext): UnifiedCharacterInfo[] {
+    // 兼容多种数据结构路径
+    const strategy = strokeStrategy?.baseStrategy || 
+                    strokeStrategy?.data?.baseStrategy || 
+                    strokeStrategy?.data ||
+                    strokeStrategy;
+    
+    context.log?.('info', `✏️  笔画策略数据结构调试: ${JSON.stringify(strategy, null, 2).slice(0, 300)}...`);
+    
+    // 从不同的数据结构中提取笔画信息
+    let preferredStrokes: number[] = [];
+    let avoidStrokes: number[] = [];
+    
+    // 从strokeCombinations中提取笔画
+    if (strategy?.strokeCombinations?.doubleCharCombinations) {
+      for (const combo of strategy.strokeCombinations.doubleCharCombinations) {
+        if (combo.firstCharStrokes) preferredStrokes.push(combo.firstCharStrokes);
+        if (combo.secondCharStrokes) preferredStrokes.push(combo.secondCharStrokes);
       }
     }
     
-    return characterPool;
+    // 从singleCharCombinations中提取笔画
+    if (strategy?.strokeCombinations?.singleCharCombinations) {
+      for (const combo of strategy.strokeCombinations.singleCharCombinations) {
+        if (combo.charStrokes) preferredStrokes.push(combo.charStrokes);
+      }
+    }
+    
+    // 从其他可能的字段提取
+    if (strategy?.preferredStrokes) {
+      preferredStrokes = [...preferredStrokes, ...strategy.preferredStrokes];
+    }
+    
+    if (strategy?.doubleCharBest) {
+      const flatStrokes = strategy.doubleCharBest.flat();
+      preferredStrokes = [...preferredStrokes, ...flatStrokes];
+    }
+    
+    if (strategy?.singleCharBest) {
+      preferredStrokes = [...preferredStrokes, ...strategy.singleCharBest];
+    }
+    
+    if (strategy?.avoidStrokes) {
+      avoidStrokes = strategy.avoidStrokes;
+    }
+    
+    // 去重
+    preferredStrokes = [...new Set(preferredStrokes)];
+    avoidStrokes = [...new Set(avoidStrokes)];
+    
+    if (preferredStrokes.length === 0 && avoidStrokes.length === 0) {
+      context.log?.('warn', '笔画策略缺少偏好笔画信息，跳过笔画预筛选');
+      return characters;
+    }
+    
+    context.log?.('info', `✏️  笔画预筛选条件: 偏好笔画[${preferredStrokes.join(',')}] 避免笔画[${avoidStrokes.join(',')}]`);
+    
+    const filteredChars = characters.filter(char => {
+      const strokeCount = char.strokes.traditional;
+      const isPreferred = preferredStrokes.length === 0 || preferredStrokes.includes(strokeCount);
+      const isAvoided = avoidStrokes.includes(strokeCount);
+      return isPreferred && !isAvoided;
+    });
+    
+    // 展示筛选样例
+    if (filteredChars.length > 0) {
+      const sampleChars = filteredChars.slice(0, 5).map(c => `${c.char}(${c.strokes.traditional}笔)`).join('、');
+      context.log?.('info', `✏️  笔画筛选样例: ${sampleChars}...`);
+    }
+    
+    return filteredChars;
   }
 
   /**
    * 应用五行筛选
    */
   private applyWuxingFilter(characters: any[], wuxingStrategy: any) {
-    const preferredElements = [...wuxingStrategy.primaryElements, ...wuxingStrategy.secondaryElements];
+    // 兼容不同的数据结构 - 与预筛选保持一致
+    const strategy = wuxingStrategy?.baseStrategy || wuxingStrategy?.data?.baseStrategy || wuxingStrategy;
+    const { primaryElements = [], secondaryElements = [], avoidElements = [] } = strategy;
+    
+    // 五行中文到拼音映射
+    const wuxingMap: { [key: string]: string } = {
+      '金': 'jin',
+      '木': 'mu', 
+      '水': 'shui',
+      '火': 'huo',
+      '土': 'tu'
+    };
+    
+    // 转换策略中的五行为拼音格式
+    const preferredElementsPinyin = [...primaryElements, ...secondaryElements]
+      .map(elem => wuxingMap[elem] || elem);
+    const avoidElementsPinyin = avoidElements
+      .map((elem: string) => wuxingMap[elem] || elem);
+    const primaryElementsPinyin = primaryElements
+      .map((elem: string) => wuxingMap[elem] || elem);
     
     return characters.filter(char => {
-      const isPreferred = preferredElements.includes(char.wuxing);
-      const isAvoided = wuxingStrategy.avoidElements.includes(char.wuxing);
+      const isPreferred = preferredElementsPinyin.includes(char.wuxing);
+      const isAvoided = avoidElementsPinyin.includes(char.wuxing);
       
       return isPreferred && !isAvoided;
     }).map(char => ({
       ...char,
-      wuxingScore: wuxingStrategy.primaryElements.includes(char.wuxing) ? 95 : 85
+      wuxingScore: primaryElementsPinyin.includes(char.wuxing) ? 95 : 85
     }));
   }
 
@@ -239,14 +494,26 @@ export class CharacterFilterPlugin implements Layer4Plugin {
    * 应用生肖筛选
    */
   private applyZodiacFilter(characters: any[], zodiacStrategy: any) {
+    // 兼容不同的数据结构
+    const strategy = zodiacStrategy?.baseStrategy || 
+                    zodiacStrategy?.data?.baseStrategy || 
+                    zodiacStrategy?.data?.characterCriteria ||
+                    zodiacStrategy?.characterCriteria ||
+                    zodiacStrategy;
+    
     return characters.map(char => {
       let zodiacScore = 70; // 基础分数
       
-      if (zodiacStrategy.highlyRecommended.characters.includes(char.char)) {
+      // 兼容不同的数据结构提取推荐字符
+      const highlyRecommended = strategy?.highlyRecommended?.characters || [];
+      const recommended = strategy?.recommended?.characters || [];
+      const discouraged = strategy?.discouraged?.characters || [];
+      
+      if (highlyRecommended.includes(char.char)) {
         zodiacScore = 95;
-      } else if (zodiacStrategy.recommended.characters.includes(char.char)) {
+      } else if (recommended.includes(char.char)) {
         zodiacScore = 85;
-      } else if (zodiacStrategy.discouraged.characters.includes(char.char)) {
+      } else if (discouraged.includes(char.char)) {
         zodiacScore = 40;
       }
       
@@ -278,13 +545,45 @@ export class CharacterFilterPlugin implements Layer4Plugin {
    * 应用笔画筛选
    */
   private applyStrokeFilter(characters: any[], strokeStrategy: any) {
-    const targetStrokes = strokeStrategy.doubleCharBest.flat();
+    // 兼容不同的数据结构 - 与预筛选保持一致
+    const strategy = strokeStrategy?.baseStrategy || 
+                    strokeStrategy?.data?.baseStrategy || 
+                    strokeStrategy?.data ||
+                    strokeStrategy;
+    
+    // 提取目标笔画数
+    let targetStrokes: number[] = [];
+    
+    // 从strokeCombinations中提取笔画
+    if (strategy?.strokeCombinations?.doubleCharCombinations) {
+      for (const combo of strategy.strokeCombinations.doubleCharCombinations) {
+        if (combo.firstCharStrokes) targetStrokes.push(combo.firstCharStrokes);
+        if (combo.secondCharStrokes) targetStrokes.push(combo.secondCharStrokes);
+      }
+    }
+    
+    // 从其他可能的字段提取
+    if (strategy?.doubleCharBest) {
+      const flatStrokes = strategy.doubleCharBest.flat();
+      targetStrokes = [...targetStrokes, ...flatStrokes];
+    }
+    
+    if (strategy?.singleCharBest) {
+      targetStrokes = [...targetStrokes, ...strategy.singleCharBest];
+    }
+    
+    // 去重
+    targetStrokes = [...new Set(targetStrokes)];
+    
+    if (targetStrokes.length === 0) {
+      return characters; // 无筛选条件时返回所有字符
+    }
     
     return characters.filter(char => 
       targetStrokes.includes(char.strokes)
     ).map(char => ({
       ...char,
-      strokeScore: strokeStrategy.doubleCharBest.some(combo => combo.includes(char.strokes)) ? 95 : 80
+      strokeScore: targetStrokes.includes(char.strokes) ? 95 : 80
     }));
   }
 
@@ -292,22 +591,33 @@ export class CharacterFilterPlugin implements Layer4Plugin {
    * 应用音韵筛选
    */
   private applyPhoneticFilter(characters: any[], phoneticStrategy: any, familyName: string) {
+    // 兼容不同的数据结构
+    const strategy = phoneticStrategy?.baseStrategy || 
+                    phoneticStrategy?.data?.baseStrategy || 
+                    phoneticStrategy?.data ||
+                    phoneticStrategy || {};
+    
     // 模拟姓氏音调 (如"吴" = 2声)
     const surnametone = 2;
+    
+    // 安全获取策略参数，提供默认值
+    const preferredTonePatterns = strategy.preferredTonePatterns || strategy.preferredTones || [];
+    const avoidedTonePatterns = strategy.avoidedTonePatterns || strategy.avoidTones || [];
+    const harmonyThreshold = strategy.harmonyThreshold || 70;
     
     return characters.map(char => {
       let phoneticScore = 70;
       
       // 简化的声调和谐度计算
       const tonePattern = `${surnametone}-${char.tone}`;
-      if (phoneticStrategy.preferredTonePatterns.some((pattern: string) => pattern.includes(tonePattern))) {
+      if (preferredTonePatterns.length > 0 && preferredTonePatterns.some((pattern: string) => pattern.includes(tonePattern))) {
         phoneticScore = 90;
-      } else if (phoneticStrategy.avoidedTonePatterns.includes(`${surnametone}-${char.tone}`)) {
+      } else if (avoidedTonePatterns.length > 0 && avoidedTonePatterns.includes(`${surnametone}-${char.tone}`)) {
         phoneticScore = 50;
       }
       
       return { ...char, phoneticScore };
-    }).filter(char => char.phoneticScore >= phoneticStrategy.harmonyThreshold - 10);
+    }).filter(char => char.phoneticScore >= harmonyThreshold - 10);
   }
 
   /**
@@ -316,19 +626,9 @@ export class CharacterFilterPlugin implements Layer4Plugin {
   private buildCandidatePool(filteredCandidates: any) {
     const finalCandidates = filteredCandidates.phoneticFiltered;
     
-    // 分为第一字和第二字候选
-    const firstCharCandidates = finalCandidates
-      .filter((char: any) => char.strokes === 9)
-      .map((char: any) => this.formatCandidateCharacter(char));
-    
-    const secondCharCandidates = finalCandidates
-      .filter((char: any) => char.strokes === 16)
-      .map((char: any) => this.formatCandidateCharacter(char));
-    
-    return {
-      firstCharCandidates,
-      secondCharCandidates
-    };
+    // 返回所有筛选后的字符，不在Layer 4进行笔画分组
+    // 笔画分组应该在Layer 5根据策略来做
+    return finalCandidates.map((char: any) => this.formatCandidateCharacter(char));
   }
 
   /**
@@ -382,13 +682,14 @@ export class CharacterFilterPlugin implements Layer4Plugin {
    * 生成筛选总结
    */
   private generateFilteringSummary(candidatePool: any) {
-    const totalCandidates = candidatePool.firstCharCandidates.length + candidatePool.secondCharCandidates.length;
+    // candidatePool现在是数组，不是对象
+    const totalCandidates = Array.isArray(candidatePool) ? candidatePool.length : 0;
     
     // 质量分布统计
-    const allCandidates = [...candidatePool.firstCharCandidates, ...candidatePool.secondCharCandidates];
+    const allCandidates = Array.isArray(candidatePool) ? candidatePool : [];
     const qualityDistribution = allCandidates.reduce((acc: any, candidate: any) => {
-      if (candidate.scores.overall >= 90) acc['优秀']++;
-      else if (candidate.scores.overall >= 80) acc['良好']++;
+      if (candidate.scores?.overall >= 90) acc['优秀']++;
+      else if (candidate.scores?.overall >= 80) acc['良好']++;
       else acc['一般']++;
       return acc;
     }, { '优秀': 0, '良好': 0, '一般': 0 });

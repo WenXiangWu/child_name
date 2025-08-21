@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { NamingPipelineIntegrated, NamingRequest, NamingResponse } from '../../core/plugins/core/NamingPipelineIntegrated';
 import { CertaintyLevel } from '../../core/plugins/interfaces/NamingPlugin';
 import { confidenceCalculator, ConfidenceResult } from '../../core/plugins/utils/ConfidenceCalculator';
-import { realNamingEngine } from '../../core/plugins/implementations/RealNamingEngine';
+
 
 // 详细执行日志接口
 interface PluginExecutionLog {

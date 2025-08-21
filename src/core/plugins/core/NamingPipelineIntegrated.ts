@@ -7,7 +7,7 @@ import { PluginContainer, PluginManifest } from './PluginContainer';
 import { NamingPipeline, PipelineInput, PipelineOutput } from './NamingPipeline';
 import { CertaintyLevelManager } from './CertaintyLevelManager';
 import { PredueDateHandler, PredueInfo } from '../utils/PredueDateHandler';
-import { PluginFactory, PluginType } from '../implementations/PluginFactory';
+import { QimingPluginFactory } from '../implementations/PluginFactory';
 
 // 取名请求接口
 export interface NamingRequest {
@@ -304,15 +304,19 @@ export class NamingPipelineIntegrated {
    * 注册所有插件
    */
   private async registerAllPlugins(): Promise<void> {
-    const pluginTypes: PluginType[] = [
-      // Layer 1
-      'surname', 'gender', 'birth-time', 'family-tradition',
-      // Layer 2  
+    const pluginTypes: string[] = [
+      // Layer 1: 基础信息层
+      'surname', 'gender', 'birth-time',
+      // Layer 2: 命理分析层  
       'bazi', 'zodiac', 'xiyongshen',
-      // Layer 3
-      'stroke', 'wuxing-char', 'zodiac-char', 'meaning', 'phonetic',
-      // Layer 4
-      'sancai', 'yijing', 'dayan', 'wuxing-balance'
+      // Layer 3: 选字策略层
+      'wuxing-selection', 'zodiac-selection', 'meaning-selection', 'stroke-selection', 'phonetic-selection',
+      // Layer 4: 字符筛选层
+      'character-filter',
+      // Layer 5: 名字生成层
+      'name-combination',
+      // Layer 6: 评分层
+      'sancai-scoring', 'phonetic-scoring', 'wuxing-balance-scoring', 'dayan-scoring', 'comprehensive-scoring'
     ];
 
     for (const pluginType of pluginTypes) {

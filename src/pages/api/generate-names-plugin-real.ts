@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { CertaintyLevel } from '../../core/plugins/interfaces/NamingPlugin';
 import { confidenceCalculator, ConfidenceResult } from '../../core/plugins/utils/ConfidenceCalculator';
-import { realNamingEngine } from '../../core/plugins/implementations/RealNamingEngine';
+import { truePluginEngine } from '../../core/plugins/core/TruePluginEngine';
 
 // 详细执行日志接口
 interface PluginExecutionLog {
@@ -230,11 +230,16 @@ async function executeRealPluginSystem(request: any, logger: DetailedLogger): Pr
   logger.logMessage(`└── 🔄 执行策略: 真实插件引擎`);
   
   try {
-    // 使用真实的插件系统引擎
-    const engineResult = await realNamingEngine.executeFullPipeline({
+    // 使用真正的插件系统引擎
+    const engineResult = await truePluginEngine.executeFullPipeline({
       familyName: request.familyName,
       gender: request.gender,
       birthInfo: request.birthInfo,
+      preferences: {
+        certaintyLevel: certaintyLevel as any,
+        includeTraditionalAnalysis: false,
+        skipOptionalFailures: false
+      },
       scoreThreshold: 80,
       useTraditional: false,
       avoidedWords: [],
@@ -331,6 +336,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       gender,
       birthDate,
       birthTime,
+      birthInfo,  // 新增：支持 birthInfo 结构
       preferredElements,
       avoidedWords,
       scoreThreshold,
@@ -338,6 +344,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       limit = 5,
       offset = 0,
       weights,
+      preferences,  // 新增：支持 preferences 结构
       // 插件系统特有参数
       certaintyLevel,
       enableParallel = false,
@@ -352,20 +359,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // 构建插件系统请求
+    // 构建插件系统请求 - 优先使用 birthInfo 结构
     const namingRequest = {
       familyName,
       gender: gender as 'male' | 'female',
-      birthInfo: birthDate ? {
+      birthInfo: birthInfo || (birthDate ? {
         year: new Date(birthDate).getFullYear(),
         month: new Date(birthDate).getMonth() + 1,
         day: new Date(birthDate).getDate(),
         hour: birthTime ? parseInt(birthTime.split(':')[0]) : undefined,
         minute: birthTime ? parseInt(birthTime.split(':')[1]) : undefined
-      } : undefined,
+      } : undefined),
       characters: avoidedWords,
       preferences: {
-        certaintyLevel: certaintyLevel || undefined,
+        certaintyLevel: preferences?.certaintyLevel || certaintyLevel || undefined,
         parallelExecution: enableParallel,
         includeTraditionalAnalysis: useTraditional || false,
         skipOptionalFailures: true

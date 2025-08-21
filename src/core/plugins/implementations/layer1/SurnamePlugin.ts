@@ -53,7 +53,6 @@ export class SurnamePlugin implements Layer1Plugin {
       this.baijiaxingData = await this.loadBaijiaxingData();
       
       this.initialized = true;
-      context.log?.('info', `${this.id} 插件初始化成功`);
     } catch (error) {
       context.log?.('error', `${this.id} 插件初始化失败: ${error}`);
       throw error;
@@ -164,36 +163,9 @@ export class SurnamePlugin implements Layer1Plugin {
     try {
       return await this.charLoader.getCharacterInfo(char);
     } catch (error) {
-      // 如果数据加载失败，返回基础的模拟数据
-      console.log(`⚠️ 字符数据加载失败，使用模拟数据: ${char}`);
-      return {
-        char,
-        traditional: char,
-        simplified: char,
-        pinyin: ['unknown'],
-        primaryPinyin: 'unknown',
-        tone: 1,
-        strokes: {
-          simplified: 7,
-          traditional: 7,
-          kangxi: 7
-        },
-        radical: '口',
-        structure: 'unknown',
-        wuxing: 'mu',
-        wuxingSource: 'fallback',
-        meanings: ['姓氏用字'],
-        etymology: '姓氏用字',
-        isStandard: true,
-        isNamingRecommended: true,
-        culturalLevel: 80,
-        sources: ['mock'],
-        dataQuality: {
-          completeness: 0.5,
-          confidence: 0.7,
-          fallbackUsed: ['mock']
-        }
-      };
+      // 如果数据加载失败，抛出错误，不使用任何模拟数据
+      console.error(`❌ 字符数据加载失败: ${char}`, error);
+      throw new Error(`无法获取字符"${char}"的数据，请确保数据文件完整`);
     }
   }
 

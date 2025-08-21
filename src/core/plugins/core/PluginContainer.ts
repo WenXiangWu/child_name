@@ -128,7 +128,7 @@ export class PluginContainer implements IPluginContainer {
         pluginId,
         plugin.version,
         plugin.layer,
-        plugin.dependencies.map(dep => dep.pluginId)
+        plugin.dependencies
       );
 
       // 添加到依赖图
@@ -171,8 +171,6 @@ export class PluginContainer implements IPluginContainer {
       if (this.config.autoInitialize) {
         await this.initializePlugin(pluginId);
       }
-      
-      console.log(`✅ Plugin ${pluginId} registered successfully`);
 
     } catch (error) {
       const pluginId = pluginFactory.createPlugin(pluginType).id;
@@ -210,8 +208,6 @@ export class PluginContainer implements IPluginContainer {
       this.configs.delete(pluginId);
       this.dependencyGraph.removeNode(pluginId);
       this.lifecycleManager.unregisterPlugin(pluginId);
-
-      console.log(`🗑️ Plugin ${pluginId} unregistered successfully`);
 
     } catch (error) {
       this.lifecycleManager.markError(
@@ -264,11 +260,20 @@ export class PluginContainer implements IPluginContainer {
     const startupOrder = this.lifecycleManager.getStartupOrder();
     
     for (const layer of startupOrder) {
-      await Promise.all(layer.map(pluginId => 
-        this.initializePlugin(pluginId).catch(error => {
-          console.error(`Failed to initialize plugin ${pluginId}:`, error);
-        })
-      ));
+      // 按层次逐个初始化，确保依赖关系正确
+      for (const pluginId of layer) {
+        try {
+          await this.initializePlugin(pluginId);
+          console.log(`✅ Plugin ${pluginId} initialized successfully`);
+        } catch (error) {
+          console.error(`❌ Failed to initialize plugin ${pluginId}:`, error);
+          // 标记失败状态，但继续初始化其他插件
+          this.lifecycleManager.markInitializationFailed(
+            pluginId,
+            error instanceof Error ? error.message : String(error)
+          );
+        }
+      }
     }
   }
 

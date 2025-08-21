@@ -3,7 +3,7 @@ import { getQimingInstance } from '../../core/common/data-loader';
 import { QimingNameGenerator } from '../../core/naming/name-generator';
 import { NameGenerationConfig } from '../../core/common/types';
 import { ensureDataReady, isDataReady, getLoadingState } from '../../core/common/global-preloader';
-import { realNamingEngine } from '../../core/plugins/implementations/RealNamingEngine';
+
 import { truePluginEngine } from '../../core/plugins/core/TruePluginEngine';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -40,6 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('📊 生成名字API调用:', {
       familyName,
       gender,
+      birthDate,
+      birthTime,
       usePluginSystem,
       enableDetailedLogs,
       limit
@@ -206,6 +208,7 @@ async function handlePluginSystemRequest(
     console.log('🚀 插件系统请求:', {
       familyName: pluginRequest.familyName,
       gender: pluginRequest.gender,
+      birthInfo: pluginRequest.birthInfo,
       hasBirthInfo: !!pluginRequest.birthInfo,
       limit: pluginRequest.limit
     });

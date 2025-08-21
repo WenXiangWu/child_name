@@ -113,31 +113,39 @@ export class BaZiPlugin implements NamingPlugin {
   /**
    * 处理输入数据
    */
-  async process(input: StandardInput): Promise<PluginOutput> {
+  async process(input: StandardInput, context: PluginContext): Promise<PluginOutput> {
     const startTime = Date.now();
     
-    // 获取出生时间插件的结果
-    const timeResult = input.context.pluginResults.get('birth-time');
-    if (!timeResult) {
-      throw new Error('未找到出生时间插件的结果');
+    // 直接使用input.birthInfo，而不依赖其他插件的结果
+    if (!input.birthInfo) {
+      throw new Error('缺少出生时间信息');
     }
 
-    const timeInfo = timeResult.timeInfo;
+    const { year, month, day, hour, minute } = input.birthInfo;
+    
+    // 确定时间信息类型
+    const hasExactTime = hour !== undefined && minute !== undefined;
+    const timeInfo = {
+      type: hasExactTime ? 'exact' : 'date-only',
+      year,
+      month,
+      day,
+      hour: hour || 12, // 默认中午12点
+      minute: minute || 0
+    };
     
     // 根据时间信息的类型进行不同处理
     let baziResult: BaZiResult;
     
-    if (timeInfo.type === 'exact') {
+    if (timeInfo.type === 'exact' || timeInfo.type === 'date-only') {
       baziResult = await this.processExactTime(timeInfo);
-    } else if (timeInfo.type === 'predue') {
-      baziResult = await this.processPredueMode(timeInfo, timeResult);
     } else {
       throw new Error('不支持的时间信息类型');
     }
 
     return {
-      pluginId: this.id,
-      results: {
+      success: true,
+      data: {
         bazi: baziResult,
         dayMaster: baziResult.dayMaster,
         dayMasterWuxing: baziResult.dayMasterWuxing,
@@ -149,7 +157,10 @@ export class BaZiPlugin implements NamingPlugin {
         recommendations: this.generateRecommendations(baziResult)
       },
       confidence: baziResult.confidence,
+      executionTime: Date.now() - startTime,
       metadata: {
+        pluginId: this.id,
+        layer: this.layer,
         processingTime: Date.now() - startTime,
         dataSource: 'bazi-calculation',
         analysisMethod: baziResult.analysisQuality

@@ -25,7 +25,7 @@ export class SancaiScoringPlugin implements Layer6Plugin {
   };
 
   async initialize(config: PluginConfig, context: PluginContext): Promise<void> {
-    context.log?.('info', `${this.id} 插件初始化成功`);
+    // 初始化完成
   }
 
   async validate(input: StandardInput): Promise<ValidationResult> {

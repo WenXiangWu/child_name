@@ -5,6 +5,23 @@
 
 import { NamingPlugin, PluginFactory, PluginConfig, CertaintyLevel } from '../interfaces/NamingPlugin';
 
+// 导入各层类型定义
+import { Layer1PluginType } from './layer1';
+import { Layer2PluginType } from './layer2';
+import { Layer3PluginType } from './layer3';
+import { Layer4PluginType } from './layer4';
+import { Layer5PluginType } from './layer5';
+import { Layer6PluginType } from './layer6';
+
+// 统一插件类型定义
+export type PluginType = 
+  | Layer1PluginType 
+  | Layer2PluginType 
+  | Layer3PluginType 
+  | Layer4PluginType 
+  | Layer5PluginType 
+  | Layer6PluginType;
+
 // Layer 1 导入 (3个插件)
 import { SurnamePlugin, GenderPlugin, BirthTimePlugin } from './layer1';
 
