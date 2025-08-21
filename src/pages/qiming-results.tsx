@@ -187,10 +187,18 @@ const QimingResultsPage: React.FC = () => {
     }
   };
 
-  // 显示详细信息
+  // 显示详细信息 - 跳转到新的详细分析页面
   const showNameDetail = (name: GeneratedName) => {
-    setSelectedName(name);
-    setShowDetailModal(true);
+    // 将当前的生成名字列表保存到 sessionStorage 以便详细页面访问
+    try {
+      sessionStorage.setItem('currentGeneratedNames', JSON.stringify(generatedNames));
+    } catch (error) {
+      console.error('保存名字数据到 sessionStorage 失败:', error);
+    }
+    
+    // 跳转到详细分析页面
+    const encodedName = encodeURIComponent(name.fullName);
+    router.push(`/name-detailed-analysis/${encodedName}`);
   };
 
   // 导出结果

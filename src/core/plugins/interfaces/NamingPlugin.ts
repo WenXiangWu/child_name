@@ -32,6 +32,8 @@ export interface PluginContext {
     startTime: number;
     pluginStats: Map<string, any>;
   };
+  getPluginResult?: <T = any>(pluginId: string) => T | null;
+  setPluginResult?: (pluginId: string, result: any) => void;
 }
 
 export interface ValidationResult {

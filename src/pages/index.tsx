@@ -118,6 +118,7 @@ export default function Home() {
                   <span>📜</span>
                   百家姓
                 </Link>
+
                 <Link href="/culture/overview" className="text-gray-600 hover:text-gray-800">
                   文化科普
                 </Link>

@@ -261,11 +261,11 @@ export class ComprehensiveScoringPlugin implements Layer6Plugin {
     // 木生火，火生土，土生金，金生水，水生木
     const shengCycle = { '木': '火', '火': '土', '土': '金', '金': '水', '水': '木' };
     
-    if (shengCycle[elements[0]] === elements[1]) {
+    if (shengCycle[elements[0] as keyof typeof shengCycle] === elements[1]) {
       harmony += 10;
       reasons.push(`${elements[0]}生${elements[1]}(+10分)`);
     }
-    if (shengCycle[elements[1]] === elements[2]) {
+    if (shengCycle[elements[1] as keyof typeof shengCycle] === elements[2]) {
       harmony += 10;
       reasons.push(`${elements[1]}生${elements[2]}(+10分)`);
     }
@@ -279,8 +279,8 @@ export class ComprehensiveScoringPlugin implements Layer6Plugin {
       calculation: {
         elements: elements,
         shengRelations: [
-          `${elements[0]} → ${elements[1]}: ${shengCycle[elements[0]] === elements[1] ? '相生(+10)' : '无特殊关系'}`,
-          `${elements[1]} → ${elements[2]}: ${shengCycle[elements[1]] === elements[2] ? '相生(+10)' : '无特殊关系'}`
+          `${elements[0]} → ${elements[1]}: ${shengCycle[elements[0] as keyof typeof shengCycle] === elements[1] ? '相生(+10)' : '无特殊关系'}`,
+          `${elements[1]} → ${elements[2]}: ${shengCycle[elements[1] as keyof typeof shengCycle] === elements[2] ? '相生(+10)' : '无特殊关系'}`
         ],
         finalScore: `${harmony} (最高100分)`
       }

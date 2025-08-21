@@ -185,6 +185,40 @@ export interface GeneratedName {
     lastCharEval: ZodiacCharacterEvaluation;
     overallScore: number; // 生肖整体评分
   };
+  
+  // 详细评分信息（用于详细分析页面）
+  components?: {
+    surname: { char: string; strokes: number; wuxing: string };
+    first: { char: string; strokes: number; wuxing: string };
+    second: { char: string; strokes: number; wuxing: string };
+  };
+  scores?: {
+    sancai: number;
+    wuxing: number;
+    phonetic: number;
+    meaning: number;
+    cultural: number;
+    zodiac: number;
+  };
+  scoringDetails?: {
+    sancai: ScoringDetail;
+    wuxing: ScoringDetail;
+    phonetic: ScoringDetail;
+    meaning: ScoringDetail;
+    cultural: ScoringDetail;
+    zodiac: ScoringDetail;
+  };
+  comprehensiveScore?: number;
+  comprehensiveCalculation?: string;
+  grade?: string;
+  recommendation?: string;
+}
+
+// 评分详细信息接口
+export interface ScoringDetail {
+  score: number;
+  reason: string;
+  calculation: any;
 }
 
 // 名字生成配置 - 对应qiming的config.py

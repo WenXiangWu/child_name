@@ -4,6 +4,7 @@ import NameCard from '@/components/NameCard';
 import Layout from '@/components/Layout';
 import { useNameGenerator } from '@/hooks/useNameGenerator';
 import PluginExecutionViewer from '@/components/PluginExecutionViewer';
+import PluginExecutionReport from '@/components/PluginExecutionReport';
 
 export default function Generate() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function Generate() {
   const [selectedGender, setSelectedGender] = useState<'male' | 'female'>('male');
   const [usePluginSystem, setUsePluginSystem] = useState<boolean>(true);
   const [showExecutionProcess, setShowExecutionProcess] = useState<boolean>(false);
+  const [showDetailedReport, setShowDetailedReport] = useState<boolean>(false);
   
   // 初始化状态
   useEffect(() => {
@@ -225,13 +227,45 @@ export default function Generate() {
             
             {/* 插件执行过程查看器 - 仅在使用插件系统时显示 */}
             {usePluginSystem && names.length > 0 && (
-              <div className="mt-8">
-                <PluginExecutionViewer 
-                  executionLogs={executionLogs}
-                  generationMetadata={generationMetadata}
-                  isOpen={showExecutionProcess}
-                  onToggle={() => setShowExecutionProcess(!showExecutionProcess)}
-                />
+              <div className="mt-8 space-y-6">
+                {/* 简化版本的执行查看器 */}
+                <div>
+                  <PluginExecutionViewer 
+                    executionLogs={executionLogs}
+                    generationMetadata={generationMetadata}
+                    isOpen={showExecutionProcess}
+                    onToggle={() => setShowExecutionProcess(!showExecutionProcess)}
+                  />
+                </div>
+                
+                {/* 切换详细报告的按钮 */}
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setShowDetailedReport(!showDetailedReport)}
+                    className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl text-sm font-medium"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    {showDetailedReport ? '🔼 隐藏详细执行报告' : '📊 查看详细执行报告'}
+                  </button>
+                </div>
+
+                {/* 详细执行报告 */}
+                {showDetailedReport && (
+                  <div className="mt-6">
+                    <PluginExecutionReport
+                      executionLogs={executionLogs}
+                      generatedNames={names}
+                      generationMetadata={generationMetadata}
+                      requestConfig={{ 
+                        familyName: lastName, 
+                        gender: selectedGender,
+                        birthInfo: undefined 
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </>

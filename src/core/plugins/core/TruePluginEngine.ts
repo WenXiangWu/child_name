@@ -517,36 +517,67 @@ export class TruePluginEngine {
    */
   private extractGeneratedNames(pipelineResult: any): GeneratedName[] {
     const nameGenerationResult = pipelineResult.pluginResults.get('name-combination');
+    const comprehensiveScoringResult = pipelineResult.pluginResults.get('comprehensive-scoring');
     
     if (!nameGenerationResult || !nameGenerationResult.data?.nameCandidates) {
       this.log('warn', '⚠️ 名字生成插件未返回有效结果');
       return [];
     }
 
-    // 将nameCandidates转换为GeneratedName格式
-    return nameGenerationResult.data.nameCandidates.map((candidate: any) => ({
-      fullName: candidate.fullName,
-      familyName: candidate.components.surname.char,
-      midChar: candidate.firstName, 
-      lastChar: candidate.secondName,
-      score: candidate.metadata.generationScore || 80,
-      grids: {
-        tiange: 10, // 需要基于实际笔画计算
-        renge: 15,
-        dige: 20, 
-        zongge: 25,
-        waige: 8
-      },
-      sancai: {
-        heaven: candidate.components.surname.wuxing,
-        human: candidate.components.first.wuxing,
-        earth: candidate.components.second.wuxing,
-        combination: `${candidate.components.surname.wuxing}${candidate.components.first.wuxing}${candidate.components.second.wuxing}`,
-        level: '中吉',
-        description: '五行调和，运势平稳'
-      },
-      explanation: `${candidate.fullName}：蕴含深意，五行为${candidate.metadata.wuxingCombination}`
-    }));
+    // 获取详细评分数据
+    let scoredCandidates = nameGenerationResult.data.nameCandidates;
+    if (comprehensiveScoringResult && comprehensiveScoringResult.data?.scoredCandidates) {
+      scoredCandidates = comprehensiveScoringResult.data.scoredCandidates;
+      this.log('info', `✅ 获取到 ${scoredCandidates.length} 个详细评分的名字候选`);
+    } else {
+      this.log('warn', '⚠️ 未获取到综合评分结果，使用基础数据');
+    }
+
+    // 将候选转换为GeneratedName格式，包含详细评分信息
+    return scoredCandidates.map((candidate: any) => {
+      // 计算五格数理
+      const surnameStrokes = candidate.components?.surname?.strokes || 0;
+      const firstStrokes = candidate.components?.first?.strokes || 0;
+      const secondStrokes = candidate.components?.second?.strokes || 0;
+      
+      const grids = {
+        tiange: surnameStrokes + 1,
+        renge: surnameStrokes + firstStrokes,
+        dige: firstStrokes + secondStrokes,
+        zongge: surnameStrokes + firstStrokes + secondStrokes,
+        waige: secondStrokes + 1
+      };
+
+      // 构建三才信息
+      const sancai = {
+        heaven: candidate.components?.surname?.wuxing || '未知',
+        human: candidate.components?.first?.wuxing || '未知',
+        earth: candidate.components?.second?.wuxing || '未知',
+        combination: candidate.scoringDetails?.sancai?.calculation?.sancaiPattern || '未知',
+        level: candidate.grade || '中等',
+        description: candidate.recommendation || '五行调和，运势平稳'
+      };
+
+      return {
+        fullName: candidate.fullName,
+        familyName: candidate.components?.surname?.char || candidate.familyName,
+        midChar: candidate.components?.first?.char || candidate.firstName, 
+        lastChar: candidate.components?.second?.char || candidate.secondName,
+        score: candidate.comprehensiveScore || candidate.metadata?.generationScore || 80,
+        grids,
+        sancai,
+        explanation: candidate.recommendation || `${candidate.fullName}：蕴含深意，综合评分 ${candidate.comprehensiveScore || 80} 分`,
+        
+        // 添加详细评分信息（用于详细分析页面）
+        components: candidate.components,
+        scores: candidate.scores,
+        scoringDetails: candidate.scoringDetails,
+        comprehensiveScore: candidate.comprehensiveScore,
+        comprehensiveCalculation: candidate.comprehensiveCalculation,
+        grade: candidate.grade,
+        recommendation: candidate.recommendation
+      };
+    });
   }
 
   /**
