@@ -11,7 +11,7 @@ import {
   GeneratedName, 
   NameGenerationConfig,
   NameValidationResult
-} from '../lib/qiming';
+} from '../lib/qiming/index';
 import { QimingNameGenerator } from '../core/naming/name-generator';
 import PluginExecutionViewer from '../components/PluginExecutionViewer';
 

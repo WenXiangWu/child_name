@@ -22,7 +22,7 @@ import {
 } from '../../interfaces/NamingPlugin';
 
 // 使用真实的lunar库
-import * as Lunar from 'lunar-javascript';
+const Lunar = require('lunar-javascript');
 
 interface BirthInfo {
   year: number;
@@ -428,8 +428,9 @@ export class BirthTimePlugin implements Layer1Plugin {
    */
   private getZodiacInfo(lunarYear: number) {
     try {
-      // 使用lunar库获取生肖信息
-      const lunar = Lunar.Lunar.fromYmd(lunarYear, 1, 1);
+      // 使用lunar库获取生肖信息  
+      const solar = Lunar.Solar.fromYmd(lunarYear, 1, 1);
+      const lunar = solar.getLunar();
       const zodiac = lunar.getYearShengXiao();
       
       return {
