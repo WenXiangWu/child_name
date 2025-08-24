@@ -3,7 +3,7 @@
  * 负责协调整个插件系统的运行，包括加载、注册、执行和生命周期管理
  */
 
-import { NamingPlugin, PluginContext, StandardInput, PluginOutput, ValidationResult } from '../interfaces/NamingPlugin';
+import { NamingPlugin, PluginContext, StandardInput, PluginOutput, ValidationResult, CertaintyLevel } from '../interfaces/NamingPlugin';
 import { PluginContainer, ContainerConfig } from './PluginContainer';
 import { PluginRegistry } from './PluginRegistry';
 import { DependencyGraph } from './DependencyGraph';
@@ -150,11 +150,11 @@ export class PluginManager {
 
     const startTime = Date.now();
     const results: PluginOutput[] = [];
-    const context = this.createPluginContext(input.requestId);
+    const context = this.createPluginContext(`request-${Date.now()}`);
 
     try {
       // 获取启用的插件
-      const enabledPlugins = this.container.getEnabledPlugins(input.certaintyLevel);
+      const enabledPlugins = this.container.getEnabledPlugins(input.preferences?.certaintyLevel || CertaintyLevel.UNKNOWN);
       
       // 获取执行顺序
       const executionOrder = this.container.getExecutionOrder(enabledPlugins);
@@ -200,7 +200,7 @@ export class PluginManager {
         ErrorType.SYSTEM_ERROR,
         ErrorSeverity.HIGH,
         'PLUGIN_CHAIN_EXECUTION_FAILED',
-        { requestId: input.requestId, originalError: error }
+        { requestId: `request-${Date.now()}`, originalError: error }
       );
       this.errorHandler.handleError(systemError);
       throw error;
@@ -285,11 +285,10 @@ export class PluginManager {
    */
   private createPluginContext(pluginId: string): PluginContext {
     return {
-      requestId: `ctx-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      certaintyLevel: CertaintyLevel.UNKNOWN,
       getPluginResult: (id: string) => null, // TODO: 实现结果获取逻辑
       setPluginResult: (id: string, result: any) => {}, // TODO: 实现结果设置逻辑
-      getConfig: () => ({ enabled: true, priority: 100, timeout: 30000, retryCount: 3 }),
-      log: (level, message, data) => {
+      log: (level: 'info' | 'warn' | 'error', message: string) => {
         // TODO: 实现日志记录逻辑
       }
     };
@@ -305,7 +304,7 @@ export class PluginManager {
     attempt: number = 1
   ): Promise<PluginOutput> {
     try {
-      return await plugin.process(input);
+      return await plugin.process(input, this.createPluginContext(plugin.id));
     } catch (error) {
       if (attempt < this.config.maxRetryAttempts) {
         // 指数退避重试

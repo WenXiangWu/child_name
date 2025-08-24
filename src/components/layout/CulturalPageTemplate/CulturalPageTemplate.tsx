@@ -261,7 +261,7 @@ export const CulturalPageTemplate: React.FC<CulturalPageTemplateProps> = ({
           {/* 返回按钮 - 传统风格 */}
           <div className="mb-8">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={handleBack}
               className="group border-cultural-gold-300 text-cultural-ink-700 hover:bg-cultural-gold-50 hover:border-cultural-gold-400 transition-all duration-300"
             >

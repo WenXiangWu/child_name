@@ -187,7 +187,7 @@ export const PageTemplate: React.FC<PageTemplateProps> = ({
               {headerActions}
               {showBackButton && (
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={handleBack}
                   className="flex items-center gap-2"

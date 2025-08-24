@@ -258,7 +258,9 @@ export class PluginRegistry {
   async cleanup(): Promise<void> {
     for (const [id, entry] of this.plugins) {
       try {
-        await entry.plugin.destroy();
+        if (entry.plugin.cleanup) {
+          await entry.plugin.cleanup();
+        }
       } catch (error) {
         console.warn(`插件 ${id} 清理失败:`, error);
       }

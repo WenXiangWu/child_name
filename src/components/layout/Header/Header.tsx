@@ -17,11 +17,9 @@ const navigationItems: NavItem[] = [
     href: '/naming',
     label: '智能取名',
     children: [
-      { href: '/naming/quick', label: '快速取名', icon: '⚡' },
-      { href: '/naming/advanced', label: '高级取名', icon: '🎯' },
       { href: '/naming', label: '专业取名', icon: '🔧' },
       { href: '/poetry-naming', label: '诗词取名', icon: '📜' },
-      { href: '/plugin-system-demo', label: '插件系统', icon: '🧩' }
+      { href: '/plugin-execution-flow', label: '插件系统', icon: '🧩' }
     ]
   },
   {

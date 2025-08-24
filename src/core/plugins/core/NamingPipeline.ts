@@ -7,7 +7,8 @@ import {
   StandardInput, 
   PluginOutput, 
   CertaintyLevel,
-  ValidationResult
+  ValidationResult,
+  PluginContext
 } from '../interfaces/NamingPlugin';
 import { DependencyGraph } from '../utils/DependencyGraph';
 import { PluginLifecycleManager, PluginStatus } from '../utils/PluginLifecycleManager';
@@ -249,7 +250,7 @@ export class NamingPipeline {
       const standardInput = this.buildStandardInput(input, context);
       
       // 验证插件输入
-      const validation = plugin.validate(standardInput);
+      const validation = await plugin.validate(standardInput);
       if (!validation.valid) {
         if (context.options?.skipOptionalFailures && this.isOptionalPlugin(pluginId)) {
           context.warnings.push(`可选插件 ${pluginId} 验证失败，跳过执行: ${validation.errors.join(', ')}`);
@@ -274,7 +275,7 @@ export class NamingPipeline {
       }
 
       // 存储结果
-      context.pluginResults.set(pluginId, result.results);
+      context.pluginResults.set(pluginId, result);
       context.executedPlugins.push(pluginId);
       
       this.lifecycleManager.recordHealthCheck(pluginId, true, { 
@@ -309,7 +310,8 @@ export class NamingPipeline {
   private async executeWithTimeout(
     plugin: NamingPlugin,
     input: StandardInput,
-    timeout: number
+    timeout: number,
+    context?: PluginContext
   ): Promise<PluginOutput> {
     return new Promise(async (resolve, reject) => {
       const timer = setTimeout(() => {
@@ -317,7 +319,10 @@ export class NamingPipeline {
       }, timeout);
 
       try {
-        const result = await plugin.process(input);
+        const pluginContext: PluginContext = context || {
+          certaintyLevel: input.preferences?.certaintyLevel || CertaintyLevel.UNKNOWN
+        };
+        const result = await plugin.process(input, pluginContext);
         clearTimeout(timer);
         resolve(result);
       } catch (error) {
@@ -395,16 +400,16 @@ export class NamingPipeline {
   private validateOutput(output: PluginOutput): ValidationResult {
     const errors: string[] = [];
     
-    if (!output.pluginId) {
-      errors.push('输出缺少插件ID');
+    if (!output.data) {
+      errors.push('输出缺少数据');
     }
     
     if (output.confidence < 0 || output.confidence > 1) {
       errors.push('置信度必须在0-1之间');
     }
     
-    if (!output.results) {
-      errors.push('输出缺少结果数据');
+    if (!output.success) {
+      errors.push('插件执行失败');
     }
 
     return {
@@ -422,22 +427,21 @@ export class NamingPipeline {
     context: ExecutionContext
   ): StandardInput {
     return {
-      requestId: input.requestId,
-      certaintyLevel: input.certaintyLevel,
-      data: input.data,
-      context: {
-        requestId: input.requestId,
-        startTime: context.startTime,
+      familyName: input.data.familyName,
+      gender: input.data.gender,
+      birthInfo: input.data.birthInfo ? {
+        year: input.data.birthInfo.year,
+        month: input.data.birthInfo.month,
+        day: input.data.birthInfo.day || 1,
+        hour: input.data.birthInfo.hour,
+        minute: input.data.birthInfo.minute
+      } : undefined,
+      preferences: {
         certaintyLevel: input.certaintyLevel,
-        pluginResults: context.pluginResults,
-        errors: context.errors.map(pipelineError => ({
-          code: pipelineError.fatal ? 'FATAL_ERROR' : 'PLUGIN_ERROR',
-          message: `${pipelineError.pluginId}: ${pipelineError.error}`,
-          details: pipelineError.context,
-          timestamp: pipelineError.timestamp
-        })),
-        warnings: context.warnings
-      }
+        parallelExecution: input.options?.parallelExecution,
+        skipOptionalFailures: input.options?.skipOptionalFailures
+      },
+      characters: input.data.characters
     };
   }
 
@@ -554,10 +558,11 @@ export class NamingPipeline {
         ([pluginId, results]) => [
           pluginId,
           {
-            pluginId,
-            results,
-            confidence: 1.0, // 简化处理
-            metadata: { processingTime }
+            success: true,
+            data: results,
+            confidence: 1.0,
+            executionTime: processingTime,
+            metadata: { pluginId }
           }
         ]
       )),

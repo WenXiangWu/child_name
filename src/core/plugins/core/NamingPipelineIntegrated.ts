@@ -7,7 +7,7 @@ import { PluginContainer, PluginManifest } from './PluginContainer';
 import { NamingPipeline, PipelineInput, PipelineOutput } from './NamingPipeline';
 import { CertaintyLevelManager } from './CertaintyLevelManager';
 import { PredueDateHandler, PredueInfo } from '../utils/PredueDateHandler';
-import { QimingPluginFactory } from '../implementations/PluginFactory';
+import { QimingPluginFactory, PluginType } from '../implementations/PluginFactory';
 
 // 取名请求接口
 export interface NamingRequest {
@@ -304,7 +304,7 @@ export class NamingPipelineIntegrated {
    * 注册所有插件
    */
   private async registerAllPlugins(): Promise<void> {
-    const pluginTypes: string[] = [
+    const pluginTypes: PluginType[] = [
       // Layer 1: 基础信息层
       'surname', 'gender', 'birth-time',
       // Layer 2: 命理分析层  

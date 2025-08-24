@@ -258,6 +258,7 @@ export class TruePluginEngine {
         skipOptionalFailures: request.preferences?.skipOptionalFailures !== false,
         parallelExecution: false
       },
+      // 添加临时的context属性用于兼容
       context: {
         pluginResults: new Map(),
         sessionId: `session_${Date.now()}`,
@@ -321,10 +322,10 @@ export class TruePluginEngine {
    * 执行 Layer 1 插件
    */
   private async executeLayer1Plugins(input: StandardInput, results: Map<string, any>): Promise<void> {
-    const layer1Plugins = ['surname', 'gender', 'birth-time', 'family-tradition'];
+    const layer1Plugins = ['surname', 'gender', 'birth-time'];
 
     for (const pluginId of layer1Plugins) {
-      if (pluginId === 'birth-time' && !input.data.birthInfo) {
+      if (pluginId === 'birth-time' && !input.birthInfo) {
         this.log('info', `⏭️ 跳过插件: ${pluginId} (缺少出生信息)`);
         continue;
       }
