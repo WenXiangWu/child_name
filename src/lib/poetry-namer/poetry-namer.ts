@@ -3,7 +3,7 @@
  * 复制并适配gushi_namer的Namer类核心逻辑
  */
 
-import { PoetryEntry, PoetryNameResult, PoetryNamingConfig, PoetryBook, getRecommendedBooks, CommonCharData } from './types';
+import { PoetryEntry, PoetryNameResult, PoetryNamingConfig, PoetryBook, getRecommendedBooks, CommonCharData, Dynasty } from './types';
 import { TextProcessor } from './text-processor';
 import { choose, between } from './random';
 
@@ -33,7 +33,7 @@ export class PoetryNamer {
 
       if (typeof window !== 'undefined') {
         // 客户端：使用相对路径
-        const response = await fetch(`/data/processed/${fileName}`);
+        const response = await fetch(`/data/configs/processed/${fileName}`);
         if (!response.ok) {
           throw new Error(`Failed to load common chars: ${response.statusText}`);
         }
@@ -42,7 +42,7 @@ export class PoetryNamer {
         // 服务端：使用文件系统读取
         const fs = await import('fs');
         const path = await import('path');
-        const filePath = path.join(process.cwd(), 'public', 'data', 'processed', fileName);
+        const filePath = path.join(process.cwd(), 'public', 'data', 'configs', 'processed', fileName);
         
         if (!fs.existsSync(filePath)) {
           throw new Error(`Common chars file not found: ${filePath}`);
@@ -65,8 +65,100 @@ export class PoetryNamer {
   }
 
   /**
+   * 获取诗词文件路径映射
+   */
+  private getPoetryFilePath(book: PoetryBook): string {
+    const pathMap: Record<PoetryBook, string> = {
+      'shijing': 'chinese-poetry/诗经/shijing.json',
+      'chuci': 'chinese-poetry/楚辞/chuci.json', 
+      'tangshi': 'chinese-poetry/全唐诗/唐诗三百首.json',
+      'songci': 'chinese-poetry/宋词/宋词三百首.json',
+      'yuefu': 'chinese-poetry/蒙学/qianjiashi.json', // 使用千家诗作为乐府替代
+      'gushi': 'chinese-poetry/蒙学/tangshisanbaishou.json', // 使用唐诗三百首
+      'cifu': 'chinese-poetry/四书五经/mengzi.json' // 使用孟子作为辞赋替代
+    };
+    
+    return pathMap[book] || `chinese-poetry/${book}.json`;
+  }
+
+  /**
+   * 转换原始诗词数据为标准格式
+   */
+  private convertToStandardFormat(rawData: any, book: PoetryBook): PoetryEntry[] {
+    const results: PoetryEntry[] = [];
+    let items: any[] = [];
+    
+    // 处理不同的数据结构
+    if (Array.isArray(rawData)) {
+      items = rawData;
+    } else if (rawData.content && Array.isArray(rawData.content)) {
+      // 处理蒙学类的嵌套结构
+      for (const section of rawData.content) {
+        if (section.content && Array.isArray(section.content)) {
+          items.push(...section.content);
+        }
+      }
+    } else {
+      console.warn('未知的数据格式:', rawData);
+      return results;
+    }
+    
+    for (const item of items) {
+      try {
+        let content = '';
+        let title = item.title || item.chapter || '无题';
+        let author = item.author || null;
+        let dynasty = this.getDynastyByBook(book);
+        
+        // 处理不同的content格式
+        if (Array.isArray(item.content)) {
+          content = item.content.join('');
+        } else if (typeof item.content === 'string') {
+          content = item.content;
+        } else if (item.paragraphs && Array.isArray(item.paragraphs)) {
+          content = item.paragraphs.join('');
+        } else if (item.strains && Array.isArray(item.strains)) {
+          content = item.strains.join('');
+        }
+        
+        // 过滤掉内容太短的条目
+        if (content && content.length > 10) {
+          results.push({
+            content,
+            title,
+            author,
+            book,
+            dynasty
+          });
+        }
+      } catch (error) {
+        console.warn(`处理诗词条目时出错:`, error, item);
+      }
+    }
+    
+    return results;
+  }
+
+  /**
+   * 根据典籍获取朝代
+   */
+  private getDynastyByBook(book: PoetryBook): Dynasty {
+    const dynastyMap: Record<PoetryBook, Dynasty> = {
+      'shijing': '先秦',
+      'chuci': '先秦',
+      'tangshi': '唐代',
+      'songci': '宋代',
+      'yuefu': '汉魏六朝',
+      'gushi': '多朝代',
+      'cifu': '多朝代'
+    };
+    
+    return dynastyMap[book] || '多朝代';
+  }
+
+  /**
    * 加载诗词典籍数据
-   * 复制自gushi_namer的loadBook方法
+   * 适配chinese-poetry目录结构
    */
   async loadBook(book: PoetryBook): Promise<PoetryEntry[]> {
     // 如果已经加载过，直接返回缓存数据
@@ -78,36 +170,33 @@ export class PoetryNamer {
       this.loading = true;
       console.log(`📚 开始加载诗词典籍: ${book}`);
       
-      // 从public目录加载JSON数据
-      let response;
+      const filePath = this.getPoetryFilePath(book);
+      let rawData: any;
       
       if (typeof window !== 'undefined') {
         // 客户端：使用相对路径
-        response = await fetch(`/data/poetry/${book}.json`);
+        const response = await fetch(`/data/poetry/${filePath}`);
+        if (!response.ok) {
+          throw new Error(`Failed to load ${book}: ${response.statusText}`);
+        }
+        rawData = await response.json();
       } else {
         // 服务端：使用文件系统读取
         const fs = await import('fs');
         const path = await import('path');
-        const filePath = path.join(process.cwd(), 'public', 'data', 'poetry', `${book}.json`);
+        const fullPath = path.join(process.cwd(), 'public', 'data', 'poetry', filePath);
         
-        if (!fs.existsSync(filePath)) {
-          throw new Error(`Poetry file not found: ${filePath}`);
+        if (!fs.existsSync(fullPath)) {
+          throw new Error(`Poetry file not found: ${fullPath}`);
         }
         
-        const fileContent = fs.readFileSync(filePath, 'utf-8');
-        const data: PoetryEntry[] = JSON.parse(fileContent);
-        
-        console.log(`✅ ${book} 加载完成，共 ${data.length} 篇作品`);
-        this.loadedBooks.set(book, data);
-        return data;
+        const fileContent = fs.readFileSync(fullPath, 'utf-8');
+        rawData = JSON.parse(fileContent);
       }
       
-      response = response!;
-      if (!response.ok) {
-        throw new Error(`Failed to load ${book}: ${response.statusText}`);
-      }
-
-      const data: PoetryEntry[] = await response.json();
+      // 转换为标准格式
+      const data = this.convertToStandardFormat(rawData, book);
+      
       console.log(`✅ ${book} 加载完成，共 ${data.length} 篇作品`);
       
       // 缓存数据
