@@ -2,13 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 设计系统基础变量 */
+/* 设计系统基础变量 - 遵循60-30-10配色原则 */
 :root {
-  /* 色彩系统 */
-  --color-cultural-red: #dc2626;
-  --color-cultural-gold: #f59e0b;
-  --color-cultural-jade: #059669;
-  --color-cultural-ink: #1f2937;
+  /* 主色调系统 (60%) - 中性色为主 */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  
+  /* 辅助色系统 (30%) - 文化色彩 */
+  --color-cultural-red-50: #fef2f2;
+  --color-cultural-red-100: #fee2e2;
+  --color-cultural-red-500: #dc2626;
+  --color-cultural-red-600: #b91c1c;
+  --color-cultural-red-900: #7f1d1d;
+  
+  --color-cultural-gold-50: #fffbeb;
+  --color-cultural-gold-100: #fef3c7;
+  --color-cultural-gold-500: #f59e0b;
+  --color-cultural-gold-600: #d97706;
+  --color-cultural-gold-900: #78350f;
+  
+  --color-cultural-jade-50: #ecfdf5;
+  --color-cultural-jade-100: #d1fae5;
+  --color-cultural-jade-500: #059669;
+  --color-cultural-jade-600: #047857;
+  --color-cultural-jade-900: #064e3b;
+  
+  /* 强调色系统 (10%) - 用于关键操作 */
+  --color-primary: var(--color-cultural-gold-500);
+  --color-primary-hover: var(--color-cultural-gold-600);
+  --color-accent: var(--color-cultural-red-500);
+  
+  /* 语义化颜色 */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+  
+  /* 传统文化色彩 - 保持向后兼容 */
+  --color-cultural-red: var(--color-cultural-red-500);
+  --color-cultural-gold: var(--color-cultural-gold-500);
+  --color-cultural-jade: var(--color-cultural-jade-500);
+  --color-cultural-ink: var(--color-neutral-800);
   --color-cultural-paper: #fef7ed;
   
   /* 字体系统 */
@@ -16,25 +58,43 @@
   --font-body: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
   
-  /* 间距系统 */
-  --space-unit: 0.25rem; /* 4px */
+  /* 间距系统 - 8px基础网格 */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  --space-24: 6rem;     /* 96px */
   
-  /* 阴影系统 */
-  --shadow-cultural: 0 4px 6px -1px rgba(220, 38, 38, 0.1), 0 2px 4px -1px rgba(220, 38, 38, 0.06);
+  /* 阴影系统 - 层次化设计 */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-cultural: 0 4px 6px -1px rgba(245, 158, 11, 0.1), 0 2px 4px -1px rgba(245, 158, 11, 0.06);
   
   /* 动画时长 */
   --duration-fast: 150ms;
   --duration-normal: 300ms;
   --duration-slow: 500ms;
   
-  /* 边框圆角 */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  /* 边框圆角 - 统一化设计 */
+  --radius-sm: 0.375rem;   /* 6px */
+  --radius-md: 0.5rem;     /* 8px */
+  --radius-lg: 0.75rem;    /* 12px */
+  --radius-xl: 1rem;       /* 16px */
+  --radius-2xl: 1.5rem;    /* 24px */
+  --radius-full: 9999px;
   
   /* 原有变量 */
-  --foreground-rgb: 31, 41, 55; /* cultural-ink */
+  --foreground-rgb: 38, 38, 38; /* neutral-800 */
   --background-rgb: 255, 255, 255;
 }
 

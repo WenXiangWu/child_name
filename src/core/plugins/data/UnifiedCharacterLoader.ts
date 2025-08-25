@@ -233,7 +233,7 @@ export class UnifiedCharacterLoader {
           }
           
           // 统计推荐起名字符 (使用实际存在的标准来判断)
-          const isNamingRecommended = this.isCharacterSuitableForNaming(data);
+          const isNamingRecommended = this.isCharacterDataSuitableForNaming(data);
           if (isNamingRecommended) {
             namingRecommendedChars++;
           }
@@ -310,7 +310,7 @@ export class UnifiedCharacterLoader {
    * 判断字符是否适合起名
    * 基于实际字符特征进行判断
    */
-  private isCharacterSuitableForNaming(data: any): boolean {
+  private isCharacterDataSuitableForNaming(data: any): boolean {
     // 1. 必须是标准字符
     if (!data.isStandard) return false;
     

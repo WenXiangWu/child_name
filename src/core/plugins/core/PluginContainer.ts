@@ -11,7 +11,7 @@ import {
 } from '../interfaces/NamingPlugin';
 import { DependencyGraph } from '../utils/DependencyGraph';
 import { PluginLifecycleManager, PluginStatus } from '../utils/PluginLifecycleManager';
-import { pluginFactory, PluginType } from '../implementations/PluginFactory';
+import { pluginFactory, PluginType, PluginId } from '../implementations/PluginFactory';
 import { IPluginContainer } from './NamingPipeline';
 
 // 插件配置项
@@ -101,15 +101,31 @@ export class PluginContainer implements IPluginContainer {
   }
 
   /**
-   * 注册插件
+   * 注册插件 - 支持PluginId
+   */
+  async registerPlugin(
+    pluginId: PluginId, 
+    config?: PluginConfig
+  ): Promise<void>;
+  
+  /**
+   * 注册插件 - 支持PluginType
    */
   async registerPlugin(
     pluginType: PluginType, 
     config?: PluginConfig
+  ): Promise<void>;
+  
+  /**
+   * 注册插件 - 实现
+   */
+  async registerPlugin(
+    pluginIdentifier: PluginId | PluginType, 
+    config?: PluginConfig
   ): Promise<void> {
     try {
       // 创建插件实例
-      const plugin = pluginFactory.createPlugin(pluginType);
+      const plugin = pluginFactory.createPlugin(pluginIdentifier as any);
       const pluginId = plugin.id;
 
       // 检查是否已注册
@@ -173,7 +189,7 @@ export class PluginContainer implements IPluginContainer {
       }
 
     } catch (error) {
-      const pluginId = pluginFactory.createPlugin(pluginType).id;
+      const pluginId = pluginFactory.createPlugin(pluginIdentifier as any).id;
       this.lifecycleManager.markInitializationFailed(
         pluginId, 
         error instanceof Error ? error.message : String(error)

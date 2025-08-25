@@ -60,7 +60,7 @@ export class BaZiPlugin implements NamingPlugin {
     name: '八字四柱分析插件',
     description: '计算和分析八字四柱，提供日主、用神、忌神等信息',
     author: 'System',
-    category: 'calculation',
+    category: 'analysis',
     tags: ['bazi', 'fourpillars', 'wuxing', 'fortune']
   };
 
@@ -107,7 +107,7 @@ export class BaZiPlugin implements NamingPlugin {
    */
   async initialize(config: PluginConfig, context: PluginContext): Promise<void> {
     this.config = config;
-    context.log('info', `八字四柱插件初始化完成, 版本: ${this.version}`);
+    context.log?.('info', `八字四柱插件初始化完成, 版本: ${this.version}`);
   }
 
   /**
@@ -558,13 +558,13 @@ export class BaZiPlugin implements NamingPlugin {
   /**
    * 验证输入数据
    */
-  validate(input: StandardInput): ValidationResult {
+  async validate(input: StandardInput): Promise<ValidationResult> {
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    // 检查是否有出生时间依赖
-    if (!input.context.pluginResults.has('birth-time')) {
-      errors.push('八字计算需要出生时间插件的结果');
+    // 检查是否有出生时间信息
+    if (!input.birthInfo) {
+      errors.push('八字计算需要出生时间信息');
     }
 
     return {

@@ -210,7 +210,7 @@ export class WuxingBalanceScoringPlugin implements Layer6Plugin {
   /**
    * 标准化五行名称
    */
-  private normalizeWuxing(wuxing: string): keyof typeof this.wuxingMapping | null {
+  private normalizeWuxing(wuxing: string): 'wood' | 'fire' | 'earth' | 'metal' | 'water' | null {
     const wuxingMapping = {
       '木': 'wood', '火': 'fire', '土': 'earth', '金': 'metal', '水': 'water',
       'wood': 'wood', 'fire': 'fire', 'earth': 'earth', 'metal': 'metal', 'water': 'water'

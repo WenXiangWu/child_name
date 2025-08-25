@@ -7,7 +7,7 @@ import { PluginContainer, PluginManifest } from './PluginContainer';
 import { NamingPipeline, PipelineInput, PipelineOutput } from './NamingPipeline';
 import { CertaintyLevelManager } from './CertaintyLevelManager';
 import { PredueDateHandler, PredueInfo } from '../utils/PredueDateHandler';
-import { QimingPluginFactory, PluginType } from '../implementations/PluginFactory';
+import { QimingPluginFactory, PluginType, PluginId } from '../implementations/PluginFactory';
 
 // 取名请求接口
 export interface NamingRequest {
@@ -304,7 +304,7 @@ export class NamingPipelineIntegrated {
    * 注册所有插件
    */
   private async registerAllPlugins(): Promise<void> {
-    const pluginTypes: PluginType[] = [
+    const pluginIds: PluginId[] = [
       // Layer 1: 基础信息层
       'surname', 'gender', 'birth-time',
       // Layer 2: 命理分析层  
@@ -319,11 +319,11 @@ export class NamingPipelineIntegrated {
       'sancai-scoring', 'phonetic-scoring', 'wuxing-balance-scoring', 'dayan-scoring', 'comprehensive-scoring'
     ];
 
-    for (const pluginType of pluginTypes) {
+    for (const pluginId of pluginIds) {
       try {
-        await this.container.registerPlugin(pluginType);
+        await this.container.registerPlugin(pluginId);
       } catch (error) {
-        console.warn(`插件 ${pluginType} 注册失败:`, error);
+        console.warn(`插件 ${pluginId} 注册失败:`, error);
       }
     }
   }

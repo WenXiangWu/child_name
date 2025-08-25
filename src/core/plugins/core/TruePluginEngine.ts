@@ -6,7 +6,7 @@
 
 import { PluginContainer } from './PluginContainer';
 import { NamingPipelineIntegrated } from './NamingPipelineIntegrated';
-import { pluginFactory, PluginType } from '../implementations/PluginFactory';
+import { pluginFactory, PluginType, PluginId } from '../implementations/PluginFactory';
 import { PluginManager } from './PluginManager';
 import { StandardInput, CertaintyLevel } from '../interfaces/NamingPlugin';
 import { GeneratedName } from '../../common/types';
@@ -106,7 +106,7 @@ export class TruePluginEngine {
    * 注册所有插件
    */
   private async registerAllPlugins(): Promise<void> {
-    const pluginTypes: PluginType[] = [
+    const pluginIds: PluginId[] = [
       // Layer 1: 基础信息层
       'surname', 'gender', 'birth-time',
       // Layer 2: 命理基础层
@@ -122,15 +122,15 @@ export class TruePluginEngine {
     ];
 
     this.log('info', '🔄 开始注册插件', undefined, undefined, {
-      totalPlugins: pluginTypes.length,
-      pluginList: pluginTypes
+      totalPlugins: pluginIds.length,
+      pluginList: pluginIds
     });
 
-    for (const pluginType of pluginTypes) {
+    for (const pluginId of pluginIds) {
       try {
-        await this.container.registerPlugin(pluginType);
+        await this.container.registerPlugin(pluginId);
       } catch (error) {
-        this.log('warn', `⚠️ 插件注册失败: ${pluginType}`, undefined, undefined, { 
+        this.log('warn', `⚠️ 插件注册失败: ${pluginId}`, undefined, undefined, { 
           error: error instanceof Error ? error.message : String(error),
           errorCode: (error as any)?.code
         });
@@ -257,12 +257,6 @@ export class TruePluginEngine {
         includeTraditionalAnalysis: request.preferences?.includeTraditionalAnalysis || request.useTraditional || false,
         skipOptionalFailures: request.preferences?.skipOptionalFailures !== false,
         parallelExecution: false
-      },
-      // 添加临时的context属性用于兼容
-      context: {
-        pluginResults: new Map(),
-        sessionId: `session_${Date.now()}`,
-        requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       }
     };
   }
@@ -346,7 +340,7 @@ export class TruePluginEngine {
         results.set(pluginId, result);
         
         // 更新共享上下文
-        input.context.pluginResults.set(pluginId, result);
+        results.set(pluginId, result);
         
         // 详细的结果日志
         this.logPluginResult(pluginId, 1, result);
@@ -366,7 +360,7 @@ export class TruePluginEngine {
     const layer2Plugins = ['zodiac', 'xiyongshen'];
 
     for (const pluginId of layer2Plugins) {
-      if (pluginId === 'zodiac' && !input.data.birthInfo?.year) {
+      if (pluginId === 'zodiac' && !input.birthInfo?.year) {
         this.log('info', `⏭️ 跳过插件: ${pluginId} (缺少出生年份)`);
         continue;
       }
@@ -387,7 +381,7 @@ export class TruePluginEngine {
         results.set(pluginId, result);
         
         // 更新共享上下文
-        input.context.pluginResults.set(pluginId, result);
+        results.set(pluginId, result);
         
         // 详细的结果日志
         this.logPluginResult(pluginId, 2, result);
@@ -407,7 +401,7 @@ export class TruePluginEngine {
     const layer3Plugins = ['stroke', 'wuxing-char', 'zodiac-char', 'meaning', 'phonetic'];
 
     for (const pluginId of layer3Plugins) {
-      if (pluginId === 'zodiac-char' && !input.context.pluginResults.has('zodiac')) {
+      if (pluginId === 'zodiac-char' && !results.has('zodiac')) {
         this.log('info', `⏭️ 跳过插件: ${pluginId} (zodiac插件未成功执行)`);
         continue;
       }
@@ -428,7 +422,7 @@ export class TruePluginEngine {
         results.set(pluginId, result);
         
         // 更新共享上下文
-        input.context.pluginResults.set(pluginId, result);
+        results.set(pluginId, result);
         
         // 详细的结果日志
         this.logPluginResult(pluginId, 3, result);
@@ -464,7 +458,7 @@ export class TruePluginEngine {
         results.set(pluginId, result);
         
         // 更新共享上下文
-        input.context.pluginResults.set(pluginId, result);
+        results.set(pluginId, result);
         
         // 详细的结果日志
         this.logPluginResult(pluginId, 4, result);
@@ -500,7 +494,7 @@ export class TruePluginEngine {
         results.set(pluginId, result);
         
         // 更新共享上下文
-        input.context.pluginResults.set(pluginId, result);
+        results.set(pluginId, result);
         
         // 详细的结果日志
         this.logPluginResult(pluginId, 5, result);
@@ -1010,7 +1004,7 @@ export class TruePluginEngine {
         results.set(pluginId, result);
         
         // 更新共享上下文
-        input.context.pluginResults.set(pluginId, result);
+        results.set(pluginId, result);
         
         // 详细的结果日志
         this.logPluginResult(pluginId, layer, result);
@@ -1033,7 +1027,7 @@ export class TruePluginEngine {
         });
         
         // 修复：任何插件失败都应该停止执行，除非明确标记为可选
-        if (this.isCriticalPlugin(pluginId) || input.certaintyLevel === CertaintyLevel.FULLY_DETERMINED) {
+        if (this.isCriticalPlugin(pluginId) || input.preferences?.certaintyLevel === CertaintyLevel.FULLY_DETERMINED) {
           this.log('error', `🛑 关键插件 ${pluginId} 失败，停止执行后续插件`, pluginId, layer);
           throw error; // 关键插件失败或完全确定模式下，停止执行
         }
@@ -1061,7 +1055,7 @@ export class TruePluginEngine {
     const filteredPlugins = layerPlugins.filter(plugin => enabledPlugins.includes(plugin));
     
     // 调试日志
-    this.log('debug', `🔍 Layer ${layer} 插件过滤调试`, undefined, undefined, {
+    this.log('info', `🔍 Layer ${layer} 插件过滤调试`, undefined, undefined, {
       layerPlugins,
       enabledPlugins: enabledPlugins.slice(0, 10), // 只显示前10个避免日志过长
       filteredPlugins,

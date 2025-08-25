@@ -13,7 +13,16 @@ import { Layer4PluginType } from './layer4';
 import { Layer5PluginType } from './layer5';
 import { Layer6PluginType } from './layer6';
 
-// 统一插件类型定义
+// 插件ID类型定义（用于运行时）
+export type PluginId = 
+  | 'surname' | 'gender' | 'birth-time'  // Layer 1
+  | 'bazi' | 'zodiac' | 'xiyongshen'     // Layer 2
+  | 'wuxing-selection' | 'zodiac-selection' | 'meaning-selection' | 'stroke-selection' | 'phonetic-selection'  // Layer 3
+  | 'character-filter'  // Layer 4
+  | 'name-combination'  // Layer 5
+  | 'sancai-scoring' | 'phonetic-scoring' | 'wuxing-balance-scoring' | 'dayan-scoring' | 'comprehensive-scoring';  // Layer 6
+
+// 插件类名类型定义（用于类型检查）
 export type PluginType = 
   | Layer1PluginType 
   | Layer2PluginType 
@@ -21,6 +30,9 @@ export type PluginType =
   | Layer4PluginType 
   | Layer5PluginType 
   | Layer6PluginType;
+
+// 统一插件标识符类型（支持两种命名方式）
+export type PluginIdentifier = PluginId | PluginType;
 
 // Layer 1 导入 (3个插件)
 import { SurnamePlugin, GenderPlugin, BirthTimePlugin } from './layer1';
