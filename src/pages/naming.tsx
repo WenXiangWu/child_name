@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Layout from '@/components/Layout';
 import { 
   getQimingInstance, 
   GeneratedName, 
@@ -329,156 +330,225 @@ const NamingPage: React.FC = () => {
 
   // 渲染步骤1：基础信息采集
   const renderStep1 = () => (
-    <div className="max-w-2xl mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">基础信息</h2>
-        <p className="text-gray-600">请填写宝宝的基本信息，我们将为您生成专业的名字推荐</p>
+    <div className="max-w-4xl mx-auto">
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-cultural-gold-500 to-cultural-gold-600 rounded-2xl shadow-lg mb-6">
+          <span className="text-2xl text-white">👶</span>
+        </div>
+        <h2 className="text-3xl lg:text-4xl font-bold font-heading text-cultural-ink mb-4">
+          基础信息采集
+        </h2>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          请填写宝宝的基本信息，我们将运用传统文化智慧与现代AI技术为您生成专业的名字推荐
+        </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg p-8 space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            宝宝姓氏 <span className="text-red-500">*</span>
+      <div className="bg-gradient-to-br from-white via-cultural-paper to-white rounded-3xl shadow-xl border-2 border-cultural-gold/20 p-8 lg:p-12 space-y-8">
+        {/* 宝宝姓氏 */}
+        <div className="relative">
+          <label className="block text-base font-bold text-cultural-ink mb-4 font-heading">
+            <span className="inline-flex items-center">
+              <span className="w-8 h-8 bg-cultural-red-500 rounded-lg flex items-center justify-center mr-3">
+                <span className="text-white text-sm">姓</span>
+              </span>
+              宝宝姓氏
+              <span className="text-cultural-red-500 ml-1">*</span>
+            </span>
           </label>
-          <input
-            type="text"
-            value={familyName}
-            onChange={handleFamilyNameChange}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors ${
-              surnameError 
-                ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'
-            }`}
-            placeholder="请输入姓氏"
-            maxLength={2}
-          />
+          <div className="relative">
+            <input
+              type="text"
+              value={familyName}
+              onChange={handleFamilyNameChange}
+              className={`w-full px-6 py-4 text-lg border-2 rounded-xl focus:ring-4 transition-all duration-300 ${
+                surnameError 
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-100 bg-red-50' 
+                  : 'border-cultural-gold/30 focus:border-cultural-gold-500 focus:ring-cultural-gold-100 bg-white'
+              } placeholder:text-gray-400`}
+              placeholder="请输入宝宝的姓氏"
+              maxLength={2}
+            />
+            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-cultural-gold-500">
+              <span className="text-xl">📝</span>
+            </div>
+          </div>
           {surnameError && (
-            <p className="text-xs text-red-600 mt-2 animate-pulse">
-              ⚠️ {surnameError}
-            </p>
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-700 flex items-center">
+                <span className="mr-2">⚠️</span>
+                {surnameError}
+              </p>
+            </div>
           )}
         </div>
 
+        {/* 宝宝性别 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            宝宝性别 <span className="text-red-500">*</span>
+          <label className="block text-base font-bold text-cultural-ink mb-4 font-heading">
+            <span className="inline-flex items-center">
+              <span className="w-8 h-8 bg-cultural-jade-500 rounded-lg flex items-center justify-center mr-3">
+                <span className="text-white text-sm">性</span>
+              </span>
+              宝宝性别
+              <span className="text-cultural-red-500 ml-1">*</span>
+            </span>
           </label>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             <button
               onClick={() => setGender('male')}
-              className={`p-4 rounded-lg border-2 transition-all ${
+              className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 ${
                 gender === 'male'
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg scale-105'
+                  : 'border-gray-200 hover:border-blue-300 bg-white hover:shadow-md hover:scale-102'
               }`}
             >
-              <div className="text-2xl mb-2">👦</div>
-              <div className="font-medium">男宝宝</div>
+              <div className="text-center">
+                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">👦</div>
+                <div className="text-lg font-bold text-gray-800 font-heading">男宝宝</div>
+                <div className="text-sm text-gray-600 mt-1">阳刚之美</div>
+              </div>
+              {gender === 'male' && (
+                <div className="absolute top-3 right-3 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </div>
+              )}
             </button>
             <button
               onClick={() => setGender('female')}
-              className={`p-4 rounded-lg border-2 transition-all ${
+              className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 ${
                 gender === 'female'
-                  ? 'border-pink-500 bg-pink-50 text-pink-700'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-pink-500 bg-gradient-to-br from-pink-50 to-pink-100 shadow-lg scale-105'
+                  : 'border-gray-200 hover:border-pink-300 bg-white hover:shadow-md hover:scale-102'
               }`}
             >
-              <div className="text-2xl mb-2">👧</div>
-              <div className="font-medium">女宝宝</div>
+              <div className="text-center">
+                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">👧</div>
+                <div className="text-lg font-bold text-gray-800 font-heading">女宝宝</div>
+                <div className="text-sm text-gray-600 mt-1">温婉之美</div>
+              </div>
+              {gender === 'female' && (
+                <div className="absolute top-3 right-3 w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </div>
+              )}
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* 出生信息 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* 出生日期 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              出生日期 <span className="text-gray-400">(可选)</span>
+            <label className="block text-base font-bold text-cultural-ink mb-4 font-heading">
+              <span className="inline-flex items-center">
+                <span className="w-8 h-8 bg-cultural-jade-500 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-white text-sm">📅</span>
+                </span>
+                出生日期
+                <span className="text-gray-400 ml-2 text-sm font-normal">(可选，用于生辰八字分析)</span>
+              </span>
             </label>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="relative">
                 <input
                   type="date"
                   value={birthDate}
                   onChange={(e) => setBirthDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-6 py-4 text-lg border-2 border-cultural-jade/30 rounded-xl focus:ring-4 focus:ring-cultural-jade-100 focus:border-cultural-jade-500 bg-white transition-all duration-300"
                   max={new Date().toISOString().split('T')[0]}
                 />
-                <div className="absolute right-3 top-3 text-gray-400 pointer-events-none">
-                  📅
+                <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-cultural-jade-500">
+                  <span className="text-xl">🗓️</span>
                 </div>
               </div>
               
               {/* 快速日期选择 */}
-              <div className="grid grid-cols-3 gap-2 text-xs">
-                {(() => {
-                  const today = new Date();
-                  const yesterday = new Date(today);
-                  yesterday.setDate(today.getDate() - 1);
-                  const weekAgo = new Date(today);
-                  weekAgo.setDate(today.getDate() - 7);
-                  const monthAgo = new Date(today);
-                  monthAgo.setMonth(today.getMonth() - 1);
-                  
-                  return [
-                    { date: today.toISOString().split('T')[0], label: '今天' },
-                    { date: yesterday.toISOString().split('T')[0], label: '昨天' },
-                    { date: weekAgo.toISOString().split('T')[0], label: '一周前' },
-                    { date: monthAgo.toISOString().split('T')[0], label: '一月前' },
-                    { date: '2024-01-01', label: '2024年初' },
-                    { date: '2023-12-31', label: '2023年末' }
-                  ];
-                })().map((preset) => (
-                  <button
-                    key={preset.date}
-                    onClick={() => setBirthDate(preset.date)}
-                    className={`px-2 py-1 rounded border text-center transition-all ${
-                      birthDate === preset.date
-                        ? 'bg-green-100 border-green-300 text-green-700'
-                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
+              <div className="space-y-3">
+                <div className="text-sm font-medium text-gray-700">快速选择：</div>
+                <div className="grid grid-cols-3 gap-2">
+                  {(() => {
+                    const today = new Date();
+                    const yesterday = new Date(today);
+                    yesterday.setDate(today.getDate() - 1);
+                    const weekAgo = new Date(today);
+                    weekAgo.setDate(today.getDate() - 7);
+                    const monthAgo = new Date(today);
+                    monthAgo.setMonth(today.getMonth() - 1);
+                    
+                    return [
+                      { date: today.toISOString().split('T')[0], label: '今天', icon: '🌟' },
+                      { date: yesterday.toISOString().split('T')[0], label: '昨天', icon: '📆' },
+                      { date: weekAgo.toISOString().split('T')[0], label: '一周前', icon: '📅' },
+                      { date: monthAgo.toISOString().split('T')[0], label: '一月前', icon: '🗓️' },
+                      { date: '2024-01-01', label: '2024初', icon: '🎊' },
+                      { date: '2023-12-31', label: '2023末', icon: '🎄' }
+                    ];
+                  })().map((preset) => (
+                    <button
+                      key={preset.date}
+                      onClick={() => setBirthDate(preset.date)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        birthDate === preset.date
+                          ? 'bg-cultural-jade-100 border-2 border-cultural-jade-300 text-cultural-jade-700 shadow-md'
+                          : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="text-xs">{preset.icon}</div>
+                      <div>{preset.label}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             
             {birthDate && (
-              <div className="mt-2 p-3 bg-green-50 rounded-lg">
-                <p className="text-xs text-green-700 font-medium">
-                  选择的日期：{new Date(birthDate).toLocaleDateString('zh-CN', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    weekday: 'long'
-                  })}
-                </p>
-                {zodiac && (
-                  <p className="text-xs text-green-600 mt-1">
-                    🐾 生肖：{zodiac}年
+              <div className="mt-4 p-4 bg-gradient-to-r from-cultural-jade-50 to-green-50 border border-cultural-jade-200 rounded-xl">
+                <div className="space-y-2">
+                  <p className="text-sm text-cultural-jade-700 font-medium flex items-center">
+                    <span className="mr-2">📅</span>
+                    选择的日期：{new Date(birthDate).toLocaleDateString('zh-CN', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      weekday: 'long'
+                    })}
                   </p>
-                )}
-                <p className="text-xs text-green-600">
-                  生辰八字计算将基于此日期时间
-                </p>
+                  {zodiac && (
+                    <p className="text-sm text-cultural-jade-600 flex items-center">
+                      <span className="mr-2">🐾</span>
+                      生肖：{zodiac}年
+                    </p>
+                  )}
+                  <p className="text-xs text-cultural-jade-600">
+                    💡 将基于此日期进行生辰八字分析
+                  </p>
+                </div>
               </div>
             )}
           </div>
+          
+          {/* 出生时间 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              出生时间 <span className="text-gray-400">(可选)</span>
+            <label className="block text-base font-bold text-cultural-ink mb-4 font-heading">
+              <span className="inline-flex items-center">
+                <span className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-white text-sm">🕐</span>
+                </span>
+                出生时间
+                <span className="text-gray-400 ml-2 text-sm font-normal">(可选，精确八字分析)</span>
+              </span>
             </label>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="relative">
                 <input
                   type="time"
                   value={birthTime}
                   onChange={(e) => setBirthTime(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-6 py-4 text-lg border-2 border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-purple-500 bg-white transition-all duration-300"
                   step="900"
                 />
-                <div className="absolute right-3 top-3 text-gray-400 pointer-events-none">
-                  🕐
+                <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-purple-500">
+                  <span className="text-xl">⏰</span>
                 </div>
               </div>
               
@@ -561,29 +631,46 @@ const NamingPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex justify-between items-center pt-6">
+        {/* 操作按钮 */}
+        <div className="flex flex-col sm:flex-row gap-4 pt-8">
           <button
             onClick={() => setCurrentStep(2)}
             disabled={!familyName || !gender}
-            className={`px-8 py-3 rounded-lg font-medium transition-all ${
+            className={`flex-1 px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 ${
               familyName && gender
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-cultural-gold-500 to-cultural-gold-600 text-white hover:from-cultural-gold-600 hover:to-cultural-gold-700 shadow-lg hover:shadow-xl transform hover:scale-105'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
-            下一步：个性化设置
+            <span className="flex items-center justify-center">
+              <span className="mr-2">⚙️</span>
+              下一步：个性化设置
+              <span className="ml-2">→</span>
+            </span>
           </button>
           
           <button
             onClick={() => generateNames()}
             disabled={!familyName || !gender || loading}
-            className={`px-8 py-3 rounded-lg font-medium border-2 transition-all ${
+            className={`flex-1 px-8 py-4 rounded-xl font-bold text-lg border-2 transition-all duration-300 ${
               familyName && gender && !loading
-                ? 'border-blue-600 text-blue-600 hover:bg-blue-50'
-                : 'border-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'border-cultural-red-500 text-cultural-red-600 hover:bg-cultural-red-50 shadow-lg hover:shadow-xl transform hover:scale-105'
+                : 'border-gray-300 text-gray-400 cursor-not-allowed'
             }`}
           >
-            {loading ? '生成中...' : '快速生成'}
+            <span className="flex items-center justify-center">
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-cultural-red-300 border-t-cultural-red-600 rounded-full animate-spin mr-2"></div>
+                  生成中...
+                </>
+              ) : (
+                <>
+                  <span className="mr-2">⚡</span>
+                  快速生成名字
+                </>
+              )}
+            </span>
           </button>
         </div>
       </div>
@@ -592,56 +679,111 @@ const NamingPage: React.FC = () => {
 
   // 渲染步骤2：个性化设置
   const renderStep2 = () => (
-    <div className="max-w-4xl mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">个性化设置</h2>
-        <p className="text-gray-600">调整评分权重和偏好，让名字更符合您的期望</p>
+    <div className="max-w-6xl mx-auto">
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-lg mb-6">
+          <span className="text-2xl text-white">⚙️</span>
+        </div>
+        <h2 className="text-3xl lg:text-4xl font-bold font-heading text-cultural-ink mb-4">
+          个性化智能设置
+        </h2>
+        <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          根据您的偏好调整评分权重和筛选条件，让AI为您生成更符合期望的专属名字
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* 评分权重调整 */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">评分权重调整</h3>
-          <div className="space-y-4">
+        <div className="bg-gradient-to-br from-white via-blue-50/30 to-white rounded-3xl shadow-xl border-2 border-blue-100 p-8">
+          <div className="flex items-center mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mr-4">
+              <span className="text-white text-xl">⚖️</span>
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-cultural-ink font-heading">智能评分权重</h3>
+              <p className="text-sm text-gray-600">调整各项指标的重要程度</p>
+            </div>
+          </div>
+          
+          <div className="space-y-6">
             {Object.entries(weights).map(([key, value]) => {
               const labels = {
-                sancai: '三才五格',
-                wuxing: '五行平衡', 
-                sound: '音韵美感',
-                meaning: '字义寓意',
-                social: '社会认可'
+                sancai: { name: '三才五格', icon: '🔮', color: 'purple', desc: '传统姓名学数理分析' },
+                wuxing: { name: '五行平衡', icon: '⚖️', color: 'green', desc: '生辰八字五行配置' },
+                sound: { name: '音韵美感', icon: '🎵', color: 'pink', desc: '声调搭配和谐度' },
+                meaning: { name: '字义寓意', icon: '✨', color: 'amber', desc: '汉字深层文化内涵' },
+                social: { name: '社会认可', icon: '👥', color: 'blue', desc: '名字流行度和接受度' }
               };
+              const config = labels[key as keyof typeof labels];
               return (
-                <div key={key}>
-                  <div className="flex justify-between mb-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      {labels[key as keyof typeof labels]}
+                <div key={key} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center text-base font-bold text-gray-800 font-heading">
+                      <span className={`w-8 h-8 bg-${config.color}-500 rounded-lg flex items-center justify-center mr-3`}>
+                        <span className="text-white text-sm">{config.icon}</span>
+                      </span>
+                      {config.name}
                     </label>
-                    <span className="text-sm text-gray-600">{value}%</span>
+                    <div className={`px-3 py-1 bg-${config.color}-100 text-${config.color}-700 rounded-lg font-bold`}>
+                      {value}%
+                    </div>
                   </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={value}
-                    onChange={(e) => handleWeightChange(key, parseInt(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
+                  <p className="text-xs text-gray-600 ml-11">{config.desc}</p>
+                  <div className="ml-11">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={value}
+                      onChange={(e) => handleWeightChange(key, parseInt(e.target.value))}
+                      className={`w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-${config.color}`}
+                      style={{
+                        background: `linear-gradient(to right, rgb(var(--color-${config.color}-500) / 0.8) 0%, rgb(var(--color-${config.color}-500) / 0.8) ${value}%, #e5e7eb ${value}%, #e5e7eb 100%)`
+                      }}
+                    />
+                  </div>
                 </div>
               );
             })}
           </div>
+          
+          {/* 权重总计提示 */}
+          <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
+            <div className="flex items-center text-sm text-blue-700">
+              <span className="mr-2">💡</span>
+              <span className="font-medium">
+                当前权重总计：{Object.values(weights).reduce((sum, val) => sum + val, 0)}%
+                {Object.values(weights).reduce((sum, val) => sum + val, 0) !== 100 && 
+                  <span className="text-blue-600 ml-2">(系统将自动归一化处理)</span>
+                }
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* 偏好设置 */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">偏好设置</h3>
-          <div className="space-y-4">
+        <div className="bg-gradient-to-br from-white via-cultural-jade-50/20 to-white rounded-3xl shadow-xl border-2 border-cultural-jade-100 p-8">
+          <div className="flex items-center mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-cultural-jade-500 to-green-600 rounded-xl flex items-center justify-center mr-4">
+              <span className="text-white text-xl">💎</span>
+            </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                五行偏好
+              <h3 className="text-xl font-bold text-cultural-ink font-heading">偏好与筛选</h3>
+              <p className="text-sm text-gray-600">自定义专属取名条件</p>
+            </div>
+          </div>
+          
+          <div className="space-y-6">
+            {/* 五行偏好 */}
+            <div>
+              <label className="flex items-center text-base font-bold text-gray-800 mb-4 font-heading">
+                <span className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-white text-sm">☯️</span>
+                </span>
+                五行偏好选择
               </label>
-              <div className="flex flex-wrap gap-2">
+              <p className="text-xs text-gray-600 mb-4 ml-11">选择希望在名字中体现的五行元素</p>
+              <div className="flex flex-wrap gap-3 ml-11">
                 {wuxingOptions.map(option => (
                   <button
                     key={option.value}
@@ -653,95 +795,147 @@ const NamingPage: React.FC = () => {
                           : [...prev, element]
                       );
                     }}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    className={`px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300 border-2 ${
                       preferredWuxing.includes(option.value as WuxingElement)
-                        ? option.color
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? `${option.color} border-current shadow-lg scale-105`
+                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
                     }`}
                   >
-                    {option.label}
+                    <div className="text-center">
+                      <div className="text-lg mb-1">
+                        {option.value === '金' && '🌕'}
+                        {option.value === '木' && '🌳'}
+                        {option.value === '水' && '💧'}
+                        {option.value === '火' && '🔥'}
+                        {option.value === '土' && '🏔️'}
+                      </div>
+                      <div>{option.label}</div>
+                    </div>
                   </button>
                 ))}
               </div>
             </div>
 
+            {/* 避免字符 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="flex items-center text-base font-bold text-gray-800 mb-4 font-heading">
+                <span className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-white text-sm">🚫</span>
+                </span>
                 避免字符
               </label>
-              <input
-                type="text"
-                value={avoidedWords}
-                onChange={(e) => setAvoidedWords(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="如：病、死、凶"
-              />
+              <p className="text-xs text-gray-600 mb-3 ml-11">输入您希望避免在名字中出现的汉字</p>
+              <div className="ml-11">
+                <input
+                  type="text"
+                  value={avoidedWords}
+                  onChange={(e) => setAvoidedWords(e.target.value)}
+                  className="w-full px-4 py-3 text-lg border-2 border-red-200 rounded-xl focus:ring-4 focus:ring-red-100 focus:border-red-500 bg-white transition-all duration-300 placeholder:text-gray-400"
+                  placeholder="例如：病、死、凶、煞"
+                />
+              </div>
             </div>
 
+            {/* 评分要求 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="flex items-center text-base font-bold text-gray-800 mb-4 font-heading">
+                <span className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-white text-sm">🎯</span>
+                </span>
                 评分要求
               </label>
-              <select
-                value={scoreThreshold}
-                onChange={(e) => setScoreThreshold(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value={60}>60分以上</option>
-                <option value={70}>70分以上</option>
-                <option value={80}>80分以上</option>
-                <option value={85}>85分以上</option>
-                <option value={90}>90分以上</option>
-              </select>
-            </div>
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="useTraditional"
-                checked={useTraditional}
-                onChange={(e) => setUseTraditional(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <label htmlFor="useTraditional" className="ml-2 text-sm text-gray-700">
-                使用繁体字笔画计算
-              </label>
-            </div>
-
-            {zodiac && (
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="useZodiacFiltering"
-                  checked={useZodiacFiltering}
-                  onChange={(e) => setUseZodiacFiltering(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="useZodiacFiltering" className="ml-2 text-sm text-gray-700">
-                  启用生肖筛选 ({zodiac}年适用)
-                </label>
+              <p className="text-xs text-gray-600 mb-3 ml-11">设置名字综合评分的最低标准</p>
+              <div className="ml-11">
+                <select
+                  value={scoreThreshold}
+                  onChange={(e) => setScoreThreshold(parseInt(e.target.value))}
+                  className="w-full px-4 py-3 text-lg border-2 border-amber-200 rounded-xl focus:ring-4 focus:ring-amber-100 focus:border-amber-500 bg-white transition-all duration-300"
+                >
+                  <option value={60}>60分以上 (基础要求)</option>
+                  <option value={70}>70分以上 (良好水平)</option>
+                  <option value={80}>80分以上 (优秀标准)</option>
+                  <option value={85}>85分以上 (精品推荐)</option>
+                  <option value={90}>90分以上 (顶级精选)</option>
+                </select>
               </div>
-            )}
+            </div>
+
+            {/* 高级选项 */}
+            <div className="space-y-4">
+              <h4 className="flex items-center text-base font-bold text-gray-800 font-heading">
+                <span className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-white text-sm">⚙️</span>
+                </span>
+                高级选项
+              </h4>
+              
+              <div className="ml-11 space-y-4">
+                <label className="flex items-center p-4 bg-white border-2 border-gray-100 rounded-xl hover:border-purple-200 transition-colors cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id="useTraditional"
+                    checked={useTraditional}
+                    onChange={(e) => setUseTraditional(e.target.checked)}
+                    className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <div className="ml-4 flex-1">
+                    <div className="text-sm font-bold text-gray-800">使用繁体字笔画计算</div>
+                    <div className="text-xs text-gray-600">采用传统繁体字笔画进行三才五格分析</div>
+                  </div>
+                </label>
+
+                {zodiac && (
+                  <label className="flex items-center p-4 bg-white border-2 border-gray-100 rounded-xl hover:border-green-200 transition-colors cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="useZodiacFiltering"
+                      checked={useZodiacFiltering}
+                      onChange={(e) => setUseZodiacFiltering(e.target.checked)}
+                      className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                    />
+                    <div className="ml-4 flex-1">
+                      <div className="text-sm font-bold text-gray-800">启用生肖筛选</div>
+                      <div className="text-xs text-gray-600">根据{zodiac}年生肖特性筛选适宜字符</div>
+                    </div>
+                  </label>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="text-center mt-8">
-        <div className="flex justify-center gap-4">
-          <button
-            onClick={() => setCurrentStep(1)}
-            className="px-6 py-3 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            上一步
-          </button>
-          <button
-            onClick={() => generateNames()}
-            disabled={loading}
-            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading ? '生成中...' : '开始生成名字'}
-          </button>
-        </div>
+      {/* 操作按钮 */}
+      <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+        <button
+          onClick={() => setCurrentStep(1)}
+          className="px-8 py-4 text-gray-600 border-2 border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 font-bold text-lg"
+        >
+          <span className="flex items-center justify-center">
+            <span className="mr-2">←</span>
+            返回基础信息
+          </span>
+        </button>
+        <button
+          onClick={() => generateNames()}
+          disabled={loading}
+          className="px-12 py-4 bg-gradient-to-r from-cultural-gold-500 to-cultural-gold-600 text-white rounded-xl hover:from-cultural-gold-600 hover:to-cultural-gold-700 disabled:opacity-50 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-bold text-lg"
+        >
+          <span className="flex items-center justify-center">
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                智能生成中...
+              </>
+            ) : (
+              <>
+                <span className="mr-2">🎯</span>
+                开始智能生成名字
+                <span className="ml-2">✨</span>
+              </>
+            )}
+          </span>
+        </button>
       </div>
     </div>
   );
@@ -1236,25 +1430,11 @@ const NamingPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50">
-      {/* 导航栏 */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-xl font-bold text-gray-800">
-              宝宝取名专家
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/baijiaxing" className="text-amber-600 hover:text-amber-800">
-                百家姓
-              </Link>
-              <Link href="/about" className="text-gray-600 hover:text-gray-800">
-                关于我们
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <Layout
+      title={`专业取名 - ${gender === 'male' ? '男' : '女'}宝宝 - 宝宝取名专家`}
+      description={`为您的${gender === 'male' ? '男' : '女'}宝宝提供专业的智能取名服务，结合传统文化与现代科学方法`}
+    >
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50">
 
       {/* 进度指示器 */}
       <div className="bg-white border-b">
@@ -1368,7 +1548,8 @@ const NamingPage: React.FC = () => {
         isOpen={showPhoneticFiltering}
         onClose={() => setShowPhoneticFiltering(false)}
       />
-    </div>
+      </div>
+    </Layout>
   );
 };
 
