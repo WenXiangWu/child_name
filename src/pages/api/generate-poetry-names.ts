@@ -13,7 +13,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       books,
       nameCount = 6,
       avoidedWords = [],
-      useCommonChars = true
+      useCommonChars = true,
+      nameLength = 2
     } = req.body;
 
     // 验证必要参数
@@ -39,7 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       books,
       nameCount: Math.min(nameCount, 20), // 最多一次生成20个
       avoidedWords,
-      useCommonChars
+      useCommonChars,
+      nameLength: nameLength as 2 | 3 // 名字长度
     };
 
     console.log('🎨 诗词取名配置:', {
@@ -63,8 +65,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const formattedNames = names.map((name: PoetryNameResult) => ({
       fullName: name.fullName,
       familyName: name.familyName,
-      firstName: name.name.charAt(0),
-      secondName: name.name.charAt(1),
+      firstName: name.name.charAt(0) || '',
+      secondName: name.name.charAt(1) || '',
+      thirdName: name.name.charAt(2) || '', // 添加第三个字符支持
       meaning: `出自《${name.title}》: "${name.sentence}"`,
       popularity: 75, // 诗词名字默认给较高的文化价值评分
       source: {

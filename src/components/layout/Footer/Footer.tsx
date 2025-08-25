@@ -4,7 +4,7 @@ import Link from 'next/link';
 const Footer: React.FC = () => {
   return (
     <footer className="bg-cultural-ink text-white">
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="max-w-8xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* 品牌信息 */}
           <div className="md:col-span-2">

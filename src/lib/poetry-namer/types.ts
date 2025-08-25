@@ -40,6 +40,7 @@ export interface PoetryNamingConfig {
   nameCount?: number;         // 生成名字数量，默认6个
   avoidedWords?: string[];    // 避免使用的字符
   useCommonChars?: boolean;   // 是否只使用常用字，默认true
+  nameLength?: 2 | 3;         // 名字长度：2字名或3字名，默认2
 }
 
 // 典籍信息

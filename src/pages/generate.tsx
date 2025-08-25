@@ -5,6 +5,7 @@ import Layout from '@/components/Layout';
 import { useNameGenerator } from '@/hooks/useNameGenerator';
 import PluginExecutionViewer from '@/components/PluginExecutionViewer';
 import PluginExecutionReport from '@/components/PluginExecutionReport';
+import { createBaijiaxingSurnameInputHandler, getBaijiaxingList } from '@/utils/chineseValidation';
 
 export default function Generate() {
   const router = useRouter();
@@ -15,6 +16,13 @@ export default function Generate() {
   const [usePluginSystem, setUsePluginSystem] = useState<boolean>(true);
   const [showExecutionProcess, setShowExecutionProcess] = useState<boolean>(false);
   const [showDetailedReport, setShowDetailedReport] = useState<boolean>(false);
+  const [surnameError, setSurnameError] = useState<string>('');
+  const [isValidSurname, setIsValidSurname] = useState<boolean>(true);
+  
+  // 预加载百家姓数据
+  useEffect(() => {
+    getBaijiaxingList().catch(console.error);
+  }, []);
   
   // 初始化状态
   useEffect(() => {
@@ -44,10 +52,22 @@ export default function Generate() {
     usePluginSystem
   });
   
-  // 处理姓氏变更
-  const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLastName(e.target.value);
-  };
+  // 处理姓氏变更（带百家姓校验）
+  const handleLastNameChange = createBaijiaxingSurnameInputHandler(
+    (value: string) => {
+      setLastName(value);
+    },
+    (message: string) => {
+      setSurnameError(message);
+      // 如果有错误消息，3秒后自动清除
+      if (message) {
+        setTimeout(() => setSurnameError(''), 3000);
+      }
+    },
+    (isValid: boolean) => {
+      setIsValidSurname(isValid);
+    }
+  );
   
   // 处理性别变更
   const handleGenderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -72,15 +92,26 @@ export default function Generate() {
         <div className="mb-8 space-y-4">
           {/* 第一行：基本设置 */}
           <div className="flex justify-center space-x-4">
-            <div className="flex items-center">
-              <span className="mr-2 text-gray-700">姓氏:</span>
-              <input
-                type="text"
-                value={lastName}
-                onChange={handleLastNameChange}
-                className="border border-gray-300 rounded px-3 py-1 w-16 text-center"
-                maxLength={2}
-              />
+            <div className="flex flex-col items-center">
+              <div className="flex items-center">
+                <span className="mr-2 text-gray-700">姓氏:</span>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={handleLastNameChange}
+                  className={`border rounded px-3 py-1 w-16 text-center transition-colors ${
+                    surnameError 
+                      ? 'border-red-300 focus:border-red-500' 
+                      : 'border-gray-300 focus:border-blue-500'
+                  }`}
+                  maxLength={2}
+                />
+              </div>
+              {surnameError && (
+                <p className="text-xs text-red-600 mt-1 animate-pulse">
+                  ⚠️ {surnameError}
+                </p>
+              )}
             </div>
             
             <div className="flex items-center">
@@ -242,7 +273,7 @@ export default function Generate() {
                 <div className="flex justify-center">
                   <button
                     onClick={() => setShowDetailedReport(!showDetailedReport)}
-                    className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl text-sm font-medium"
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded text-sm"
                   >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

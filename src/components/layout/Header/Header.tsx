@@ -17,9 +17,9 @@ const navigationItems: NavItem[] = [
     href: '/naming',
     label: '智能取名',
     children: [
-      { href: '/naming', label: '专业取名', icon: '🔧' },
+      { href: '/naming', label: '快速取名', icon: '🔧' },
       { href: '/poetry-naming', label: '诗词取名', icon: '📜' },
-      { href: '/plugin-execution-flow', label: '插件系统', icon: '🧩' }
+      { href: '/plugin-execution-flow', label: '科学取名', icon: '🧩' }
     ]
   },
   {
@@ -55,8 +55,7 @@ const navigationItems: NavItem[] = [
       { href: '/plugin-execution-flow', label: '插件流程', icon: '🔧' },
       { href: '/ui-demo', label: 'UI演示', icon: '🎨' }
     ]
-  },
-  { href: '/about', label: '关于我们' }
+  }
 ];
 
 const NavDropdown: React.FC<{ item: NavItem }> = ({ item }) => {
@@ -80,10 +79,10 @@ const NavDropdown: React.FC<{ item: NavItem }> = ({ item }) => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <button className="flex items-center space-x-2 text-cultural-ink hover:text-cultural-red transition-all duration-300 py-2 px-3 rounded-lg hover:bg-cultural-paper/50 font-medium">
+      <button className="flex items-center space-x-2 text-slate-800 hover:text-amber-600 transition-all duration-300 py-3 px-4 rounded-lg hover:bg-gray-50 font-medium text-base whitespace-nowrap">
         <span className="font-heading">{item.label}</span>
         <svg 
-          className={`w-4 h-4 transition-transform duration-300 text-cultural-gold ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 transition-transform duration-300 text-gray-400 ${isOpen ? 'rotate-180' : ''}`}
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
@@ -116,7 +115,7 @@ const NavDropdown: React.FC<{ item: NavItem }> = ({ item }) => {
               <Link
                 key={`${child.href}-${index}`}
                 href={child.href}
-                className="flex items-center space-x-3 px-5 py-3 hover:bg-gradient-to-r hover:from-cultural-paper hover:to-cultural-gold/5 transition-all duration-300 text-cultural-ink hover:text-cultural-red group/item border-l-4 border-transparent hover:border-cultural-gold"
+                className="flex items-center space-x-3 px-5 py-4 hover:bg-gradient-to-r hover:from-cultural-paper hover:to-cultural-gold/5 transition-all duration-300 text-cultural-ink hover:text-cultural-red group/item border-l-4 border-transparent hover:border-cultural-gold"
               >
                 {child.icon && (
                   <span className="text-xl group-hover/item:scale-110 transition-transform duration-300">
@@ -124,7 +123,7 @@ const NavDropdown: React.FC<{ item: NavItem }> = ({ item }) => {
                   </span>
                 )}
                 <div className="flex-1">
-                  <span className="font-medium font-heading">{child.label}</span>
+                  <span className="font-medium font-heading text-base">{child.label}</span>
                 </div>
                 <svg className="w-4 h-4 text-cultural-gold opacity-0 group-hover/item:opacity-100 transition-opacity duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -143,43 +142,27 @@ const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   return (
-    <header className="bg-gradient-to-b from-cultural-paper to-white shadow-cultural-lg border-b-2 border-cultural-gold relative overflow-visible z-50">
-      {/* 传统文化背景装饰 */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-2 left-10 w-8 h-8 border border-cultural-red rounded-full"></div>
-        <div className="absolute top-4 right-20 w-6 h-6 border border-cultural-jade rotate-45"></div>
-        <div className="absolute bottom-2 left-1/3 w-4 h-4 bg-cultural-gold rounded-full"></div>
-        <div className="absolute bottom-3 right-1/4 w-5 h-5 border border-cultural-red/30 rounded-full"></div>
-      </div>
+    <header className="bg-white shadow-sm border-b border-gray-200 relative z-50">
       
-      {/* 顶部装饰条 */}
-      <div className="h-2 bg-gradient-to-r from-cultural-red via-cultural-gold to-cultural-jade relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-      </div>
-      
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className="max-w-8xl mx-auto px-4 md:px-6">
+        <div className="flex items-center justify-between h-20 md:h-24">
           {/* Logo区域 */}
-          <div className="flex items-center space-x-4 relative z-10">
-            <Link href="/" className="flex items-center space-x-3 group">
-              <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-br from-cultural-red via-cultural-gold to-cultural-jade rounded-full flex items-center justify-center shadow-cultural-lg group-hover:shadow-cultural-xl transition-all duration-300 transform group-hover:scale-105">
-                  <span className="text-white text-xl font-bold font-heading">名</span>
-                </div>
-                {/* 装饰光环 */}
-                <div className="absolute -inset-1 bg-gradient-to-r from-cultural-red via-cultural-gold to-cultural-jade rounded-full opacity-20 group-hover:opacity-30 transition-opacity duration-300 animate-pulse"></div>
+          <div className="flex items-center space-x-3 md:space-x-6 relative z-10">
+            <Link href="/" className="flex items-center space-x-2 md:space-x-4 group">
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-slate-800 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:bg-amber-600">
+                <span className="text-white text-lg md:text-xl font-bold font-heading">名</span>
               </div>
               <div className="flex flex-col">
-                <h1 className="text-xl font-bold text-cultural-ink font-heading group-hover:text-cultural-red transition-colors duration-300">宝宝取名专家</h1>
-                <span className="text-xs text-cultural-gold font-medium">传承文化 · 智慧取名</span>
+                <h1 className="text-xl md:text-2xl font-bold text-slate-800 font-heading group-hover:text-amber-600 transition-colors duration-300 whitespace-nowrap">宝宝取名专家</h1>
+                <span className="text-xs md:text-sm text-gray-500 font-medium whitespace-nowrap">科学取名 传承文化</span>
               </div>
             </Link>
             
             {/* 权威标识 */}
-            <div className="hidden md:flex items-center space-x-2 ml-6">
-              <div className="bg-gradient-to-r from-cultural-jade/10 to-cultural-jade/5 border border-cultural-jade/30 rounded-full px-4 py-2 shadow-sm">
-                <span className="text-xs text-cultural-jade font-semibold flex items-center">
-                  <span className="mr-2 text-sm">🏛️</span>
+            <div className="hidden lg:flex items-center">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2">
+                <span className="text-sm text-gray-700 font-medium flex items-center whitespace-nowrap">
+                  <span className="mr-2">📋</span>
                   国家规范汉字标准
                 </span>
               </div>
@@ -196,17 +179,17 @@ const Header: React.FC = () => {
                   key={item.href}
                   href={item.href}
                   className={clsx(
-                    'text-cultural-ink hover:text-cultural-red transition-all duration-300 py-2 px-3 rounded-lg hover:bg-cultural-paper/50 font-medium font-heading relative group',
-                    router.pathname === item.href && 'text-cultural-red font-semibold bg-cultural-paper/30'
+                    'text-slate-800 hover:text-amber-600 transition-all duration-300 py-3 px-4 rounded-lg hover:bg-gray-50 font-medium font-heading relative group text-base whitespace-nowrap',
+                    router.pathname === item.href && 'text-amber-600 font-semibold bg-gray-50'
                   )}
                 >
                   {item.label}
                   {/* 活跃状态装饰 */}
                   {router.pathname === item.href && (
-                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-gradient-to-r from-cultural-red to-cultural-gold rounded-full"></div>
+                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-amber-600 rounded-full"></div>
                   )}
                   {/* 悬停装饰 */}
-                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-cultural-gold to-cultural-jade rounded-full group-hover:w-6 transition-all duration-300"></div>
+                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-amber-600 rounded-full group-hover:w-6 transition-all duration-300"></div>
                 </Link>
               )
             ))}
@@ -214,21 +197,19 @@ const Header: React.FC = () => {
 
           {/* 行动按钮 */}
           <div className="flex items-center space-x-4">
-            <Button 
-              variant="primary" 
-              size="sm"
+            <button 
               onClick={() => router.push('/naming/quick')}
-              className="hidden md:inline-flex"
+              className="hidden md:inline-flex bg-amber-600 hover:bg-amber-700 text-white font-medium px-6 py-2.5 text-base rounded-lg transition-colors duration-300 whitespace-nowrap"
             >
               开始取名
-            </Button>
+            </button>
             
             {/* 移动端菜单按钮 */}
             <button 
-              className="lg:hidden p-2 text-cultural-ink hover:text-cultural-gold transition-colors"
+              className="lg:hidden p-3 text-slate-800 hover:text-amber-600 transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
@@ -238,21 +219,16 @@ const Header: React.FC = () => {
 
       {/* 移动端菜单 */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden bg-gradient-to-b from-cultural-paper to-white border-t-2 border-cultural-gold shadow-cultural-lg relative overflow-hidden">
-          {/* 背景装饰 */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="absolute top-4 left-6 w-6 h-6 border border-cultural-red rounded-full"></div>
-            <div className="absolute top-8 right-8 w-4 h-4 bg-cultural-jade rounded-full"></div>
-            <div className="absolute bottom-6 left-1/3 w-5 h-5 border border-cultural-gold rotate-45"></div>
-          </div>
+        <div className="lg:hidden bg-white border-t border-gray-200 shadow-lg relative overflow-hidden">
+
           
-          <div className="max-w-7xl mx-auto px-4 py-6 relative z-10">
+          <div className="max-w-8xl mx-auto px-6 py-6 relative z-10">
             <nav className="space-y-3">
               {navigationItems.map((item) => (
-                <div key={item.href} className="bg-white/50 rounded-xl p-3 border border-cultural-gold/20">
+                <div key={item.href} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                   <Link
                     href={item.href}
-                    className="block text-cultural-ink hover:text-cultural-red font-medium font-heading py-2 px-2 rounded-lg hover:bg-cultural-paper/50 transition-all duration-300"
+                    className="block text-slate-800 hover:text-amber-600 font-medium font-heading py-3 px-3 rounded-lg hover:bg-white transition-all duration-300 text-base"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {item.label}
@@ -263,7 +239,7 @@ const Header: React.FC = () => {
                         <Link
                           key={child.href}
                           href={child.href}
-                          className="flex items-center space-x-3 text-gray-600 hover:text-cultural-red py-2 px-2 rounded-lg hover:bg-cultural-paper/30 transition-all duration-300 group"
+                          className="flex items-center space-x-3 text-gray-600 hover:text-cultural-red py-4 px-4 rounded-lg hover:bg-cultural-paper/30 transition-all duration-300 group text-base"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           {child.icon && (
@@ -281,12 +257,12 @@ const Header: React.FC = () => {
               <div className="pt-4 border-t-2 border-cultural-gold/30">
                 <Button 
                   variant="primary" 
-                  size="md"
+                  size="lg"
                   onClick={() => {
                     router.push('/naming/quick');
                     setIsMobileMenuOpen(false);
                   }}
-                  className="w-full shadow-cultural-lg"
+                  className="w-full shadow-cultural-lg text-lg font-medium py-4 whitespace-nowrap"
                 >
                   开始取名
                 </Button>

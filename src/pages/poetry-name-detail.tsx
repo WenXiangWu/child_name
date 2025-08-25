@@ -2,6 +2,42 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 
+// 诗词来源的中文映射
+const POETRY_SOURCE_MAP: Record<string, string> = {
+  'tangshi': '唐诗',
+  'songci': '宋词',
+  'shijing': '诗经',
+  'chuci': '楚辞',
+  'lunyu': '论语',
+  'mengzi': '孟子',
+  'daxue': '大学',
+  'zhongyong': '中庸',
+  'yuanqu': '元曲',
+  'huajianji': '花间集',
+  'nantang': '南唐',
+  'caocao': '曹操诗集',
+  'shuimotangshi': '水墨唐诗',
+  'nalanxingde': '纳兰性德',
+  'youmengying': '幽梦影',
+  'baijiaxing': '百家姓',
+  'dizigui': '弟子规',
+  'guwenguanzhi': '古文观止',
+  'qianziwen': '千字文',
+  'sanzijing': '三字经',
+  'zengguangxianwen': '增广贤文',
+  'youxueqionglin': '幼学琼林',
+  'lidaiwenxuan': '历代文选'
+};
+
+/**
+ * 获取诗词来源的中文名称
+ * @param source 英文来源标识
+ * @returns 中文来源名称
+ */
+function getChineseSourceName(source: string): string {
+  return POETRY_SOURCE_MAP[source] || source;
+}
+
 interface PoetryNameInfo {
   familyName: string;
   firstName: string;
@@ -88,7 +124,7 @@ export default function PoetryNameDetail() {
           <div className="text-center mb-12">
             <h1 className="text-5xl font-bold text-gray-800 mb-4">{fullName}</h1>
             <div className="text-xl text-gray-600">
-              来自 <span className="text-purple-600 font-semibold">{nameInfo.book}</span>
+              来自 <span className="text-purple-600 font-semibold">{getChineseSourceName(nameInfo.book)}</span>
             </div>
           </div>
 
@@ -103,7 +139,7 @@ export default function PoetryNameDetail() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="text-center">
                 <div className="text-sm text-gray-500 mb-1">典籍</div>
-                <div className="text-lg font-semibold text-purple-700">{nameInfo.book}</div>
+                <div className="text-lg font-semibold text-purple-700">{getChineseSourceName(nameInfo.book)}</div>
               </div>
               <div className="text-center">
                 <div className="text-sm text-gray-500 mb-1">作品</div>

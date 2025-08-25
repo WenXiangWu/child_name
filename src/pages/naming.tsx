@@ -21,6 +21,7 @@ import SancaiCalculationPopup from '../components/SancaiCalculationPopup';
 import CandidateFilteringPopup from '../components/CandidateFilteringPopup';
 import PhoneticFilteringPopup from '../components/PhoneticFilteringPopup';
 import { LunarCalendar as LunarCalendarLib, LunarInfo } from '@/lib/lunar';
+import { createBaijiaxingSurnameInputHandler, getBaijiaxingList } from '@/utils/chineseValidation';
 
 const NamingPage: React.FC = () => {
   const router = useRouter();
@@ -72,6 +73,32 @@ const NamingPage: React.FC = () => {
   const [showPhoneticFiltering, setShowPhoneticFiltering] = useState(false);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [showCulturalInfo, setShowCulturalInfo] = useState(false);
+  
+  // 错误状态管理
+  const [surnameError, setSurnameError] = useState<string>('');
+  const [isValidSurname, setIsValidSurname] = useState<boolean>(true);
+
+  // 预加载百家姓数据
+  useEffect(() => {
+    getBaijiaxingList().catch(console.error);
+  }, []);
+
+  // 创建姓氏输入处理函数（带百家姓校验）
+  const handleFamilyNameChange = createBaijiaxingSurnameInputHandler(
+    (value: string) => {
+      setFamilyName(value);
+    },
+    (message: string) => {
+      setSurnameError(message);
+      // 如果有错误消息，3秒后自动清除
+      if (message) {
+        setTimeout(() => setSurnameError(''), 3000);
+      }
+    },
+    (isValid: boolean) => {
+      setIsValidSurname(isValid);
+    }
+  );
 
   // 监听出生日期变化，自动计算生肖
   useEffect(() => {
@@ -316,11 +343,20 @@ const NamingPage: React.FC = () => {
           <input
             type="text"
             value={familyName}
-            onChange={(e) => setFamilyName(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={handleFamilyNameChange}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors ${
+              surnameError 
+                ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
+                : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'
+            }`}
             placeholder="请输入姓氏"
             maxLength={2}
           />
+          {surnameError && (
+            <p className="text-xs text-red-600 mt-2 animate-pulse">
+              ⚠️ {surnameError}
+            </p>
+          )}
         </div>
 
         <div>
@@ -1057,12 +1093,12 @@ const NamingPage: React.FC = () => {
       </div>
 
       {/* 名字列表 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredAndSortedNames.map((name, index) => (
           <div
             key={index}
-            className={`bg-white rounded-xl shadow-lg p-6 transition-all hover:shadow-xl border-2 ${
-              selectedNames.has(name.fullName) ? 'border-blue-500 bg-blue-50' : 'border-transparent'
+            className={`bg-white rounded-lg border p-4 ${
+              selectedNames.has(name.fullName) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
             }`}
           >
             <div className="flex justify-between items-start mb-4">
@@ -1073,13 +1109,13 @@ const NamingPage: React.FC = () => {
                 </div>
                 <button
                   onClick={() => toggleNameSelection(name.fullName)}
-                  className={`p-2 rounded-full transition-all ${
+                  className={`p-2 rounded text-sm ${
                     selectedNames.has(name.fullName)
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {selectedNames.has(name.fullName) ? '❤️' : '🤍'}
+                  {selectedNames.has(name.fullName) ? '已选' : '选择'}
                 </button>
               </div>
             </div>
@@ -1147,7 +1183,7 @@ const NamingPage: React.FC = () => {
                 const weightsParam = encodeURIComponent(JSON.stringify(weights));
                 router.push(`/name-detail?name=${encodeURIComponent(name.fullName)}&weights=${weightsParam}`);
               }}
-              className="w-full mt-4 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-all"
+              className="w-full mt-4 bg-gray-100 text-gray-700 py-2 rounded text-sm"
             >
               查看详细分析
             </button>

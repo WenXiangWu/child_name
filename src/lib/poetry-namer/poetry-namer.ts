@@ -242,6 +242,47 @@ export class PoetryNamer {
   }
 
   /**
+   * 生成三字名字
+   */
+  private getThreeChar(charArray: string[]): string {
+    const len = charArray.length;
+    if (len < 3) {
+      throw new Error('字符数组长度不足以生成三字名字');
+    }
+
+    const first = between(0, len);
+    let second = between(0, len);
+    let third = between(0, len);
+    
+    // 确保三个字符不相同
+    let attempts = 0;
+    while ((second === first || third === first || third === second) && attempts < 100) {
+      if (second === first) {
+        second = between(0, len);
+      }
+      if (third === first || third === second) {
+        third = between(0, len);
+      }
+      attempts++;
+    }
+    
+    // 如果尝试100次仍然有重复，手动调整
+    if (attempts >= 100) {
+      second = (first + 1) % len;
+      third = (first + 2) % len;
+    }
+    
+    // 按位置顺序排列，保持诗文中的原始顺序
+    const positions = [
+      { char: charArray[first], pos: first },
+      { char: charArray[second], pos: second },
+      { char: charArray[third], pos: third }
+    ].sort((a, b) => a.pos - b.pos);
+    
+    return positions.map(item => item.char).join('');
+  }
+
+  /**
    * 从单篇诗文生成名字
    * 复制自gushi_namer的genName方法核心逻辑
    */
@@ -249,7 +290,8 @@ export class PoetryNamer {
     poetry: PoetryEntry, 
     familyName: string, 
     avoidedWords: string[] = [],
-    commonCharsSet: Set<string> | null = null
+    commonCharsSet: Set<string> | null = null,
+    nameLength: 2 | 3 = 2
   ): PoetryNameResult | null {
     try {
       const { content, title, author, book, dynasty } = poetry;
@@ -288,12 +330,14 @@ export class PoetryNamer {
         return true;
       });
       
-      if (filteredCharacters.length <= 2) {
+      if (filteredCharacters.length < nameLength) {
         return null;
       }
 
-      // 5. 生成两字名字
-      const name = this.getTwoChar(filteredCharacters);
+      // 5. 根据nameLength生成对应长度的名字
+      const name = nameLength === 2 
+        ? this.getTwoChar(filteredCharacters)
+        : this.getThreeChar(filteredCharacters);
       const fullName = familyName + name;
 
       // 6. 生成高亮句子
@@ -330,7 +374,8 @@ export class PoetryNamer {
       books = getRecommendedBooks(gender), 
       nameCount = 6,
       avoidedWords = [],
-      useCommonChars = true
+      useCommonChars = true,
+      nameLength = 2
     } = config;
 
     const results: PoetryNameResult[] = [];
@@ -367,7 +412,8 @@ export class PoetryNamer {
         randomPoetry, 
         familyName, 
         avoidedWords,
-        commonCharsSet
+        commonCharsSet,
+        nameLength
       );
       
       if (nameResult) {
@@ -414,7 +460,9 @@ export class PoetryNamer {
       const nameResult = this.generateNameFromPoetry(
         randomPoetry, 
         familyName, 
-        avoidedWords
+        avoidedWords,
+        null, // commonCharsSet
+        2    // nameLength - 默认为2字名
       );
       
       if (nameResult && !results.some(existing => existing.name === nameResult.name)) {

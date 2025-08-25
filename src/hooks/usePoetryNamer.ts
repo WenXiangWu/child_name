@@ -8,6 +8,7 @@ interface UsePoetryNamerParams {
   nameCount?: number;
   avoidedWords?: string[];
   useCommonChars?: boolean;
+  nameLength?: 2 | 3; // 名字长度：2字名或3字名
 }
 
 interface UsePoetryNamerResult {
@@ -46,7 +47,8 @@ export function usePoetryNamer(params: UsePoetryNamerParams): UsePoetryNamerResu
           books: params.books,
           nameCount: params.nameCount || 6,
           avoidedWords: params.avoidedWords || [],
-          useCommonChars: params.useCommonChars !== false // 默认为true
+          useCommonChars: params.useCommonChars !== false, // 默认为true
+          nameLength: params.nameLength || 2 // 默认生成2字名
         }),
       });
 

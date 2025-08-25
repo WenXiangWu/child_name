@@ -61,6 +61,7 @@ export interface PoetrySource {
 export interface NameCombination {
   firstName: string;
   secondName: string;
+  thirdName?: string;     // 第三个字（可选，用于三字名）
   meaning: string;
   gender: 'male' | 'female';
   popularity: number;
