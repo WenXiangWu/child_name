@@ -5,17 +5,11 @@ import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui';
 
-interface BreadcrumbItem {
-  label: string;
-  href?: string;
-}
-
 export interface CulturalPageTemplateProps {
   children: React.ReactNode;
   title: string;
   description?: string;
   keywords?: string;
-  breadcrumbs?: BreadcrumbItem[];
   heroTitle?: string;
   heroSubtitle?: string;
   heroDescription?: string;
@@ -94,7 +88,6 @@ export const CulturalPageTemplate: React.FC<CulturalPageTemplateProps> = ({
   title,
   description,
   keywords,
-  breadcrumbs = [],
   heroTitle,
   heroSubtitle,
   heroDescription,
@@ -106,13 +99,6 @@ export const CulturalPageTemplate: React.FC<CulturalPageTemplateProps> = ({
 }) => {
   const router = useRouter();
   const theme = culturalThemes[culturalTheme];
-
-  // 默认面包屑
-  const defaultBreadcrumbs: BreadcrumbItem[] = [
-    { label: '首页', href: '/' },
-    { label: '文化传承', href: '/culture/overview' },
-    ...breadcrumbs
-  ];
 
   const handleBack = () => {
     router.push('/culture/overview');
@@ -134,61 +120,7 @@ export const CulturalPageTemplate: React.FC<CulturalPageTemplateProps> = ({
         {/* 传统文化装饰顶部边框 */}
         <div className="h-1 bg-gradient-to-r from-cultural-red-500 via-cultural-gold-500 to-cultural-jade-500"></div>
         
-        {/* 固定顶部导航 - 传统文化风格 */}
-        <div className="sticky top-0 bg-cultural-paper/95 backdrop-blur-sm shadow-cultural border-b border-cultural-gold-200 z-50">
-          <div className="max-w-7xl mx-auto px-4 py-4">
-            {/* 面包屑导航 - 传统风格 */}
-            <nav className="flex items-center gap-3 text-sm mb-3">
-              {defaultBreadcrumbs.map((item, index) => (
-                <React.Fragment key={index}>
-                  {item.href ? (
-                    <Link 
-                      href={item.href} 
-                      className="text-cultural-ink-600 hover:text-cultural-red-600 transition-colors duration-300 font-medium flex items-center gap-1"
-                    >
-                      {index === 0 && <span className="text-cultural-gold-500">🏠</span>}
-                      {index === 1 && <span className="text-cultural-red-500">🏛️</span>}
-                      {item.label}
-                    </Link>
-                  ) : (
-                    <span className="text-cultural-ink-800 font-semibold flex items-center gap-1">
-                      <span className="text-cultural-jade-500">📖</span>
-                      {item.label}
-                    </span>
-                  )}
-                  {index < defaultBreadcrumbs.length - 1 && (
-                    <span className="text-cultural-gold-400 font-bold">❯</span>
-                  )}
-                </React.Fragment>
-              ))}
-            </nav>
 
-            {/* 学习进度条 - 传统风格 */}
-            {showProgress && (
-              <div className="flex items-center gap-4">
-                <div className="flex-1 bg-cultural-paper rounded-full h-3 border border-cultural-gold-200 shadow-inner">
-                  <div 
-                    className="bg-gradient-to-r from-cultural-red-500 via-cultural-gold-500 to-cultural-jade-500 h-full rounded-full transition-all duration-700 relative overflow-hidden"
-                    style={{ width: `${progress}%` }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-cultural-ink-600 font-medium">{Math.round(progress)}%</span>
-                  <span className="text-cultural-gold-500">📊</span>
-                </div>
-              </div>
-            )}
-
-            {/* 右侧操作按钮 */}
-            {headerActions && (
-              <div className="absolute top-4 right-4 flex items-center gap-3">
-                {headerActions}
-              </div>
-            )}
-          </div>
-        </div>
 
         {/* 英雄区域 - 传统文化风格 */}
         {(heroTitle || heroSubtitle || heroDescription) && (

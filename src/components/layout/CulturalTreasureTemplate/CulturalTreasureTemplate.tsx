@@ -2,6 +2,9 @@ import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
+import { Header } from '../Header';
+import { Footer } from '../Footer';
+import { MobileNavigation } from '../MobileNavigation';
 
 interface CulturalTreasureTemplateProps {
   children: React.ReactNode;
@@ -10,10 +13,6 @@ interface CulturalTreasureTemplateProps {
   pageTitle: string;
   pageSubtitle?: string;
   icon?: string;
-  breadcrumbs?: Array<{
-    label: string;
-    href: string;
-  }>;
   stats?: Array<{
     label: string;
     value: string | number;
@@ -30,7 +29,6 @@ const CulturalTreasureTemplate: React.FC<CulturalTreasureTemplateProps> = ({
   pageTitle,
   pageSubtitle,
   icon = '📚',
-  breadcrumbs = [],
   stats = [],
   headerActions,
   showBackToHome = true
@@ -52,58 +50,10 @@ const CulturalTreasureTemplate: React.FC<CulturalTreasureTemplateProps> = ({
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 border border-cultural-jade/5 rounded-full"></div>
       </div>
 
-      {/* 导航栏 */}
-      <nav className="relative z-20 bg-gradient-to-r from-white via-cultural-paper to-white shadow-cultural border-b-2 border-cultural-gold/30">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <Link href="/" className="flex items-center space-x-3 group">
-                <div className="w-10 h-10 bg-gradient-to-br from-cultural-red to-cultural-gold rounded-full flex items-center justify-center shadow-cultural group-hover:shadow-cultural-lg transition-all duration-300">
-                  <span className="text-white text-lg font-bold font-heading">名</span>
-                </div>
-                <div>
-                  <h1 className="text-lg font-bold text-cultural-ink font-heading group-hover:text-cultural-red transition-colors duration-300">
-                    宝宝取名专家
-                  </h1>
-                  <span className="text-xs text-cultural-gold font-medium">典籍宝库</span>
-                </div>
-              </Link>
-              
-              {/* 面包屑导航 */}
-              {breadcrumbs.length > 0 && (
-                <div className="hidden md:flex items-center space-x-2 text-sm">
-                  {breadcrumbs.map((crumb, index) => (
-                    <React.Fragment key={crumb.href}>
-                      {index > 0 && (
-                        <svg className="w-4 h-4 text-cultural-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      )}
-                      <Link
-                        href={crumb.href}
-                        className="text-cultural-ink hover:text-cultural-red transition-colors duration-300 font-medium"
-                      >
-                        {crumb.label}
-                      </Link>
-                    </React.Fragment>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {headerActions}
-              {showBackToHome && (
-                <Link href="/">
-                  <Button variant="secondary" size="sm">
-                    返回首页
-                  </Button>
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* 标准导航栏 */}
+      <Header />
+
+
 
       {/* 页面头部 */}
       <section className="relative z-10 py-16 bg-gradient-to-r from-cultural-red/5 via-cultural-gold/5 to-cultural-jade/5">
@@ -154,71 +104,11 @@ const CulturalTreasureTemplate: React.FC<CulturalTreasureTemplateProps> = ({
         {children}
       </main>
 
-      {/* 页脚 */}
-      <footer className="relative z-10 bg-gradient-to-r from-cultural-ink via-gray-800 to-cultural-ink text-white py-16 mt-20">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-cultural-red to-cultural-gold rounded-full flex items-center justify-center mr-3">
-                  <span className="text-white text-sm font-bold">名</span>
-                </div>
-                <h3 className="text-xl font-bold font-heading">宝宝取名专家</h3>
-              </div>
-              <p className="text-gray-300 text-sm leading-relaxed">
-                传承中华文化智慧，为每个家庭提供专业的取名服务，让传统文化在新时代焕发光彩。
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-4 text-cultural-gold">典籍宝库</h3>
-              <div className="space-y-2">
-                <Link href="/poetry" className="block text-gray-300 hover:text-cultural-gold text-sm transition-colors duration-300">
-                  📖 诗词典籍
-                </Link>
-                <Link href="/baijiaxing" className="block text-gray-300 hover:text-cultural-gold text-sm transition-colors duration-300">
-                  📜 百家姓谱
-                </Link>
-                <Link href="/standard-characters" className="block text-gray-300 hover:text-cultural-gold text-sm transition-colors duration-300">
-                  🏛️ 规范汉字
-                </Link>
-                <Link href="/culture/lunar-calendar" className="block text-gray-300 hover:text-cultural-gold text-sm transition-colors duration-300">
-                  🏮 农历万年历
-                </Link>
-              </div>
-            </div>
-            
-            <div className="text-center md:text-right">
-              <h3 className="text-lg font-semibold mb-4 text-cultural-jade">文化传承</h3>
-              <div className="text-gray-300 text-sm space-y-2">
-                <div className="flex items-center justify-center md:justify-end">
-                  <span className="mr-2">🏛️</span>
-                  <span>国家规范汉字标准</span>
-                </div>
-                <div className="flex items-center justify-center md:justify-end">
-                  <span className="mr-2">📚</span>
-                  <span>传统文化典籍</span>
-                </div>
-                <div className="flex items-center justify-center md:justify-end">
-                  <span className="mr-2">🎨</span>
-                  <span>中华美学传统</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-700 mt-12 pt-8 text-center">
-            <div className="flex items-center justify-center mb-4">
-              <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-cultural-gold"></div>
-              <span className="mx-4 text-cultural-gold">✦</span>
-              <div className="w-12 h-0.5 bg-gradient-to-l from-transparent to-cultural-gold"></div>
-            </div>
-            <p className="text-gray-400 text-sm">
-              &copy; 2024 宝宝取名专家 · 传承文化，守护传统 · 让每个名字都有故事
-            </p>
-          </div>
-        </div>
-      </footer>
+      {/* 标准页脚 */}
+      <Footer />
+      
+      {/* 移动端导航 */}
+      <MobileNavigation />
     </div>
   );
 };

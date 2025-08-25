@@ -95,26 +95,30 @@ const LunarCalendarPage: React.FC = () => {
         <meta name="keywords" content="农历,万年历,八字,节气,宜忌,吉神方位,传统文化" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-amber-50">
+      <div className="min-h-screen bg-gradient-to-br from-cultural-paper via-white to-cultural-jade-50">
         {/* 页面头部 */}
-        <div className="bg-gradient-to-r from-red-600 via-orange-600 to-amber-600 text-white py-16">
-          <div className="max-w-7xl mx-auto px-4 text-center">
-            {/* 面包屑 */}
-            <div className="flex items-center justify-center gap-2 text-red-100 mb-6">
-              <Link href="/" className="hover:text-white transition-colors">首页</Link>
-              <span>›</span>
-              <Link href="/#culture" className="hover:text-white transition-colors">传统文化</Link>
-              <span>›</span>
-              <span className="text-white font-medium">农历万年历</span>
-            </div>
+        <div className="bg-gradient-to-r from-cultural-red/90 via-cultural-gold/90 to-cultural-jade/90 text-white py-16 relative overflow-hidden">
+          {/* 装饰背景元素 */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-10 left-10 w-24 h-24 border-2 border-white rounded-full"></div>
+            <div className="absolute top-20 right-20 w-16 h-16 border border-white rotate-45"></div>
+            <div className="absolute bottom-16 left-1/4 w-12 h-12 bg-white/20 rounded-full"></div>
+            <div className="absolute bottom-20 right-1/3 w-20 h-20 border border-white rounded-full"></div>
+          </div>
+          
+          <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
+
             
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              🏮 农历万年历
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl shadow-lg mb-6 border border-white/30">
+              <span className="text-3xl text-white font-bold">历</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold font-heading mb-4">
+              农历万年历
             </h1>
-            <div className="text-2xl md:text-3xl font-medium mb-4 text-orange-100">
+            <div className="text-xl md:text-2xl font-medium mb-4 text-white/90">
               传统文化的时间智慧
             </div>
-            <p className="text-lg text-red-200 max-w-3xl mx-auto mb-8 leading-relaxed">
+            <p className="text-lg text-white/80 max-w-3xl mx-auto mb-8 leading-relaxed">
               传承千年智慧的农历万年历，提供精准的农历转换、八字排盘、节气计算、
               吉神方位、宜忌事项等功能，助您把握时运。
             </p>
@@ -123,7 +127,7 @@ const LunarCalendarPage: React.FC = () => {
             {isClient && (
               <div className="max-w-2xl mx-auto bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 mb-6">
                 <div className="text-center">
-                  <div className="text-lg font-semibold mb-2 text-orange-100">🕐 当前时间</div>
+                  <div className="text-lg font-semibold mb-2 text-white/90">当前时间</div>
                   <div className="text-3xl md:text-4xl font-bold text-white font-mono mb-2">
                     {currentTime.toLocaleTimeString('zh-CN', { 
                       hour12: false,
@@ -132,7 +136,7 @@ const LunarCalendarPage: React.FC = () => {
                       second: '2-digit'
                     })}
                   </div>
-                  <div className="text-lg text-red-100">
+                  <div className="text-lg text-white/80">
                     {currentTime.toLocaleDateString('zh-CN', { 
                       year: 'numeric',
                       month: 'long', 
@@ -147,32 +151,32 @@ const LunarCalendarPage: React.FC = () => {
             {/* 今日农历信息预览 */}
             {currentLunarInfo && (
               <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                <div className="text-lg font-semibold mb-4 text-center">📅 今日农历</div>
+                <div className="text-lg font-semibold mb-4 text-center text-white/90">今日农历</div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
                   <div className="text-center">
-                    <div className="text-red-100 mb-2">📅 公历</div>
+                    <div className="text-white/70 mb-2">公历</div>
                     <div className="text-white font-medium text-lg">
                       {currentLunarInfo.solar.year}年{currentLunarInfo.solar.month}月{currentLunarInfo.solar.day}日
                     </div>
-                    <div className="text-red-200 text-sm mt-1">
+                    <div className="text-white/60 text-sm mt-1">
                       {currentLunarInfo.solar.weekday} · {currentLunarInfo.solar.constellation}
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-red-100 mb-2">🏮 农历</div>
+                    <div className="text-white/70 mb-2">农历</div>
                     <div className="text-white font-medium text-lg">
                       {LunarCalendarLib.formatLunarDate(currentLunarInfo)}
                     </div>
-                    <div className="text-red-200 text-sm mt-1">
+                    <div className="text-white/60 text-sm mt-1">
                       {currentLunarInfo.solarTerms.current || '无节气'}
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-red-100 mb-2">🔮 八字</div>
+                    <div className="text-white/70 mb-2">八字</div>
                     <div className="text-white font-medium font-mono text-lg">
                       {LunarCalendarLib.formatEightChar(currentLunarInfo)}
                     </div>
-                    <div className="text-red-200 text-sm mt-1">
+                    <div className="text-white/60 text-sm mt-1">
                       四柱干支
                     </div>
                   </div>
@@ -193,15 +197,15 @@ const LunarCalendarPage: React.FC = () => {
                     {loadingMessage || '正在初始化农历功能...'}
                   </div>
                   {!lunarLibraryFailed && (
-                    <div className="mt-4 animate-spin mx-auto w-8 h-8 border-4 border-red-200 border-t-red-600 rounded-full"></div>
+                    <div className="mt-4 animate-spin mx-auto w-8 h-8 border-4 border-cultural-gold/20 border-t-cultural-gold rounded-full"></div>
                   )}
                   {lunarLibraryFailed && (
                     <div className="mt-4">
                       <button
                         onClick={() => window.location.reload()}
-                        className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        className="px-6 py-3 bg-cultural-ink text-white rounded-lg hover:bg-cultural-ink/80 transition-colors"
                       >
-                        🔄 重新加载
+                        重新加载
                       </button>
                     </div>
                   )}
@@ -223,13 +227,13 @@ const LunarCalendarPage: React.FC = () => {
               {selectedLunarInfo && (
                 <>
                   {/* 基本信息 */}
-                  <div className="bg-white rounded-2xl shadow-xl p-6">
-                    <h3 className="text-xl font-bold text-gray-800 mb-4">📋 详细信息</h3>
+                  <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                    <h3 className="text-xl font-bold text-cultural-ink mb-4">详细信息</h3>
                     
                     {/* 阳历信息 */}
                     <div className="mb-6">
-                      <h4 className="font-semibold text-blue-700 mb-3 flex items-center">
-                        <span className="mr-2">📅</span>阳历信息
+                      <h4 className="font-semibold text-cultural-ink mb-3 flex items-center">
+                        <span className="w-2 h-2 bg-cultural-gold rounded-full mr-3"></span>阳历信息
                       </h4>
                       <div className="space-y-2 text-sm text-gray-700">
                         <div className="flex justify-between">
@@ -251,8 +255,8 @@ const LunarCalendarPage: React.FC = () => {
 
                     {/* 农历信息 */}
                     <div className="mb-6">
-                      <h4 className="font-semibold text-red-700 mb-3 flex items-center">
-                        <span className="mr-2">🏮</span>农历信息
+                      <h4 className="font-semibold text-cultural-red mb-3 flex items-center">
+                        <span className="w-2 h-2 bg-cultural-red rounded-full mr-3"></span>农历信息
                       </h4>
                       <div className="space-y-2 text-sm text-gray-700">
                         <div className="flex justify-between">
@@ -276,7 +280,7 @@ const LunarCalendarPage: React.FC = () => {
                         {selectedLunarInfo.lunar.festivals.length > 0 && (
                           <div className="flex justify-between">
                             <span>节日：</span>
-                            <span className="font-medium text-red-600">
+                            <span className="font-medium text-cultural-red">
                               {selectedLunarInfo.lunar.festivals.join('、')}
                             </span>
                           </div>
@@ -286,14 +290,14 @@ const LunarCalendarPage: React.FC = () => {
 
                     {/* 八字信息 */}
                     <div>
-                      <h4 className="font-semibold text-purple-700 mb-3 flex items-center">
-                        <span className="mr-2">🔮</span>八字信息
+                      <h4 className="font-semibold text-cultural-jade mb-3 flex items-center">
+                        <span className="w-2 h-2 bg-cultural-jade rounded-full mr-3"></span>八字信息
                       </h4>
-                      <div className="bg-purple-50 p-3 rounded-lg">
-                        <div className="text-center font-mono text-lg font-bold text-purple-800 mb-2">
+                      <div className="bg-cultural-jade/5 p-4 rounded-lg border border-cultural-jade/20">
+                        <div className="text-center font-mono text-lg font-bold text-cultural-ink mb-2">
                           {LunarCalendarLib.formatEightChar(selectedLunarInfo)}
                         </div>
-                        <div className="grid grid-cols-4 gap-1 text-xs text-purple-600">
+                        <div className="grid grid-cols-4 gap-1 text-xs text-cultural-jade">
                           <div className="text-center">年柱</div>
                           <div className="text-center">月柱</div>
                           <div className="text-center">日柱</div>
@@ -304,31 +308,31 @@ const LunarCalendarPage: React.FC = () => {
                   </div>
 
                   {/* 五行分析 */}
-                  <div className="bg-white rounded-2xl shadow-xl p-6">
-                    <h3 className="text-xl font-bold text-gray-800 mb-4">🌟 五行分析</h3>
-                    <div className="space-y-3">
+                  <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                    <h3 className="text-xl font-bold text-cultural-ink mb-4">五行分析</h3>
+                    <div className="space-y-4">
                       {[
-                        { element: '木', count: selectedLunarInfo.eightChar.wuxing.wood, color: 'green' },
-                        { element: '火', count: selectedLunarInfo.eightChar.wuxing.fire, color: 'red' },
-                        { element: '土', count: selectedLunarInfo.eightChar.wuxing.earth, color: 'yellow' },
+                        { element: '木', count: selectedLunarInfo.eightChar.wuxing.wood, color: 'emerald' },
+                        { element: '火', count: selectedLunarInfo.eightChar.wuxing.fire, color: 'cultural-red' },
+                        { element: '土', count: selectedLunarInfo.eightChar.wuxing.earth, color: 'cultural-gold' },
                         { element: '金', count: selectedLunarInfo.eightChar.wuxing.metal, color: 'gray' },
-                        { element: '水', count: selectedLunarInfo.eightChar.wuxing.water, color: 'blue' }
+                        { element: '水', count: selectedLunarInfo.eightChar.wuxing.water, color: 'cultural-jade' }
                       ].map((item, index) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <div className={`flex items-center text-${item.color}-700`}>
-                            <span className={`w-6 h-6 bg-${item.color}-200 rounded-full flex items-center justify-center text-sm font-bold mr-3`}>
+                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50/50 rounded-lg">
+                          <div className="flex items-center">
+                            <span className={`w-8 h-8 bg-${item.color}-100 border border-${item.color}-200 rounded-full flex items-center justify-center text-sm font-bold mr-3 text-${item.color}-700`}>
                               {item.element}
                             </span>
-                            <span className="font-medium">{item.element}行</span>
+                            <span className="font-medium text-gray-700">{item.element}行</span>
                           </div>
                           <div className="flex items-center space-x-3">
-                            <div className={`w-20 bg-${item.color}-200 rounded-full h-2`}>
+                            <div className="w-24 bg-gray-200 rounded-full h-2">
                               <div 
                                 className={`bg-${item.color}-500 h-2 rounded-full transition-all duration-500`}
                                 style={{ width: `${Math.min(item.count * 30, 100)}%` }}
                               ></div>
                             </div>
-                            <span className={`text-sm font-semibold text-${item.color}-600 w-8`}>
+                            <span className="text-sm font-semibold text-gray-600 w-10">
                               {item.count.toFixed(1)}
                             </span>
                           </div>
@@ -338,22 +342,22 @@ const LunarCalendarPage: React.FC = () => {
                   </div>
 
                   {/* 吉神方位 */}
-                  <div className="bg-white rounded-2xl shadow-xl p-6">
-                    <h3 className="text-xl font-bold text-gray-800 mb-4">🧭 吉神方位</h3>
+                  <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                    <h3 className="text-xl font-bold text-cultural-ink mb-4">吉神方位</h3>
                     <div className="space-y-3">
                       {[
-                        { name: '喜神', position: selectedLunarInfo.gods.xi, icon: '😊', color: 'pink' },
-                        { name: '福神', position: selectedLunarInfo.gods.fu, icon: '🍀', color: 'green' },
-                        { name: '财神', position: selectedLunarInfo.gods.cai, icon: '💰', color: 'yellow' },
-                        { name: '阳贵神', position: selectedLunarInfo.gods.yangGui, icon: '☀️', color: 'orange' },
-                        { name: '阴贵神', position: selectedLunarInfo.gods.yinGui, icon: '🌙', color: 'purple' }
+                        { name: '喜神', position: selectedLunarInfo.gods.xi, color: 'cultural-red' },
+                        { name: '福神', position: selectedLunarInfo.gods.fu, color: 'emerald' },
+                        { name: '财神', position: selectedLunarInfo.gods.cai, color: 'cultural-gold' },
+                        { name: '阳贵神', position: selectedLunarInfo.gods.yangGui, color: 'amber' },
+                        { name: '阴贵神', position: selectedLunarInfo.gods.yinGui, color: 'cultural-jade' }
                       ].map((god, index) => god.position && (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50/50 rounded-lg">
                           <div className="flex items-center">
-                            <span className="text-2xl mr-3">{god.icon}</span>
-                            <span className={`font-medium text-${god.color}-700`}>{god.name}</span>
+                            <span className={`w-3 h-3 bg-${god.color}-500 rounded-full mr-3`}></span>
+                            <span className="font-medium text-gray-700">{god.name}</span>
                           </div>
-                          <span className={`font-bold text-${god.color}-800 bg-${god.color}-100 px-3 py-1 rounded-full`}>
+                          <span className={`font-semibold text-${god.color}-700 bg-${god.color}-50 border border-${god.color}-200 px-3 py-1 rounded-lg text-sm`}>
                             {god.position}
                           </span>
                         </div>
@@ -362,17 +366,17 @@ const LunarCalendarPage: React.FC = () => {
                   </div>
 
                   {/* 宜忌事项 */}
-                  <div className="bg-white rounded-2xl shadow-xl p-6">
-                    <h3 className="text-xl font-bold text-gray-800 mb-4">📝 宜忌事项</h3>
+                  <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                    <h3 className="text-xl font-bold text-cultural-ink mb-4">宜忌事项</h3>
                     
                     {/* 宜 */}
-                    <div className="mb-4">
-                      <h4 className="font-semibold text-green-700 mb-2 flex items-center">
-                        <span className="mr-2">✅</span>宜
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-emerald-700 mb-3 flex items-center">
+                        <span className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></span>宜
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {selectedLunarInfo.activities.yi.slice(0, 6).map((activity, index) => (
-                          <span key={index} className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm">
+                          <span key={index} className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-sm">
                             {activity}
                           </span>
                         ))}
@@ -381,12 +385,12 @@ const LunarCalendarPage: React.FC = () => {
 
                     {/* 忌 */}
                     <div>
-                      <h4 className="font-semibold text-red-700 mb-2 flex items-center">
-                        <span className="mr-2">❌</span>忌
+                      <h4 className="font-semibold text-cultural-red mb-3 flex items-center">
+                        <span className="w-2 h-2 bg-cultural-red rounded-full mr-3"></span>忌
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {selectedLunarInfo.activities.ji.slice(0, 6).map((activity, index) => (
-                          <span key={index} className="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-sm">
+                          <span key={index} className="px-3 py-1 bg-cultural-red/10 text-cultural-red border border-cultural-red/20 rounded-lg text-sm">
                             {activity}
                           </span>
                         ))}
@@ -399,55 +403,47 @@ const LunarCalendarPage: React.FC = () => {
           </div>
 
           {/* 功能特点 */}
-          <div className="mt-16 bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">💎 功能特点</h2>
+          <div className="mt-16 bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+            <h2 className="text-3xl font-bold font-heading text-center text-cultural-ink mb-8">功能特点</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 {
-                  icon: '📅',
+                  icon: '历',
                   title: '精准转换',
-                  desc: '公历农历精确对照，支持历史与未来日期查询'
+                  desc: '公历农历精确对照，支持历史与未来日期查询',
+                  color: 'cultural-gold'
                 },
                 {
-                  icon: '🔮',
+                  icon: '算',
                   title: '八字排盘',
-                  desc: '专业四柱八字排盘，五行分析，喜用神推算'
+                  desc: '专业四柱八字排盘，五行分析，喜用神推算',
+                  color: 'cultural-jade'
                 },
                 {
-                  icon: '🌸',
+                  icon: '节',
                   title: '节气节日',
-                  desc: '二十四节气，传统节日，民俗文化完整展现'
+                  desc: '二十四节气，传统节日，民俗文化完整展现',
+                  color: 'cultural-red'
                 },
                 {
-                  icon: '🧭',
+                  icon: '神',
                   title: '吉神宜忌',
-                  desc: '每日吉神方位，宜忌事项，助您趋吉避凶'
+                  desc: '每日吉神方位，宜忌事项，助您趋吉避凶',
+                  color: 'emerald'
                 }
               ].map((feature, index) => (
-                <div key={index} className="text-center p-6 rounded-xl border border-gray-200 hover:shadow-lg transition-all">
-                  <div className="text-4xl mb-4">{feature.icon}</div>
-                  <h3 className="text-lg font-bold text-gray-800 mb-2">{feature.title}</h3>
-                  <p className="text-sm text-gray-600">{feature.desc}</p>
+                <div key={index} className="text-center p-6 rounded-xl border border-gray-200 hover:shadow-lg hover:border-gray-300 transition-all">
+                  <div className={`w-12 h-12 bg-gradient-to-br from-${feature.color}-500 to-${feature.color}-600 rounded-xl flex items-center justify-center text-white text-xl font-bold mx-auto mb-4`}>
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-lg font-bold text-cultural-ink mb-2">{feature.title}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">{feature.desc}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* 返回链接 */}
-          <div className="text-center mt-12">
-            <Link 
-              href="/culture/bazi-xiyongshen"
-              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-lg hover:from-red-700 hover:to-orange-700 transition-all transform hover:scale-105 mr-4"
-            >
-              🔮 八字喜用神分析
-            </Link>
-            <Link 
-              href="/"
-              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all transform hover:scale-105"
-            >
-              ← 返回首页
-            </Link>
-          </div>
+         
         </div>
       </div>
     </Layout>

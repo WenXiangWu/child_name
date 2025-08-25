@@ -130,11 +130,7 @@ const PoetryBrowserPage: NextPage = () => {
     );
   }
 
-  const breadcrumbs = [
-    { label: '首页', href: '/' },
-    { label: '典籍宝库', href: '/poetry' },
-    { label: '诗词典籍', href: '/poetry' }
-  ];
+
 
   const statsData = stats ? [
     { label: '总收录', value: stats.totalCount, icon: '📖' },
@@ -150,7 +146,7 @@ const PoetryBrowserPage: NextPage = () => {
       pageTitle="诗词典籍"
       pageSubtitle="探索中华传统文化的瑰宝"
       icon="📚"
-      breadcrumbs={breadcrumbs}
+
       stats={statsData}
     >
         {/* 搜索和筛选区域 */}

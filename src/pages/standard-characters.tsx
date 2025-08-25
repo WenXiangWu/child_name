@@ -79,11 +79,7 @@ const StandardCharactersPage: React.FC = () => {
 
   const stats = validator?.getStats();
 
-  const breadcrumbs = [
-    { label: '首页', href: '/' },
-    { label: '典籍宝库', href: '/poetry' },
-    { label: '规范汉字', href: '/standard-characters' }
-  ];
+
 
   const statsData = stats ? [
     { label: '标准汉字', value: stats.standardCharsCount, icon: '📝' },
@@ -119,7 +115,7 @@ const StandardCharactersPage: React.FC = () => {
       pageTitle="国家通用规范汉字表"
       pageSubtitle="官方权威标准 · 规范用字典范"
       icon="🏛️"
-      breadcrumbs={breadcrumbs}
+
       stats={statsData}
     >
         {/* 官方权威标识 */}

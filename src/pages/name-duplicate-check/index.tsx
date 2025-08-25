@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import Head from 'next/head';
+import Layout from '@/components/Layout';
 
 // 省份查询信息配置
 const provinceData = [
@@ -534,28 +534,11 @@ const NameDuplicateCheckPage: React.FC = () => {
   };
 
   return (
-    <>
-      <Head>
-        <title>重名查询 - 宝宝取名专家</title>
-        <meta name="description" content="查询全国及各省份姓名重名情况，为宝宝取名提供参考" />
-      </Head>
-
+    <Layout 
+      title="重名查询 - 宝宝取名专家"
+      description="查询全国及各省份姓名重名情况，为宝宝取名提供参考"
+    >
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50">
-        {/* 导航栏 */}
-        <nav className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <Link href="/" className="text-xl font-bold text-gray-800 flex items-center">
-                <span className="mr-2">🔍</span>
-                重名查询
-              </Link>
-              <Link href="/" className="text-gray-600 hover:text-gray-800 flex items-center">
-                <span className="mr-1">🏠</span>
-                返回主页
-              </Link>
-            </div>
-          </div>
-        </nav>
 
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* 页面标题 */}
@@ -850,7 +833,7 @@ const NameDuplicateCheckPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </>
+    </Layout>
   );
 };
 

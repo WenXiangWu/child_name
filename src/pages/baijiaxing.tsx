@@ -105,11 +105,7 @@ const BaijiaxingPage = () => {
     setSelectedSurname(origin || null);
   };
 
-  const breadcrumbs = [
-    { label: '首页', href: '/' },
-    { label: '典籍宝库', href: '/poetry' },
-    { label: '百家姓谱', href: '/baijiaxing' }
-  ];
+
 
   const statsData = [
     { label: '收录姓氏', value: allSurnames.length, icon: '👥' },
@@ -127,7 +123,7 @@ const BaijiaxingPage = () => {
         pageTitle="百家姓"
         pageSubtitle="正在加载数据..."
         icon="📜"
-        breadcrumbs={breadcrumbs}
+
         stats={[]}
       >
         <Card variant="cultural" className="text-center py-20">
@@ -153,7 +149,7 @@ const BaijiaxingPage = () => {
         pageTitle="百家姓"
         pageSubtitle="数据加载失败"
         icon="📜"
-        breadcrumbs={breadcrumbs}
+
         stats={[]}
       >
         <Card variant="cultural" className="text-center py-20">
@@ -181,7 +177,7 @@ const BaijiaxingPage = () => {
         pageTitle="百家姓"
         pageSubtitle="数据准备中..."
         icon="📜"
-        breadcrumbs={breadcrumbs}
+
         stats={[]}
       >
         <Card variant="cultural" className="text-center py-20">

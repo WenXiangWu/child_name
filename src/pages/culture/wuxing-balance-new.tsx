@@ -68,7 +68,7 @@ const WuxingBalanceNewPage: React.FC = () => {
       title="五行平衡配置原理 - 宝宝取名专家"
       description="了解传统五行相生相克理论与现代应用，掌握名字五行配置的深层智慧"
       keywords="五行平衡,五行相生相克,传统文化,姓名学,阴阳五行"
-      breadcrumbs={[{ label: '五行平衡配置' }]}
+
       heroTitle="五行平衡"
       heroSubtitle="和谐统一的能量调衡"
       heroDescription="根据生辰八字分析五行属性，通过姓名调节人体能量平衡，实现命理与姓名的完美融合，传承千年的中华智慧"

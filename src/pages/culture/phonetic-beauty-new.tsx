@@ -9,7 +9,7 @@ const PhoneticBeautyPage: React.FC = () => {
       description="深入了解汉语音韵学在取名中的应用，掌握声调搭配、音律分析与诗韵美感的核心技巧"
       keywords="音韵美感,声调搭配,音律分析,诗韵美感,汉语音韵学"
       category="culture"
-      breadcrumbs={[{ label: '音韵美感分析' }]}
+
       heroTitle="音韵美感"
       heroSubtitle="声律之美的诗意表达"
       heroDescription="分析声调格律、音韵搭配与节奏美感，确保名字不仅寓意深刻，更要读音优美、朗朗上口"
